@@ -1,0 +1,7 @@
+remote_theme: "mmistakes/minimal-mistakes@latest"
+plugins:
+  - jekyll-remote-theme # Add this if you're using GitHub Pages
+
+# Minimal Mistakes specific settings
+title: "Ethereum Execution Specs Contributions"
+description: "This site highlights my contributions to the Ethereum Execution Client Specifications and Ethereum Execution Tests."
