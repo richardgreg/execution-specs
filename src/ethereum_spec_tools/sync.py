@@ -320,8 +320,8 @@ class BlockDownloader(ForkTracking):
                     self.module("transactions").AccessListTransaction(
                         hex_to_u64(t["chainId"]),
                         hex_to_u256(t["nonce"]),
-                        hex_to_u256(t["gasPrice"]),
-                        hex_to_u256(t["gas"]),
+                        hex_to_uint(t["gasPrice"]),
+                        hex_to_uint(t["gas"]),
                         self.module("utils.hexadecimal").hex_to_address(
                             t["to"]
                         )
@@ -340,9 +340,9 @@ class BlockDownloader(ForkTracking):
                     self.module("transactions").FeeMarketTransaction(
                         hex_to_u64(t["chainId"]),
                         hex_to_u256(t["nonce"]),
-                        hex_to_u256(t["maxPriorityFeePerGas"]),
-                        hex_to_u256(t["maxFeePerGas"]),
-                        hex_to_u256(t["gas"]),
+                        hex_to_uint(t["maxPriorityFeePerGas"]),
+                        hex_to_uint(t["maxFeePerGas"]),
+                        hex_to_uint(t["gas"]),
                         self.module("utils.hexadecimal").hex_to_address(
                             t["to"]
                         )
@@ -359,8 +359,8 @@ class BlockDownloader(ForkTracking):
             else:
                 return self.module("transactions").LegacyTransaction(
                     hex_to_u256(t["nonce"]),
-                    hex_to_u256(t["gasPrice"]),
-                    hex_to_u256(t["gas"]),
+                    hex_to_uint(t["gasPrice"]),
+                    hex_to_uint(t["gas"]),
                     self.module("utils.hexadecimal").hex_to_address(t["to"])
                     if t["to"]
                     else Bytes0(b""),
@@ -373,8 +373,8 @@ class BlockDownloader(ForkTracking):
         else:
             return self.module("transactions").Transaction(
                 hex_to_u256(t["nonce"]),
-                hex_to_u256(t["gasPrice"]),
-                hex_to_u256(t["gas"]),
+                hex_to_uint(t["gasPrice"]),
+                hex_to_uint(t["gas"]),
                 self.module("utils.hexadecimal").hex_to_address(t["to"])
                 if t["to"]
                 else Bytes0(b""),
@@ -452,7 +452,7 @@ class BlockDownloader(ForkTracking):
                     ommers_needed[reply_id] = len(res["uncles"])
 
             ommers = self.fetch_ommers(ommers_needed)
-            for id in block_jsons:
+            for id in block_jsons:                      # noqa A001
                 self.advance_block(hex_to_u256(block_jsons[id]["timestamp"]))
                 blocks[id] = self.make_block(
                     block_jsons[id], ommers.get(id, ())
