@@ -87,6 +87,7 @@ packages = [
     "ethereum_test_tools.utility",
     "ethereum_test_tools.vm",
     "ethereum_test_types",
+    "ethereum_test_types.block_access_list",
     "ethereum_test_types.eof",
     "ethereum_test_types.eof.v1",
     "ethereum_test_types.tests",
