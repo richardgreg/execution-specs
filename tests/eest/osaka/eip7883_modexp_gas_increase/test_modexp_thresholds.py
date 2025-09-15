@@ -289,6 +289,13 @@ def create_modexp_variable_gas_test_cases():
     # Test case definitions: (base, exponent, modulus, expected_result, test_id)
     test_cases = [
         ("", "", "", "", "Z0"),
+        ("01" * 32, "00" * 32, "", "", "Z1"),
+        ("01" * 1024, "00" * 32, "", "", "Z2"),
+        ("01" * 32, "00" * 1024, "", "", "Z3"),
+        ("01" * 32, "00" * 1023 + "01", "", "", "Z4"),
+        ("", "", "01" * 32, "00" * 31 + "01", "Z5"),
+        ("", "01" * 32, "01" * 32, "00" * 32, "Z6"),
+        ("", "00" * 31 + "01", "01" * 1024, "00" * 1024, "Z7"),
         ("01" * 16, "00" * 16, "02" * 16, "00" * 15 + "01", "S0"),
         ("01" * 16, "00" * 15 + "03", "02" * 16, "01" * 16, "S1"),
         ("01" * 32, "FF" * 32, "02" * 32, "01" * 32, "S2"),
@@ -307,9 +314,14 @@ def create_modexp_variable_gas_test_cases():
         ("01" * 33, "01", "02" * 31, "00" * 29 + "01" * 2, "B2"),
         ("01" * 33, "01", "02" * 33, "01" * 33, "B4"),
         # Zero value edge cases
-        ("00" * 32, "00" * 32, "01" * 32, "00" * 31 + "01", "Z1"),
-        ("01" * 32, "00" * 32, "00" * 32, "00" * 32, "Z2"),
-        ("00" * 32, "01" * 32, "02" * 32, "00" * 32, "Z3"),
+        ("00" * 32, "00" * 32, "01" * 32, "00" * 31 + "01", "Z8"),
+        ("01" * 32, "00" * 32, "00" * 32, "00" * 32, "Z9"),
+        ("00" * 32, "01" * 32, "02" * 32, "00" * 32, "Z10"),
+        ("00" * 32, "00" * 33, "01" * 32, "00" * 31 + "01", "Z11"),
+        ("00" * 32, "00" * 1024, "01" * 32, "00" * 31 + "01", "Z12"),
+        ("00" * 1024, "00" * 32, "01" * 32, "00" * 31 + "01", "Z13"),
+        ("01" * 32, "00" * 1024, "00" * 32, "00" * 32, "Z14"),
+        ("01" * 32, "00" * 31 + "01", "00" * 1024, "00" * 1024, "Z15"),
         # Maximum value stress tests
         ("FF" * 64, "FF" * 64, "FF" * 64, "00" * 64, "M1"),
         ("FF" * 32, "01", "FF" * 32, "00" * 32, "M2"),
@@ -330,6 +342,23 @@ def create_modexp_variable_gas_test_cases():
         ("01" * 16, "80" + "00" * 31, "02" * 16, "01" * 16, "E2"),
         ("01" * 16, "00" * 31 + "80", "02" * 16, "01" * 16, "E3"),
         ("01" * 16, "7F" + "FF" * 31, "02" * 16, "01" * 16, "E4"),
+        # Implementation coverage cases
+        # IC1: Bit shift vs multiplication at 33-byte boundary
+        ("FF" * 33, "01", "FF" * 33, "00" * 33, "IC1"),
+        # IC3: Ceiling division at 7 bytes
+        ("01" * 7, "01", "02" * 7, "01" * 7, "IC3"),
+        # IC4: Ceiling division at 9 bytes
+        ("01" * 9, "01", "02" * 9, "01" * 9, "IC4"),
+        # IC5: Bit counting in middle of exponent
+        ("01", "00" * 15 + "80" + "00" * 16, "02", "01", "IC5"),
+        # IC6: Native library even byte optimization
+        ("01" * 31 + "00", "01", "01" * 31 + "00", "00" * 32, "IC6"),
+        # IC7: Vector optimization 128-bit boundary
+        ("00" * 15 + "01" * 17, "01", "00" * 15 + "01" * 17, "00" * 32, "IC7"),
+        # IC9: Zero modulus with large inputs
+        ("FF" * 32, "FF" * 32, "", "", "IC9"),
+        # IC10: Power-of-2 boundary with high bit
+        ("01" * 32, "80" + "00" * 31, "02" * 32, "01" * 32, "IC10"),
     ]
 
     # Gas calculation parameters:
@@ -356,39 +385,60 @@ def create_modexp_variable_gas_test_cases():
     # │ ID  │ Comp │ Rel │ Iter │ Clamp │   Gas   │ Description                                   │
     # ├─────┼──────┼─────┼──────┼───────┼─────────┼───────────────────────────────────────────────┤
     # │ Z0  │  -   │  -  │  -   │  -    │   500   │ Zero case – empty inputs                      │
+    # │ Z1  │  S   │  -  │  A   │ True  │   500   │ Non-zero base, zero exp, empty modulus        │
+    # │ Z2  │  L   │  -  │  A   │ False │ 32768   │ Large base (1024B), zero exp, empty modulus   │
+    # │ Z3  │  S   │  -  │  C   │ False │253936   │ Base, large zero exp (1024B), empty modulus   │
+    # │ Z4  │  S   │  -  │  D   │ False │253952   │ Base, large exp (last byte=1), empty modulus  │
+    # │ Z5  │  S   │  <  │  A   │ True  │   500   │ Empty base/exp, non-zero modulus only         │
+    # │ Z6  │  S   │  <  │  B   │ False │  3968   │ Empty base, non-zero exp and modulus          │
+    # │ Z7  │  L   │  <  │  B   │ False │ 32768   │ Empty base, small exp, large modulus          │
     # │ S0  │  S   │  =  │  A   │ True  │   500   │ Small, equal, zero exp, clamped               │
     # │ S1  │  S   │  =  │  B   │ True  │   500   │ Small, equal, small exp, clamped              │
     # │ S2  │  S   │  =  │  B   │ False │  4080   │ Small, equal, large exp, unclamped            │
-    # │ S3  │  S   │  =  │  C   │ False │  2032   │ Small, equal, large exp + zero low256         │
+    # │ S3  │  S   │  =  │  C   │ False │  2048   │ Small, equal, large exp + zero low256         │
     # │ S4  │  S   │  =  │  D   │ False │  2048   │ Small, equal, large exp + non-zero low256     │
     # │ S5  │  S   │  >  │  A   │ True  │   500   │ Small, base > mod, zero exp, clamped          │
     # │ S6  │  S   │  <  │  B   │ True  │   500   │ Small, base < mod, small exp, clamped         │
     # │ L0  │  L   │  =  │  A   │ True  │   500   │ Large, equal, zero exp, clamped               │
     # │ L1  │  L   │  =  │  B   │ False │ 12750   │ Large, equal, large exp, unclamped            │
-    # │ L2  │  L   │  =  │  C   │ False │  6350   │ Large, equal, large exp + zero low256         │
+    # │ L2  │  L   │  =  │  C   │ False │  6400   │ Large, equal, large exp + zero low256         │
     # │ L3  │  L   │  =  │  D   │ False │  6400   │ Large, equal, large exp + non-zero low256     │
     # │ L4  │  L   │  >  │  B   │ True  │   500   │ Large, base > mod, small exp, clamped         │
-    # │ L5  │  L   │  <  │  C   │ False │  9144   │ Large, base < mod, large exp + zero low256    │
+    # │ L5  │  L   │  <  │  C   │ False │  9216   │ Large, base < mod, large exp + zero low256    │
     # │ B1  │  L   │  <  │  B   │ True  │   500   │ Cross 32-byte boundary (31/33)                │
     # │ B2  │  L   │  >  │  B   │ True  │   500   │ Cross 32-byte boundary (33/31)                │
     # │ B4  │  L   │  =  │  B   │ True  │   500   │ Just over 32-byte boundary                    │
-    # │ Z1  │  S   │  =  │  A   │ True  │   500   │ All zeros except modulus                      │
-    # │ Z2  │  S   │  =  │  A   │ True  │   500   │ Zero modulus special case                     │
-    # │ Z3  │  S   │  =  │  B   │ False │  3968   │ Zero base, large exponent                     │
+    # │ Z8  │  S   │  =  │  A   │ True  │   500   │ All zeros except modulus                      │
+    # │ Z9  │  S   │  =  │  A   │ True  │   500   │ Zero modulus special case                     │
+    # │ Z10 │  S   │  =  │  B   │ False │  3968   │ Zero base, large exponent                     │
+    # │ Z11 │  S   │  =  │  C   │ True  │   500   │ Zero base, 33B zero exp, non-zero modulus     │
+    # │ Z12 │  S   │  =  │  C   │ False │253936   │ Zero base, large zero exp, non-zero modulus   │
+    # │ Z13 │  L   │  >  │  A   │ False │ 32768   │ Large zero base, zero exp, non-zero modulus   │
+    # │ Z14 │  S   │  =  │  C   │ False │253936   │ Base, large zero exp, zero modulus            │
+    # │ Z15 │  L   │  <  │  B   │ False │ 32768   │ Base, small exp, large zero modulus           │
+    # │ Z16 │  L   │  <  │  C   │ False │520060928│ Zero base, zero exp, large modulus (gas cap)  |
     # │ M1  │  L   │  =  │  D   │ False │ 98176   │ Maximum values stress test                    │
     # │ M2  │  S   │  =  │  B   │ True  │   500   │ Max base/mod, small exponent                  │
     # │ M3  │  L   │  <  │  D   │ False │ 98176   │ Small base, max exponent/mod                  │
     # │ T2  │  S   │  =  │  B   │ True  │   500   │ Tiny maximum values                           │
     # │ P2  │  S   │  =  │  B   │ False │  4080   │ High bit in exponent                          │
-    # │ P3  │  L   │  =  │  D   │ False │  1550   │ Specific bit pattern in large exponent        │
-    # │ A1  │  L   │  <  │  C   │ False │ 65408   │ Asymmetric: tiny base, large exp/mod          │
+    # │ P3  │  L   │  =  │  D   │ False │  1150   │ Specific bit pattern in large exponent        │
+    # │ A1  │  L   │  <  │  C   │ False │ 65536   │ Asymmetric: tiny base, large exp/mod          │
     # │ A2  │  L   │  >  │  B   │ True  │   500   │ Asymmetric: large base, tiny exp/mod          │
-    # │ A3  │  L   │  >  │  C   │ False │ 65408   │ Asymmetric: large base/exp, tiny modulus      │
+    # │ A3  │  L   │  >  │  C   │ False │ 65536   │ Asymmetric: large base/exp, tiny modulus      │
     # │ W2  │  S   │  =  │  B   │ True  │   500   │ Exactly 8-byte words                          │
     # │ E1  │  S   │  =  │  D   │ True  │   500   │ Exponent exactly 33 bytes                     │
     # │ E2  │  S   │  =  │  B   │ False │  4080   │ High bit in exponent first byte               │
     # │ E3  │  S   │  =  │  B   │ True  │   500   │ High bit in exponent last byte                │
     # │ E4  │  S   │  =  │  B   │ False │  4064   │ Maximum 32-byte exponent                      │
+    # │ IC1 │  L   │  =  │  B   │ True  │   500   │ Bit shift vs multiplication @ 33 bytes        │
+    # │ IC3 │  S   │  =  │  B   │ True  │   500   │ Ceiling division at 7 bytes                   │
+    # │ IC4 │  S   │  =  │  B   │ True  │   500   │ Ceiling division at 9 bytes                   │
+    # │ IC5 │  S   │  =  │  B   │ False │  2160   │ Bit counting in middle of exponent            │
+    # │ IC6 │  L   │  =  │  B   │ True  │   500   │ Native library even byte optimization         │
+    # │ IC7 │  L   │  =  │  B   │ True  │   500   │ Vector optimization 128-bit boundary          │
+    # │ IC9 │  S   │  =  │  B   │  N/A  │   N/A   │ Zero modulus handling                         │
+    # │ IC10│  S   │  =  │  B   │ False │  4080   │ Power-of-2 boundary with high bit             │
     # └─────┴──────┴─────┴──────┴───────┴─────────┴───────────────────────────────────────────────┘
     for base, exponent, modulus, expected_result, test_id in test_cases:
         yield pytest.param(
@@ -410,4 +460,30 @@ def test_modexp_variable_gas_cost(
     post: Dict,
 ):
     """Test ModExp variable gas cost."""
+    state_test(pre=pre, tx=tx, post=post)
+
+
+@pytest.mark.parametrize(
+    "modexp_input,modexp_expected,expected_tx_cap_fail",
+    [
+        pytest.param(
+            ModExpInput(base="00" * 32, exponent="00" * 1024, modulus="01" * 1024),
+            bytes.fromhex("00" * 1023 + "01"),
+            True,
+            id="Z16-gas-cap-test",
+        ),
+    ],
+)
+@pytest.mark.valid_from("Berlin")
+def test_modexp_variable_gas_cost_exceed_tx_gas_cap(state_test, pre, tx, post):
+    """
+    Test ModExp variable gas cost.
+    Inputs with an expected gas cost over the EIP-7825 tx gas cap.
+    """
+    # Test case coverage table (gas cap):
+    # ┌─────┬──────┬─────┬──────┬───────┬─────────┬───────────────────────────────────────────────┐
+    # │ ID  │ Comp │ Rel │ Iter │ Clamp │   Gas   │ Description                                   │
+    # ├─────┼──────┼─────┼──────┼───────┼─────────┼───────────────────────────────────────────────┤
+    # │ Z16 │  L   │  <  │  C   │ False │520060928│ Zero base, zero exp, large modulus (gas cap)  |
+    # └─────┴──────┴─────┴──────┴───────┴─────────┴───────────────────────────────────────────────┘
     state_test(pre=pre, tx=tx, post=post)
