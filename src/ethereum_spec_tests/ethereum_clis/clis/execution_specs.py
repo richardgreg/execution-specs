@@ -16,6 +16,7 @@ from ethereum_test_exceptions import (
     TransactionException,
 )
 from ethereum_test_forks import Fork
+from pytest_plugins.logging import get_logger
 
 import ethereum
 from ethereum_spec_tools.evm_tools import create_parser
@@ -151,12 +152,6 @@ class ExecutionSpecsExceptionMapper(ExceptionMapper):
         TransactionException.INSUFFICIENT_MAX_FEE_PER_BLOB_GAS: (
             "InsufficientMaxFeePerBlobGasError"
         ),
-        TransactionException.TYPE_3_TX_PRE_FORK: (
-            "module 'ethereum.shanghai.transactions' has no attribute 'BlobTransaction'"
-        ),
-        TransactionException.TYPE_4_TX_PRE_FORK: (
-            "'ethereum.cancun.transactions' has no attribute 'SetCodeTransaction'"
-        ),
         TransactionException.TYPE_3_TX_INVALID_BLOB_VERSIONED_HASH: (
             "InvalidBlobVersionedHashError"
         ),
@@ -185,5 +180,11 @@ class ExecutionSpecsExceptionMapper(ExceptionMapper):
     mapping_regex: ClassVar[Dict[ExceptionBase, str]] = {
         TransactionException.INSUFFICIENT_MAX_FEE_PER_GAS: (
             r"InsufficientMaxFeePerGasError|InvalidBlock"  # Temporary solution for issue #1981.
+        ),
+        TransactionException.TYPE_3_TX_PRE_FORK: (
+            r"module '.*transactions' has no attribute 'BlobTransaction'"
+        ),
+        TransactionException.TYPE_4_TX_PRE_FORK: (
+            r"'.*transactions' has no attribute 'SetCodeTransaction'"
         ),
     }

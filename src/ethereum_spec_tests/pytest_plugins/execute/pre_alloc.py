@@ -1,13 +1,21 @@
 """Pre-allocation fixtures using for test filling."""
 
 from itertools import count
+from pathlib import Path
 from random import randint
-from typing import Generator, Iterator, List, Literal, Tuple
+from typing import Dict, Generator, Iterator, List, Literal, Self, Tuple
 
 import pytest
+import yaml
 from pydantic import PrivateAttr
 
-from ethereum_test_base_types import Bytes, Number, StorageRootType, ZeroPaddedHexNumber
+from ethereum_test_base_types import (
+    Bytes,
+    EthereumTestRootModel,
+    Number,
+    StorageRootType,
+    ZeroPaddedHexNumber,
+)
 from ethereum_test_base_types.conversions import (
     BytesConvertible,
     FixedSizeBytesConvertible,
@@ -27,13 +35,58 @@ from ethereum_test_tools import (
 )
 from ethereum_test_tools import Alloc as BaseAlloc
 from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types import TransactionTestMetadata
+from ethereum_test_types import ChainConfig, TransactionTestMetadata
 from ethereum_test_types.eof.v1 import Container
 from ethereum_test_vm import Bytecode, EVMCodeType, Opcodes
 
 MAX_BYTECODE_SIZE = 24576
 
 MAX_INITCODE_SIZE = MAX_BYTECODE_SIZE * 2
+
+
+class AddressStubs(EthereumTestRootModel[Dict[str, Address]]):
+    """
+    Address stubs class.
+
+    The key represents the label that is used in the test to tag the contract, and the value
+    is the address where the contract is already located at in the current network.
+    """
+
+    root: Dict[str, Address]
+
+    def __contains__(self, item: str) -> bool:
+        """Check if an item is in the address stubs."""
+        return item in self.root
+
+    def __getitem__(self, item: str) -> Address:
+        """Get an item from the address stubs."""
+        return self.root[item]
+
+    @classmethod
+    def model_validate_json_or_file(cls, json_data_or_path: str) -> Self:
+        """
+        Try to load from file if the value resembles a path that ends with .json/.yml and the
+        file exists.
+        """
+        lower_json_data_or_path = json_data_or_path.lower()
+        if (
+            lower_json_data_or_path.endswith(".json")
+            or lower_json_data_or_path.endswith(".yml")
+            or lower_json_data_or_path.endswith(".yaml")
+        ):
+            path = Path(json_data_or_path)
+            if path.is_file():
+                path_suffix = path.suffix.lower()
+                if path_suffix == ".json":
+                    return cls.model_validate_json(path.read_text())
+                elif path_suffix in [".yml", ".yaml"]:
+                    loaded_yaml = yaml.safe_load(path.read_text())
+                    if loaded_yaml is None:
+                        return cls(root={})
+                    return cls.model_validate(loaded_yaml)
+        if json_data_or_path.strip() == "":
+            return cls(root={})
+        return cls.model_validate_json(json_data_or_path)
 
 
 def pytest_addoption(parser):
@@ -66,6 +119,13 @@ def pytest_addoption(parser):
         type=int,
         help="The default amount of wei to fund each EOA in each test with.",
     )
+    pre_alloc_group.addoption(
+        "--skip-cleanup",
+        action="store_true",
+        dest="skip_cleanup",
+        default=False,
+        help="Skip cleanup phase after each test.",
+    )
 
 
 @pytest.hookimpl(trylast=True)
@@ -78,6 +138,22 @@ def pytest_report_header(config):
         (bold + f"Start seed for EOA: {hex(eoa_start)} " + reset),
     ]
     return header
+
+
+@pytest.fixture(scope="session")
+def address_stubs(request) -> AddressStubs | None:
+    """
+    Return an address stubs object.
+
+    If the address stubs are not supported by the subcommand, return None.
+    """
+    return request.config.getoption("address_stubs", None)
+
+
+@pytest.fixture(scope="session")
+def skip_cleanup(request) -> bool:
+    """Return whether to skip cleanup phase after each test."""
+    return request.config.getoption("skip_cleanup")
 
 
 @pytest.fixture(scope="session")
@@ -100,6 +176,7 @@ class Alloc(BaseAlloc):
     _evm_code_type: EVMCodeType | None = PrivateAttr(None)
     _chain_id: int = PrivateAttr()
     _node_id: str = PrivateAttr("")
+    _address_stubs: AddressStubs = PrivateAttr()
 
     def __init__(
         self,
@@ -112,6 +189,7 @@ class Alloc(BaseAlloc):
         eoa_fund_amount_default: int,
         evm_code_type: EVMCodeType | None = None,
         node_id: str = "",
+        address_stubs: AddressStubs | None = None,
         **kwargs,
     ):
         """Initialize the pre-alloc with the given parameters."""
@@ -124,6 +202,7 @@ class Alloc(BaseAlloc):
         self._chain_id = chain_id
         self._eoa_fund_amount_default = eoa_fund_amount_default
         self._node_id = node_id
+        self._address_stubs = address_stubs or AddressStubs(root={})
 
     def __setitem__(self, address: Address | FixedSizeBytesConvertible, account: Account | None):
         """Set account associated with an address."""
@@ -152,6 +231,7 @@ class Alloc(BaseAlloc):
         address: Address | None = None,
         evm_code_type: EVMCodeType | None = None,
         label: str | None = None,
+        stub: str | None = None,
     ) -> Address:
         """Deploy a contract to the allocation."""
         if storage is None:
@@ -160,6 +240,25 @@ class Alloc(BaseAlloc):
 
         if not isinstance(storage, Storage):
             storage = Storage(storage)  # type: ignore
+
+        if stub is not None and self._address_stubs is not None:
+            if stub not in self._address_stubs:
+                raise ValueError(f"Stub name {stub} not found in address stubs")
+            contract_address = self._address_stubs[stub]
+            code = self._eth_rpc.get_code(contract_address)
+            if code == b"":
+                raise ValueError(f"Stub {stub} at {contract_address} has no code")
+            balance = self._eth_rpc.get_balance(contract_address)
+            nonce = self._eth_rpc.get_transaction_count(contract_address)
+            super().__setitem__(
+                contract_address,
+                Account(
+                    nonce=nonce,
+                    balance=balance,
+                    code=code,
+                    storage={},
+                ),
+            )
 
         initcode_prefix = Bytecode()
 
@@ -432,9 +531,11 @@ def pre(
     eoa_iterator: Iterator[EOA],
     eth_rpc: EthRPC,
     evm_code_type: EVMCodeType,
-    chain_id: int,
+    chain_config: ChainConfig,
     eoa_fund_amount_default: int,
     default_gas_price: int,
+    address_stubs: AddressStubs | None,
+    skip_cleanup: bool,
     request: pytest.FixtureRequest,
 ) -> Generator[Alloc, None, None]:
     """Return default pre allocation for all tests (Empty alloc)."""
@@ -448,39 +549,41 @@ def pre(
         eth_rpc=eth_rpc,
         eoa_iterator=eoa_iterator,
         evm_code_type=evm_code_type,
-        chain_id=chain_id,
+        chain_id=chain_config.chain_id,
         eoa_fund_amount_default=eoa_fund_amount_default,
         node_id=request.node.nodeid,
+        address_stubs=address_stubs,
     )
 
     # Yield the pre-alloc for usage during the test
     yield pre
 
-    # Refund all EOAs (regardless of whether the test passed or failed)
-    refund_txs = []
-    for idx, eoa in enumerate(pre._funded_eoa):
-        remaining_balance = eth_rpc.get_balance(eoa)
-        eoa.nonce = Number(eth_rpc.get_transaction_count(eoa))
-        refund_gas_limit = 21_000
-        tx_cost = refund_gas_limit * default_gas_price
-        if remaining_balance < tx_cost:
-            continue
-        refund_tx = Transaction(
-            sender=eoa,
-            to=sender_key,
-            gas_limit=21_000,
-            gas_price=default_gas_price,
-            value=remaining_balance - tx_cost,
-        ).with_signature_and_sender()
-        refund_tx.metadata = TransactionTestMetadata(
-            test_id=request.node.nodeid,
-            phase="cleanup",
-            action="refund_from_eoa",
-            target=eoa.label,
-            tx_index=idx,
-        )
-        refund_txs.append(refund_tx)
-    eth_rpc.send_wait_transactions(refund_txs)
+    if not skip_cleanup:
+        # Refund all EOAs (regardless of whether the test passed or failed)
+        refund_txs = []
+        for idx, eoa in enumerate(pre._funded_eoa):
+            remaining_balance = eth_rpc.get_balance(eoa)
+            eoa.nonce = Number(eth_rpc.get_transaction_count(eoa))
+            refund_gas_limit = 21_000
+            tx_cost = refund_gas_limit * default_gas_price
+            if remaining_balance < tx_cost:
+                continue
+            refund_tx = Transaction(
+                sender=eoa,
+                to=sender_key,
+                gas_limit=21_000,
+                gas_price=default_gas_price,
+                value=remaining_balance - tx_cost,
+            ).with_signature_and_sender()
+            refund_tx.metadata = TransactionTestMetadata(
+                test_id=request.node.nodeid,
+                phase="cleanup",
+                action="refund_from_eoa",
+                target=eoa.label,
+                tx_index=idx,
+            )
+            refund_txs.append(refund_tx)
+        eth_rpc.send_wait_transactions(refund_txs)
 
     # Record the ending balance of the sender
     sender_test_ending_balance = eth_rpc.get_balance(sender_key)
