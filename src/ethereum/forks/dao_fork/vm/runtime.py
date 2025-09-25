@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Runtime Operations
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Runtime Operations.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Runtime related operations used while executing EVM code.
 """
+
 from typing import Set
 
 from ethereum_types.bytes import Bytes
@@ -40,6 +40,7 @@ def get_valid_jump_destinations(code: Bytes) -> Set[Uint]:
     -------
     valid_jump_destinations: `Set[Uint]`
         The set of valid jump destinations in the code.
+
     """
     valid_jump_destinations = set()
     pc = Uint(0)

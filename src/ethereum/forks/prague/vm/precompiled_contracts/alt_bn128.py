@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) ALT_BN128 CONTRACTS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) ALT_BN128 CONTRACTS.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the ALT_BN128 precompiled contracts.
 """
+
 from ethereum_types.bytes import Bytes
 from ethereum_types.numeric import U256, Uint
 from py_ecc.optimized_bn128.optimized_curve import (
@@ -54,6 +54,7 @@ def bytes_to_g1(data: Bytes) -> Point3D[FQ]:
     ------
     InvalidParameter
         Either a field element is invalid or the point is not on the curve.
+
     """
     if len(data) != 64:
         raise InvalidParameter("Input should be 64 bytes long")
@@ -99,6 +100,7 @@ def bytes_to_g2(data: Bytes) -> Point3D[FQ2]:
     ------
     InvalidParameter
         Either a field element is invalid or the point is not on the curve.
+
     """
     if len(data) != 128:
         raise InvalidParameter("G2 should be 128 bytes long")
@@ -142,6 +144,7 @@ def alt_bn128_add(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 
@@ -169,6 +172,7 @@ def alt_bn128_mul(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 
@@ -196,6 +200,7 @@ def alt_bn128_pairing_check(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

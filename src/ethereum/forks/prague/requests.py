@@ -56,6 +56,7 @@ def extract_deposit_data(data: Bytes) -> Bytes:
     ------
     InvalidBlock :
         If the deposit contract did not produce a valid log.
+
     """
     if ulen(data) != DEPOSIT_EVENT_LENGTH:
         raise InvalidBlock("Invalid deposit event data length")
@@ -129,8 +130,7 @@ def extract_deposit_data(data: Bytes) -> Bytes:
         raise InvalidBlock("Invalid signature size in deposit log")
 
     signature = data[
-        signature_offset
-        + Uint(32) : signature_offset
+        signature_offset + Uint(32) : signature_offset
         + Uint(32)
         + SIGNATURE_SIZE
     ]
@@ -182,6 +182,7 @@ def compute_requests_hash(requests: List[Bytes]) -> Bytes:
     -------
     requests_hash : Bytes
         The hash of the requests.
+
     """
     m = sha256()
     for request in requests:

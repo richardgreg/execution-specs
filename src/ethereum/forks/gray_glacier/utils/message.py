@@ -1,6 +1,5 @@
 """
-Hardfork Utility Functions For The Message Data-structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hardfork Utility Functions For The Message Data-structure.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -12,6 +11,7 @@ Introduction
 Message specific functions used in this gray_glacier version of
 specification.
 """
+
 from ethereum_types.bytes import Bytes, Bytes0
 from ethereum_types.numeric import Uint
 
@@ -44,6 +44,7 @@ def prepare_message(
     -------
     message: `ethereum.forks.gray_glacier.vm.Message`
         Items containing contract creation or message call specific data.
+
     """
     accessed_addresses = set()
     accessed_addresses.add(tx_env.origin)

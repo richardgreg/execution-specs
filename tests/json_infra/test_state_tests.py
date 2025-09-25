@@ -1,3 +1,5 @@
+"""Run the state tests from json fixtures."""
+
 from typing import Callable, Dict
 
 import pytest
@@ -7,6 +9,8 @@ from .helpers.load_state_tests import fetch_state_tests, idfn, run_state_test
 
 
 def _generate_test_function(fork_name: str) -> Callable:
+    """Generates a test function for state tests for a specific fork."""
+
     @pytest.mark.fork(fork_name)
     @pytest.mark.evm_tools
     @pytest.mark.json_state_tests
@@ -23,6 +27,6 @@ def _generate_test_function(fork_name: str) -> Callable:
 
 
 for fork_name in FORKS.keys():
-    locals()[
-        f"test_state_tests_{fork_name.lower()}"
-    ] = _generate_test_function(fork_name)
+    locals()[f"test_state_tests_{fork_name.lower()}"] = (
+        _generate_test_function(fork_name)
+    )

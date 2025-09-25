@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Bitwise Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Bitwise Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -158,10 +157,12 @@ def bitwise_shl(evm: Evm) -> None:
     """
     Logical shift left (SHL) operation of the top 2 elements of the stack.
     Pushes the result back on the stack.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     shift = Uint(pop(evm.stack))
@@ -186,10 +187,12 @@ def bitwise_shr(evm: Evm) -> None:
     """
     Logical shift right (SHR) operation of the top 2 elements of the stack.
     Pushes the result back on the stack.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     shift = pop(evm.stack)
@@ -214,10 +217,12 @@ def bitwise_sar(evm: Evm) -> None:
     """
     Arithmetic shift right (SAR) operation of the top 2 elements of the stack.
     Pushes the result back on the stack.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     shift = int(pop(evm.stack))
@@ -251,6 +256,7 @@ def count_leading_zeros(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     x = pop(evm.stack)

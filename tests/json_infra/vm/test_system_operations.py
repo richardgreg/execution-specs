@@ -1,3 +1,5 @@
+"""Tests for EVM system operations."""
+
 from typing import Tuple
 
 import pytest
@@ -7,7 +9,10 @@ from ..helpers.load_vm_tests import VmTestLoader
 from . import FORKS
 
 ETHEREUM_TESTS_PATH = TEST_FIXTURES["ethereum_tests"]["fixture_path"]
-TEST_DIR = f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmSystemOperations"
+TEST_DIR = (
+    f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/"
+    "vmSystemOperations"
+)
 VM_TEST_DIR = (
     f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmTests"
 )
@@ -26,6 +31,7 @@ VM_TEST_DIR = (
 def test_seldestruct(
     fork: Tuple[str, str], test_file: str, check_gas_left: bool
 ) -> None:
+    """Tests selfdestruct opcode using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR, test_file, check_gas_left=check_gas_left
     )
@@ -34,6 +40,7 @@ def test_seldestruct(
 @pytest.mark.vm_test
 @pytest.mark.parametrize("fork", FORKS)
 def test_seldestruct_vm_test(fork: Tuple[str, str]) -> None:
+    """Tests selfdestruct opcode using legacy VM test suicide fixture."""
     VmTestLoader(*fork).run_test(
         VM_TEST_DIR, "suicide.json", check_gas_left=False
     )
@@ -50,4 +57,5 @@ def test_seldestruct_vm_test(fork: Tuple[str, str]) -> None:
     ],
 )
 def test_return(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests return opcode using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, test_file)

@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Storage Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Storage Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementations of the EVM storage related instructions.
 """
+
 from ethereum_types.numeric import Uint
 
 from ...state import get_storage, get_storage_original, set_storage

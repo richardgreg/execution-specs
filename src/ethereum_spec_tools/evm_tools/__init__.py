@@ -29,9 +29,7 @@ You can use this to run the following tools:
 
 
 The following forks are supported:
-""" + "\n".join(
-    get_supported_forks()
-)
+""" + "\n".join(get_supported_forks())
 
 
 def create_parser() -> argparse.ArgumentParser:
@@ -67,7 +65,7 @@ def create_parser() -> argparse.ArgumentParser:
 
 def get_git_commit_hash() -> str:
     """
-    Run the 'git rev-parse HEAD' command to get the commit hash
+    Run the 'git rev-parse HEAD' command to get the commit hash.
     """
     try:
         result = subprocess.run(

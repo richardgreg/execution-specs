@@ -1,3 +1,5 @@
+"""Helper functions to load and run general state tests for Ethereum forks."""
+
 import json
 import os
 import sys
@@ -21,7 +23,7 @@ parser = create_parser()
 
 def fetch_state_tests(json_fork: str) -> Generator:
     """
-    Fetches all the general state tests from the given directory
+    Fetches all the general state tests from the given directory.
     """
     # Filter FORKS based on fork_option parameter
     eels_fork = FORKS[json_fork]["eels_fork"]
@@ -29,7 +31,8 @@ def fetch_state_tests(json_fork: str) -> Generator:
 
     test_patterns = exceptional_state_test_patterns(json_fork, eels_fork)
 
-    # Get all the files to iterate over from both eest_tests_path and ethereum_tests_path
+    # Get all the files to iterate over from both eest_tests_path
+    # and ethereum_tests_path
     all_jsons = []
     for test_dir in test_dirs:
         all_jsons.extend(
@@ -58,7 +61,7 @@ def fetch_state_tests(json_fork: str) -> Generator:
 
 def idfn(test_case: Dict) -> str:
     """
-    Identify the test case
+    Identify the test case.
     """
     if isinstance(test_case, dict):
         folder_name = test_case["test_file"].split("/")[-2]
@@ -70,7 +73,7 @@ def idfn(test_case: Dict) -> str:
 
 def run_state_test(test_case: Dict[str, str]) -> None:
     """
-    Runs a single general state test
+    Runs a single general state test.
     """
     test_file = test_case["test_file"]
     test_key = test_case["test_key"]

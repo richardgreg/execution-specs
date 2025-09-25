@@ -79,7 +79,7 @@ def run_test_case(
     output_basedir: Optional[str | TextIO] = None,
 ) -> Result:
     """
-    Runs a single general state test
+    Runs a single general state test.
     """
     from .. import create_parser
 
@@ -269,9 +269,9 @@ class StateTest:
             if not passed:
                 actual = result.state_root.hex()
                 expected = test_case.post["hash"][2:]
-                result_dict[
-                    "error"
-                ] = f"post state root mismatch: got {actual}, want {expected}"
+                result_dict["error"] = (
+                    f"post state root mismatch: got {actual}, want {expected}"
+                )
 
             results.append(result_dict)
 

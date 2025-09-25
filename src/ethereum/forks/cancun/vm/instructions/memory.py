@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Memory Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Memory Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementations of the EVM Memory instructions.
 """
+
 from ethereum_types.bytes import Bytes
 from ethereum_types.numeric import U256, Uint
 

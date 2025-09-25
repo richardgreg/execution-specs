@@ -2,7 +2,7 @@
 The Paris fork transitions Ethereum from a proof-of-work consensus model to a
 proof-of-stake one. This fork is often referred to as "The Merge" because it
 marks the integration of the [consensus layer] with the execution layer
-(defined in this project.)
+(defined in this project).
 
 ### Changes
 
@@ -32,7 +32,7 @@ marks the integration of the [consensus layer] with the execution layer
 [e]: https://github.com/ledgerwatch/erigon/releases/tag/v2022.09.01
 [Geth 1.10.23]: https://github.com/ethereum/go-ethereum/releases/tag/v1.10.23
 [nm]: https://github.com/NethermindEth/nethermind/releases/tag/1.14.1
-""" # noqa: E501
+"""  # noqa: E501
 
 from ethereum.fork_criteria import ByBlockNumber
 

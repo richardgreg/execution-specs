@@ -1,3 +1,5 @@
+"""Tests for EVM control flow operations."""
+
 from typing import Tuple
 
 import pytest
@@ -7,7 +9,10 @@ from ..helpers.load_vm_tests import VmTestLoader
 from . import FORKS
 
 ETHEREUM_TESTS_PATH = TEST_FIXTURES["ethereum_tests"]["fixture_path"]
-TEST_DIR = f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmIOandFlowOperations"
+TEST_DIR = (
+    f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/"
+    "vmIOandFlowOperations"
+)
 
 
 @pytest.mark.vm_test
@@ -88,6 +93,7 @@ TEST_DIR = f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmIOandFlo
 def test_jump(
     fork: Tuple[str, str], test_file: str, check_gas_left: bool
 ) -> None:
+    """Tests JUMP operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR, test_file, check_gas_left=check_gas_left
     )
@@ -134,6 +140,7 @@ def test_jump(
 def test_jumpi(
     fork: Tuple[str, str], test_file: str, check_gas_left: bool
 ) -> None:
+    """Tests JUMPI operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR, test_file, check_gas_left=check_gas_left
     )
@@ -149,6 +156,7 @@ def test_jumpi(
     ],
 )
 def test_pc(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests PC operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, test_file)
 
 
@@ -159,6 +167,7 @@ def test_pc(fork: Tuple[str, str], test_file: str) -> None:
     ["gas0.json", "gas1.json", "gasOverFlow.json"],
 )
 def test_gas(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests GAS operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, test_file)
 
 
@@ -174,12 +183,14 @@ def test_gas(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_loop(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests loop operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, test_file)
 
 
 @pytest.mark.vm_test
 @pytest.mark.parametrize("fork", FORKS)
 def test_when(fork: Tuple[str, str]) -> None:
+    """Tests conditional operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, "when.json")
 
 
@@ -198,4 +209,5 @@ def test_when(fork: Tuple[str, str]) -> None:
     ],
 )
 def test_miscellaneous(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests miscellaneous control flow operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(TEST_DIR, test_file)

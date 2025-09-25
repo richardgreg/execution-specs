@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM).
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -71,9 +70,9 @@ class BlockOutput:
     """
 
     block_gas_used: Uint = Uint(0)
-    transactions_trie: Trie[
-        Bytes, Optional[Bytes | LegacyTransaction]
-    ] = field(default_factory=lambda: Trie(secured=False, default=None))
+    transactions_trie: Trie[Bytes, Optional[Bytes | LegacyTransaction]] = (
+        field(default_factory=lambda: Trie(secured=False, default=None))
+    )
     receipts_trie: Trie[Bytes, Optional[Bytes | Receipt]] = field(
         default_factory=lambda: Trie(secured=False, default=None)
     )
@@ -155,6 +154,7 @@ def incorporate_child_on_success(evm: Evm, child_evm: Evm) -> None:
         The parent `EVM`.
     child_evm :
         The child evm to incorporate.
+
     """
     evm.gas_left += child_evm.gas_left
     evm.logs += child_evm.logs
@@ -174,5 +174,6 @@ def incorporate_child_on_error(evm: Evm, child_evm: Evm) -> None:
         The parent `EVM`.
     child_evm :
         The child evm to incorporate.
+
     """
     evm.gas_left += child_evm.gas_left

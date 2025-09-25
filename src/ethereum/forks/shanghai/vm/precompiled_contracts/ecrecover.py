@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) ECRECOVER PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) ECRECOVER PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the ECRECOVER precompiled contract.
 """
+
 from ethereum_types.numeric import U256
 
 from ethereum.crypto.elliptic_curve import SECP256K1N, secp256k1_recover
@@ -32,6 +32,7 @@ def ecrecover(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

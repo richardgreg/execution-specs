@@ -1,5 +1,5 @@
 """
-Simple patching tool
+Simple patching tool.
 """
 
 import argparse

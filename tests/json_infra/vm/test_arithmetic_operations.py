@@ -1,3 +1,5 @@
+"""Tests for arithmetic operations in the EVM."""
+
 from typing import Tuple
 
 import pytest
@@ -7,7 +9,10 @@ from ..helpers.load_vm_tests import VmTestLoader
 from . import FORKS
 
 ETHEREUM_TESTS_PATH = TEST_FIXTURES["ethereum_tests"]["fixture_path"]
-TEST_DIR = f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmArithmeticTest"
+TEST_DIR = (
+    f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/"
+    "vmArithmeticTest"
+)
 
 
 @pytest.mark.vm_test
@@ -23,6 +28,7 @@ TEST_DIR = f"{ETHEREUM_TESTS_PATH}/LegacyTests/Constantinople/VMTests/vmArithmet
     ],
 )
 def test_add(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests ADD operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -42,6 +48,7 @@ def test_add(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_sub(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests SUB operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -64,6 +71,7 @@ def test_sub(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_mul(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests MUL operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -86,6 +94,7 @@ def test_mul(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_div(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests DIV operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -117,6 +126,7 @@ def test_div(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_sdiv(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests SDIV operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -137,6 +147,7 @@ def test_sdiv(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_mod(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests MOD operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -162,6 +173,7 @@ def test_mod(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_smod(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests SMOD operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -187,6 +199,7 @@ def test_smod(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_addmod(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests ADDMOD operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -213,6 +226,7 @@ def test_addmod(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_mulmod(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests MULMOD operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -238,6 +252,7 @@ def test_mulmod(fork: Tuple[str, str], test_file: str) -> None:
     ],
 )
 def test_exp(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests EXP operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -249,6 +264,10 @@ def test_exp(fork: Tuple[str, str], test_file: str) -> None:
 @pytest.mark.parametrize("fork", FORKS)
 @pytest.mark.parametrize("exponent", ([2, 4, 8, 16, 32, 64, 128, 256]))
 def test_exp_power_2(fork: Tuple[str, str], exponent: int) -> None:
+    """
+    Tests EXP operations with powers of 2 exponents using VM
+    test fixtures.
+    """
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         f"expPowerOf2_{exponent}.json",
@@ -259,6 +278,10 @@ def test_exp_power_2(fork: Tuple[str, str], exponent: int) -> None:
 @pytest.mark.vm_test
 @pytest.mark.parametrize("fork", FORKS)
 def test_exp_power_256(fork: Tuple[str, str]) -> None:
+    """
+    Tests EXP operations with power of 256 exponent using VM
+    test fixtures.
+    """
     for i in range(1, 34):
         VmTestLoader(*fork).run_test(
             TEST_DIR,
@@ -295,6 +318,7 @@ def test_exp_power_256(fork: Tuple[str, str]) -> None:
     ],
 )
 def test_signextend(fork: Tuple[str, str], test_file: str) -> None:
+    """Tests SIGNEXTEND operations using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         test_file,
@@ -304,6 +328,7 @@ def test_signextend(fork: Tuple[str, str], test_file: str) -> None:
 @pytest.mark.vm_test
 @pytest.mark.parametrize("fork", FORKS)
 def test_stop(fork: Tuple[str, str]) -> None:
+    """Tests STOP operation using VM test fixtures."""
     VmTestLoader(*fork).run_test(
         TEST_DIR,
         "stop.json",

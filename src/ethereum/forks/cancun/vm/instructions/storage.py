@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Storage Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Storage Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementations of the EVM storage related instructions.
 """
+
 from ethereum_types.numeric import Uint
 
 from ...state import (
@@ -136,10 +136,12 @@ def tload(evm: Evm) -> None:
     """
     Loads to the stack, the value corresponding to a certain key from the
     transient storage of the current account.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     key = pop(evm.stack).to_be_bytes32()
@@ -160,10 +162,12 @@ def tload(evm: Evm) -> None:
 def tstore(evm: Evm) -> None:
     """
     Stores a value at a certain key in the current context's transient storage.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     key = pop(evm.stack).to_be_bytes32()

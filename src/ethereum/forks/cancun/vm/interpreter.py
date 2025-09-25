@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Interpreter
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Interpreter.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -68,7 +67,7 @@ MAX_INIT_CODE_SIZE = 2 * MAX_CODE_SIZE
 @dataclass
 class MessageCallOutput:
     """
-    Output of a particular message call
+    Output of a particular message call.
 
     Contains the following:
 
@@ -100,6 +99,7 @@ def process_message_call(message: Message) -> MessageCallOutput:
     -------
     output : `MessageCallOutput`
         Output of the message call
+
     """
     block_env = message.block_env
     refund_counter = U256(0)
@@ -151,6 +151,7 @@ def process_create_message(message: Message) -> Evm:
     -------
     evm: :py:class:`~ethereum.forks.cancun.vm.Evm`
         Items containing execution specific objects.
+
     """
     state = message.block_env.state
     transient_storage = message.tx_env.transient_storage
@@ -210,6 +211,7 @@ def process_message(message: Message) -> Evm:
     -------
     evm: :py:class:`~ethereum.forks.cancun.vm.Evm`
         Items containing execution specific objects
+
     """
     state = message.block_env.state
     transient_storage = message.tx_env.transient_storage
@@ -247,6 +249,7 @@ def execute_code(message: Message) -> Evm:
     -------
     evm: `ethereum.vm.EVM`
         Items containing execution specific objects
+
     """
     code = message.code
     valid_jump_destinations = get_valid_jump_destinations(code)

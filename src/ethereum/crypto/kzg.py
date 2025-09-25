@@ -1,7 +1,5 @@
-"""
-The KZG Implementation
-^^^^^^^^^^^^^^^^^^^^^^
-"""
+"""The KZG Implementation."""
+
 from hashlib import sha256
 from typing import Tuple
 
@@ -36,7 +34,7 @@ class KZGCommitment(Bytes48):
 
 
 class KZGProof(Bytes48):
-    """KZG proof"""
+    """KZG proof."""
 
     pass
 

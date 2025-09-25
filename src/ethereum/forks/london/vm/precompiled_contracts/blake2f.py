@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Blake2 PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Blake2 PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the `Blake2` precompiled contract.
 """
+
 from ethereum.crypto.blake2 import Blake2b
 
 from ...vm import Evm
@@ -26,6 +26,7 @@ def blake2f(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
     if len(data) != 213:

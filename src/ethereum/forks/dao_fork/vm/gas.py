@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Gas
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Gas.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 EVM gas constants and calculators.
 """
+
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -66,7 +66,7 @@ GAS_IDENTITY_WORD = Uint(3)
 @dataclass
 class ExtendMemory:
     """
-    Define the parameters for memory extension in opcodes
+    Define the parameters for memory extension in opcodes.
 
     `cost`: `ethereum.base_types.Uint`
         The gas required to perform the extension
@@ -131,6 +131,7 @@ def calculate_memory_gas_cost(size_in_bytes: Uint) -> Uint:
     -------
     total_gas_cost : `ethereum.base_types.Uint`
         The gas cost for storing data in memory.
+
     """
     size_in_words = ceil32(size_in_bytes) // Uint(32)
     linear_cost = size_in_words * GAS_MEMORY
@@ -146,7 +147,7 @@ def calculate_gas_extend_memory(
     memory: bytearray, extensions: List[Tuple[U256, U256]]
 ) -> ExtendMemory:
     """
-    Calculates the gas amount to extend memory
+    Calculates the gas amount to extend memory.
 
     Parameters
     ----------
@@ -159,6 +160,7 @@ def calculate_gas_extend_memory(
     Returns
     -------
     extend_memory: `ExtendMemory`
+
     """
     size_to_extend = Uint(0)
     to_be_paid = Uint(0)
@@ -201,6 +203,7 @@ def calculate_message_call_gas(
     Returns
     -------
     message_call_gas: `MessageCallGas`
+
     """
     create_gas_cost = Uint(0) if account_exists(state, to) else GAS_NEW_ACCOUNT
     transfer_gas_cost = Uint(0) if value == 0 else GAS_CALL_VALUE

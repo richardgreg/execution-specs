@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Environmental Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Environmental Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -407,6 +406,7 @@ def returndatasize(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     pass
@@ -423,12 +423,13 @@ def returndatasize(evm: Evm) -> None:
 
 def returndatacopy(evm: Evm) -> None:
     """
-    Copies data from the return data buffer code to memory
+    Copies data from the return data buffer code to memory.
 
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     memory_start_index = pop(evm.stack)
@@ -457,11 +458,13 @@ def returndatacopy(evm: Evm) -> None:
 
 def extcodehash(evm: Evm) -> None:
     """
-    Returns the keccak256 hash of a contract’s bytecode
+    Returns the keccak256 hash of a contract’s bytecode.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     address = to_address_masked(pop(evm.stack))

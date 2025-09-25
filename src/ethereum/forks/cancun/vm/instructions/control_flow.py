@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Control Flow Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Control Flow Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -28,6 +27,7 @@ def stop(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     pass

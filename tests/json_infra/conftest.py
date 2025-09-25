@@ -1,3 +1,5 @@
+"""Pytest configuration for the json infra tests."""
+
 import os
 import shutil
 import tarfile
@@ -23,6 +25,7 @@ try:
 except ImportError:
 
     def get_xdist_worker_id(request_or_session: object) -> str:
+        """Fallback implementation when xdist is not available."""
         del request_or_session
         return "master"
 
@@ -90,6 +93,7 @@ def pytest_configure(config: Config) -> None:
 
 
 def pytest_collection_modifyitems(config: Config, items: list[Item]) -> None:
+    """Filter test items based on the specified fork option."""
     desired_fork = config.getoption("fork", None)
     if not desired_fork:
         return
@@ -228,6 +232,7 @@ fixture_lock = StashKey[Optional[FileLock]]()
 
 
 def pytest_sessionstart(session: Session) -> None:
+    """Initialize test fixtures and file locking at session start."""
     if get_xdist_worker_id(session) != "master":
         return
 
@@ -256,9 +261,8 @@ def pytest_sessionstart(session: Session) -> None:
                 )
 
 
-def pytest_sessionfinish(
-    session: Session, exitstatus: int
-) -> None:
+def pytest_sessionfinish(session: Session, exitstatus: int) -> None:
+    """Clean up file locks at session finish."""
     del exitstatus
     if get_xdist_worker_id(session) != "master":
         return

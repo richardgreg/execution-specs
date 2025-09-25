@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) System Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) System Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -154,6 +153,7 @@ def create(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     endowment = pop(evm.stack)
@@ -200,6 +200,7 @@ def create2(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     endowment = pop(evm.stack)
@@ -249,6 +250,7 @@ def return_(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     memory_start_position = pop(evm.stack)
@@ -351,6 +353,7 @@ def call(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     gas = Uint(pop(evm.stack))
@@ -437,6 +440,7 @@ def callcode(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     gas = Uint(pop(evm.stack))
@@ -521,6 +525,7 @@ def selfdestruct(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     beneficiary = to_address_masked(pop(evm.stack))
@@ -579,6 +584,7 @@ def delegatecall(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     gas = Uint(pop(evm.stack))
@@ -647,6 +653,7 @@ def staticcall(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     gas = Uint(pop(evm.stack))
@@ -715,11 +722,13 @@ def staticcall(evm: Evm) -> None:
 def revert(evm: Evm) -> None:
     """
     Stop execution and revert state changes, without consuming all provided gas
-    and also has the ability to return a reason
+    and also has the ability to return a reason.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     # STACK
     memory_start_index = pop(evm.stack)

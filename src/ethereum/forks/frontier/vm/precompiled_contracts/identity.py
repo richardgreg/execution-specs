@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) IDENTITY PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) IDENTITY PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the `IDENTITY` precompiled contract.
 """
+
 from ethereum_types.numeric import Uint
 
 from ethereum.utils.numeric import ceil32
@@ -27,6 +27,7 @@ def identity(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

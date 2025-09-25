@@ -1,13 +1,15 @@
 """
-Ethereum Virtual Machine (EVM) P256VERIFY PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) P256VERIFY PRECOMPILED CONTRACT.
+
 .. contents:: Table of Contents
     :backlinks: none
     :local:
-Introduction
+
+Introduction.
 ------------
 Implementation of the P256VERIFY precompiled contract.
 """
+
 from ethereum_types.numeric import U256
 
 from ethereum.crypto.elliptic_curve import (
@@ -28,10 +30,12 @@ from ...vm.memory import buffer_read
 def p256verify(evm: Evm) -> None:
     """
     Verifies a P-256 signature.
+
     Parameters
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

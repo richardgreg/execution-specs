@@ -1,6 +1,5 @@
 """
-Hardfork Utility Functions For The Message Data-structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hardfork Utility Functions For The Message Data-structure.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -45,6 +44,7 @@ def prepare_message(
     -------
     message: `ethereum.forks.osaka.vm.Message`
         Items containing contract creation or message call specific data.
+
     """
     accessed_addresses = set()
     accessed_addresses.add(tx_env.origin)

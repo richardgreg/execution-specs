@@ -1,3 +1,8 @@
+"""
+Define exceptional test patterns for slow, expected fail
+and big memory tests.
+"""
+
 import re
 from dataclasses import dataclass
 from typing import Pattern, Tuple
@@ -19,7 +24,8 @@ def exceptional_blockchain_test_patterns(
     json_fork: str, eels_fork: str
 ) -> TestPatterns:
     """
-    Returns patterns for slow, ignored, and big-memory tests for a given json_fork and eels_fork.
+    Returns patterns for slow, ignored, and big-memory tests
+    for a given json_fork and eels_fork.
 
     Parameters
     ----------
@@ -32,6 +38,7 @@ def exceptional_blockchain_test_patterns(
     -------
     TestPatterns :
         Patterns that are relevant to the current fork.
+
     """
     jf = re.escape(json_fork)
     ef = re.escape(eels_fork)
@@ -100,6 +107,10 @@ def exceptional_blockchain_test_patterns(
 def exceptional_state_test_patterns(
     json_fork: str, eels_fork: str
 ) -> TestPatterns:
+    """
+    Returns patterns for slow, ignored, and big-memory state tests for a
+    given json_fork and eels_fork.
+    """
     jf = re.escape(json_fork)
     ef = re.escape(eels_fork)
     slow_tests = (

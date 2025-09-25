@@ -1,6 +1,5 @@
 """
-Hardfork Utility Functions For Addresses
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hardfork Utility Functions For Addresses.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Address specific functions used in this Dao Fork version of specification.
 """
+
 from ethereum_rlp import rlp
 from ethereum_types.numeric import U256, Uint
 
@@ -33,6 +33,7 @@ def to_address_masked(data: Uint | U256) -> Address:
     -------
     address : `Address`
         The obtained address.
+
     """
     return Address(data.to_be_bytes32()[-20:])
 
@@ -53,6 +54,7 @@ def compute_contract_address(address: Address, nonce: Uint) -> Address:
     -------
     address: `ethereum.forks.dao_fork.fork_types.Address`
         The computed address of the new account.
+
     """
     computed_address = keccak256(rlp.encode([address, nonce]))
     canonical_address = computed_address[-20:]

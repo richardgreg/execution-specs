@@ -1,6 +1,5 @@
 """
-Hardfork Utility Functions For The Message Data-structure
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Hardfork Utility Functions For The Message Data-structure.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Message specific functions used in this homestead version of specification.
 """
+
 from ethereum_types.bytes import Bytes, Bytes0
 from ethereum_types.numeric import Uint
 
@@ -42,6 +42,7 @@ def prepare_message(
     -------
     message: `ethereum.forks.homestead.vm.Message`
         Items containing contract creation or message call specific data.
+
     """
     if isinstance(tx.to, Bytes0):
         current_target = compute_contract_address(

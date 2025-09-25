@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) BLS12 381 PAIRING PRE-COMPILE
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) BLS12 381 PAIRING PRE-COMPILE.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -35,6 +34,7 @@ def bls12_pairing(evm: Evm) -> None:
     ------
     InvalidParameter
         If the input length is invalid or if sub-group check fails.
+
     """
     data = evm.message.data
     if len(data) == 0 or len(data) % 384 != 0:

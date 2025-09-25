@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) MODEXP PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) MODEXP PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the `MODEXP` precompiled contract.
 """
+
 from ethereum_types.bytes import Bytes
 from ethereum_types.numeric import U256, Uint
 
@@ -71,7 +71,6 @@ def complexity(base_length: U256, modulus_length: U256) -> Uint:
 
     Parameters
     ----------
-
     base_length :
         Length of the array representing the base integer.
 
@@ -80,9 +79,9 @@ def complexity(base_length: U256, modulus_length: U256) -> Uint:
 
     Returns
     -------
-
     complexity : `Uint`
         Complexity of performing the operation.
+
     """
     max_length = max(Uint(base_length), Uint(modulus_length))
     words = (max_length + Uint(7)) // Uint(8)
@@ -96,7 +95,6 @@ def iterations(exponent_length: U256, exponent_head: U256) -> Uint:
 
     Parameters
     ----------
-
     exponent_length :
         Length of the array representing the exponent integer.
 
@@ -106,9 +104,9 @@ def iterations(exponent_length: U256, exponent_head: U256) -> Uint:
 
     Returns
     -------
-
     iterations : `Uint`
         Number of iterations.
+
     """
     if exponent_length <= U256(32) and exponent_head == U256(0):
         count = Uint(0)
@@ -142,7 +140,6 @@ def gas_cost(
 
     Parameters
     ----------
-
     base_length :
         Length of the array representing the base integer.
 
@@ -158,9 +155,9 @@ def gas_cost(
 
     Returns
     -------
-
     gas_cost : `Uint`
         Gas required for performing the operation.
+
     """
     multiplication_complexity = complexity(base_length, modulus_length)
     iteration_count = iterations(exponent_length, exponent_head)

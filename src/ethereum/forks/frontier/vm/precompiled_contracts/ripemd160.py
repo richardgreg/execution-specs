@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) RIPEMD160 PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) RIPEMD160 PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the `RIPEMD160` precompiled contract.
 """
+
 import hashlib
 
 from ethereum_types.numeric import Uint
@@ -30,6 +30,7 @@ def ripemd160(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

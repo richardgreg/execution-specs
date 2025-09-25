@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) SHA256 PRECOMPILED CONTRACT
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) SHA256 PRECOMPILED CONTRACT.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementation of the `SHA256` precompiled contract.
 """
+
 import hashlib
 
 from ethereum_types.numeric import Uint
@@ -29,6 +29,7 @@ def sha256(evm: Evm) -> None:
     ----------
     evm :
         The current EVM frame.
+
     """
     data = evm.message.data
 

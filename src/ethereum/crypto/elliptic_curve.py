@@ -1,7 +1,4 @@
-"""
-Elliptic Curves
-^^^^^^^^^^^^^^^
-"""
+"""Elliptic Curves."""
 
 import coincurve
 from Crypto.Util.asn1 import DerSequence
@@ -45,6 +42,7 @@ def secp256k1_recover(r: U256, s: U256, v: U256, msg_hash: Hash32) -> Bytes:
     -------
     public_key : `ethereum.base_types.Bytes`
         Recovered public key.
+
     """
     is_square = pow(
         pow(r, U256(3), SECP256K1P) + SECP256K1B,
@@ -114,8 +112,8 @@ def secp256r1_verify(
 
     Raises
     ------
-
     Raises an `InvalidSignatureError` if the signature is not valid.
+
     """
     # Convert U256 to regular integers for DerSequence
     r_int = int(r)
@@ -152,6 +150,7 @@ def is_on_curve_secp256r1(x: U256, y: U256) -> bool:
     -------
     bool
         True if the point is on the curve, False otherwise
+
     """
     # Convert U256 to int for calculations
     x_int = int(x)

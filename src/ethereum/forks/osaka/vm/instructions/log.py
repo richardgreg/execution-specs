@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Logging Instructions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Logging Instructions.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 Implementations of the EVM logging instructions.
 """
+
 from functools import partial
 
 from ethereum_types.numeric import Uint

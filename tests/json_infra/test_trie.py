@@ -1,3 +1,5 @@
+"""Run the trie tests from json fixtures."""
+
 import importlib
 import json
 from typing import Any, Optional
@@ -15,6 +17,7 @@ forks = FORKS.keys()
 
 
 def to_bytes(data: Optional[str]) -> Bytes:
+    """Converts string data to bytes, handling hex prefixes and None values."""
     if data is None:
         return b""
     if has_hex_prefix(data):
@@ -25,6 +28,7 @@ def to_bytes(data: Optional[str]) -> Bytes:
 
 @pytest.mark.parametrize("fork", forks)
 def test_trie_secure_hex(fork: str) -> None:
+    """Tests secure trie implementation with hex-encoded test data."""
     tests = load_tests("hex_encoded_securetrie_test.json")
 
     eels_fork = FORKS[fork]["eels_fork"]
@@ -41,6 +45,7 @@ def test_trie_secure_hex(fork: str) -> None:
 
 @pytest.mark.parametrize("fork", forks)
 def test_trie_secure(fork: str) -> None:
+    """Tests secure trie implementation with standard test data."""
     tests = load_tests("trietest_secureTrie.json")
 
     eels_fork = FORKS[fork]["eels_fork"]
@@ -57,6 +62,7 @@ def test_trie_secure(fork: str) -> None:
 
 @pytest.mark.parametrize("fork", forks)
 def test_trie_secure_any_order(fork: str) -> None:
+    """Tests secure trie implementation with any-order test data."""
     tests = load_tests("trieanyorder_secureTrie.json")
 
     eels_fork = FORKS[fork]["eels_fork"]
@@ -73,6 +79,7 @@ def test_trie_secure_any_order(fork: str) -> None:
 
 @pytest.mark.parametrize("fork", forks)
 def test_trie(fork: str) -> None:
+    """Tests non-secure trie implementation with standard test data."""
     tests = load_tests("trietest.json")
 
     eels_fork = FORKS[fork]["eels_fork"]
@@ -89,6 +96,7 @@ def test_trie(fork: str) -> None:
 
 @pytest.mark.parametrize("fork", forks)
 def test_trie_any_order(fork: str) -> None:
+    """Tests non-secure trie implementation with any-order test data."""
     tests = load_tests("trieanyorder.json")
 
     eels_fork = FORKS[fork]["eels_fork"]
@@ -104,6 +112,7 @@ def test_trie_any_order(fork: str) -> None:
 
 
 def load_tests(path: str) -> Any:
+    """Loads test data from JSON file in the TrieTests directory."""
     with open(f"{FIXTURE_PATH}/TrieTests/" + path) as f:
         tests = json.load(f)
 

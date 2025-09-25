@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Gas
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Gas.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 EVM gas constants and calculators.
 """
+
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -88,7 +88,7 @@ GAS_BLS_G2_MAP = Uint(23800)
 @dataclass
 class ExtendMemory:
     """
-    Define the parameters for memory extension in opcodes
+    Define the parameters for memory extension in opcodes.
 
     `cost`: `ethereum.base_types.Uint`
         The gas required to perform the extension
@@ -153,6 +153,7 @@ def calculate_memory_gas_cost(size_in_bytes: Uint) -> Uint:
     -------
     total_gas_cost : `ethereum.base_types.Uint`
         The gas cost for storing data in memory.
+
     """
     size_in_words = ceil32(size_in_bytes) // Uint(32)
     linear_cost = size_in_words * GAS_MEMORY
@@ -168,7 +169,7 @@ def calculate_gas_extend_memory(
     memory: bytearray, extensions: List[Tuple[U256, U256]]
 ) -> ExtendMemory:
     """
-    Calculates the gas amount to extend memory
+    Calculates the gas amount to extend memory.
 
     Parameters
     ----------
@@ -181,6 +182,7 @@ def calculate_gas_extend_memory(
     Returns
     -------
     extend_memory: `ExtendMemory`
+
     """
     size_to_extend = Uint(0)
     to_be_paid = Uint(0)
@@ -235,6 +237,7 @@ def calculate_message_call_gas(
     Returns
     -------
     message_call_gas: `MessageCallGas`
+
     """
     call_stipend = Uint(0) if value == 0 else call_stipend
     if gas_left < extra_gas + memory_cost:
@@ -247,7 +250,7 @@ def calculate_message_call_gas(
 
 def max_message_call_gas(gas: Uint) -> Uint:
     """
-    Calculates the maximum gas that is allowed for making a message call
+    Calculates the maximum gas that is allowed for making a message call.
 
     Parameters
     ----------
@@ -258,6 +261,7 @@ def max_message_call_gas(gas: Uint) -> Uint:
     -------
     max_allowed_message_call_gas: `ethereum.base_types.Uint`
         The maximum gas allowed for making the message-call.
+
     """
     return gas - (gas // Uint(64))
 
@@ -277,6 +281,7 @@ def init_code_cost(init_code_length: Uint) -> Uint:
     -------
     init_code_gas: `ethereum.base_types.Uint`
         The gas to be charged for the init code.
+
     """
     return GAS_INIT_CODE_WORD_COST * ceil32(init_code_length) // Uint(32)
 
@@ -295,6 +300,7 @@ def calculate_excess_blob_gas(parent_header: Header) -> U64:
     -------
     excess_blob_gas: `ethereum.base_types.U64`
         The excess blob gas for the current block.
+
     """
     # At the fork block, these are defined as zero.
     excess_blob_gas = U64(0)
@@ -338,6 +344,7 @@ def calculate_total_blob_gas(tx: Transaction) -> U64:
     -------
     total_blob_gas: `ethereum.base_types.Uint`
         The total blob gas for the transaction.
+
     """
     if isinstance(tx, BlobTransaction):
         return GAS_PER_BLOB * U64(len(tx.blob_versioned_hashes))
@@ -358,6 +365,7 @@ def calculate_blob_gas_price(excess_blob_gas: U64) -> Uint:
     -------
     blob_gasprice: `Uint`
         The blob gasprice.
+
     """
     return taylor_exponential(
         MIN_BLOB_GASPRICE,
@@ -381,6 +389,7 @@ def calculate_data_fee(excess_blob_gas: U64, tx: Transaction) -> Uint:
     -------
     data_fee: `Uint`
         The blob data fee.
+
     """
     return Uint(calculate_total_blob_gas(tx)) * calculate_blob_gas_price(
         excess_blob_gas

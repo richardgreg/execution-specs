@@ -1,6 +1,5 @@
 """
-Optimized Implementations
-^^^^^^^^^^^^^^^^^^^^^^^^^
+Optimized Implementations.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -57,9 +56,7 @@ def monkey_patch_optimized_spec(fork_name: str) -> None:
     This function must be called before the spec interface is imported
     anywhere.
     """
-    slow_spec = import_module(
-        "ethereum.forks." + fork_name + ".fork"
-    )
+    slow_spec = import_module("ethereum.forks." + fork_name + ".fork")
 
     optimized_pow_patches = get_optimized_pow_patches(fork_name)
 

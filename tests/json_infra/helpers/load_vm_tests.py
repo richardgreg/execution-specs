@@ -1,3 +1,5 @@
+"""Helper class to load and run VM tests."""
+
 import json
 import os
 from importlib import import_module
@@ -85,10 +87,11 @@ class VmTestLoader:
                 keccak256(rlp.encode(output.logs))
                 == test_data["expected_logs_hash"]
             )
-            # We are checking only the storage here and not the whole state, as the
-            # balances in the testcases don't change even though some value is
-            # transferred along with code invocation. But our evm execution transfers
-            # the value as well as executing the code
+            # We are checking only the storage here and not the whole state,
+            # as the balances in the testcases don't change even though
+            # some value is transferred along with code invocation.
+            # But our evm execution transfers the value as well
+            # as executing the code
             for addr in test_data["post_state_addresses"]:
                 assert self.storage_root(
                     test_data["expected_post_state"], addr
@@ -149,13 +152,13 @@ class VmTestLoader:
         Deserialize a `BlockEnvironment` instance from JSON.
         """
         caller_hex_address = json_data["exec"]["caller"]
-        # Some tests don't have the caller state defined in the test case. Hence
-        # creating a dummy caller state.
+        # Some tests don't have the caller state defined in the test case.
+        # Hence creating a dummy caller state.
         if caller_hex_address not in json_data["pre"]:
             value = json_data["exec"]["value"]
-            json_data["pre"][
-                caller_hex_address
-            ] = self.get_dummy_account_state(value)
+            json_data["pre"][caller_hex_address] = (
+                self.get_dummy_account_state(value)
+            )
 
         current_state = self.json_to_state(json_data["pre"])
 

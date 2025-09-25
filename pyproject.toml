@@ -427,19 +427,6 @@ exclude = ["tests/fixtures/", "eest_tests/"]
 ignore_names = ["pytest_*"]
 
 [tool.ruff]
-extend-exclude = [
-    ".cache/",
-    ".git/",
-    ".pytest_cache/",
-    ".ruff_cache/",
-    ".tox/",
-    ".venv/",
-    ".vscode/",
-    "tests/fixtures/*",
-    "tests/json_infra/fixtures/*",
-    "eest_tests/*",
-    "vulture_whitelist.py",
-]
 line-length = 79
 
 [tool.ruff.lint]
@@ -451,6 +438,8 @@ select = [
     "I", # isort
     "A", # flake8-builtins
     "N", # pep8-naming
+    "D", # pydocstyle
+    "C4", # flake8-comprehensions
     "ARG", # flake8-unused-arguments
 ]
 fixable = [
@@ -463,34 +452,17 @@ fixable = [
 ]
 ignore = [
 # Common to STEEL
-    "D205",     # Missing blank line after summary
-    "D203",     # 1 blank line required before class docstring
-    "D212",     # Multi-line docstring summary should start at the first line
-    "D415",     # First line should end with a ".", "?", or "!"
-
-# Specific to EELS
+    "C401",     # Unnecessary generator set
+    "C408",     # Unnecessary collection call
     "D107",     # Missing docstring in __init__
     "D200",     # One-line docstring should fit on one line with quotes
-    "D205",     # 1 blank line required between summary and description
-    "D400",     # First line should end with a period
+    "D203",     # 1 blank line required before class docstring
+    "D205",     # Missing blank line after summary
+    "D212",     # Multi-line docstring summary should start at the first line
     "D401",     # First line should be in imperative mood ("Do", not "Does")
-    "D410",     # Missing blank line after last section (Args, Returns, Raises)
-    "D411",     # Missing blank line before last section
-    "D412",     # No blank lines between sections
-    "D413",     # Missing blank line after last section (same as 410)
-    "D414",     # Section should end with a period
-    "D416",     # Section names should be in the correct order
-    "E203",     # Whitespace before ':'
 ]
 
 [tool.ruff.lint.per-file-ignores]
-"tests/*" = [
-    "D100",         # Missing docstring in public module
-    "D101",         # Missing docstring in public class
-    "D103",         # Missing docstring in public function
-    "D104",         # Missing docstring in public package
-    "E501",         # Line too long
-]
 "src/ethereum_spec_tools/evm_tools/loaders/fork_loader.py" = [
     "N802"          # Property names do not need to be lowercase
 ]
@@ -507,10 +479,6 @@ ignore = [
 "src/ethereum_spec_tools/evm_tools/t8n/evm_trace.py" = [
     "N815"          # The traces must use camel case in JSON property names
 ]
-
-[tool.ruff.lint.mccabe]
-# Set the maximum allowed cyclomatic complexity. C901 default is 10.
-max-complexity = 7
 
 [tool.codespell]
 builtin = "clear,code,usage"    # Built-in dictionaries to use

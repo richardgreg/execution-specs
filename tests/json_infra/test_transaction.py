@@ -1,3 +1,5 @@
+"""Run the transaction tests from json fixtures."""
+
 from typing import Callable
 
 import pytest
@@ -22,6 +24,11 @@ test_dir = f"{ETHEREUM_TESTS_PATH}/TransactionTests"
 
 
 def _generate_high_nonce_tests_function(fork_name: str) -> Callable:
+    """
+    Generates test functions for high nonce transaction validation
+    for a specific fork.
+    """
+
     @pytest.mark.fork(fork_name)
     @pytest.mark.parametrize(
         "test_file_high_nonce",
@@ -51,6 +58,11 @@ def _generate_high_nonce_tests_function(fork_name: str) -> Callable:
 
 
 def _generate_nonce_tests_function(fork_name: str) -> Callable:
+    """
+    Generates test functions for nonce transaction validation
+    for a specific fork.
+    """
+
     @pytest.mark.parametrize(
         "test_file_nonce",
         [
@@ -78,9 +90,9 @@ def _generate_nonce_tests_function(fork_name: str) -> Callable:
 
 
 for fork_name in FORKS.keys():
-    locals()[
-        f"test_high_nonce_tests_{fork_name.lower()}"
-    ] = _generate_high_nonce_tests_function(fork_name)
-    locals()[
-        f"test_nonce_tests_{fork_name.lower()}"
-    ] = _generate_nonce_tests_function(fork_name)
+    locals()[f"test_high_nonce_tests_{fork_name.lower()}"] = (
+        _generate_high_nonce_tests_function(fork_name)
+    )
+    locals()[f"test_nonce_tests_{fork_name.lower()}"] = (
+        _generate_nonce_tests_function(fork_name)
+    )

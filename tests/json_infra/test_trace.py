@@ -1,3 +1,5 @@
+"""Test evm tracing functionality."""
+
 from typing import Optional, cast
 
 from ethereum_types.numeric import Uint
@@ -6,6 +8,7 @@ import ethereum.trace
 
 
 def test_modify_evm_trace() -> None:
+    """Tests that EVM trace handlers can be modified and work correctly."""
     trace1: Optional[ethereum.trace.TraceEvent] = None
     trace2: Optional[ethereum.trace.TraceEvent] = None
 

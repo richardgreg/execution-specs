@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) BLS12 381 G2 CONTRACTS
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) BLS12 381 G2 CONTRACTS.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -55,6 +54,7 @@ def bls12_g2_add(evm: Evm) -> None:
     ------
     InvalidParameter
         If the input length is invalid.
+
     """
     data = evm.message.data
     if len(data) != 512:
@@ -89,6 +89,7 @@ def bls12_g2_msm(evm: Evm) -> None:
     ------
     InvalidParameter
         If the input length is invalid.
+
     """
     data = evm.message.data
     if len(data) == 0 or len(data) % LENGTH_PER_PAIR != 0:
@@ -133,6 +134,7 @@ def bls12_map_fp2_to_g2(evm: Evm) -> None:
     ------
     InvalidParameter
         If the input length is invalid.
+
     """
     data = evm.message.data
     if len(data) != 128:

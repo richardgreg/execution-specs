@@ -1,6 +1,5 @@
 """
-Ethereum Virtual Machine (EVM) Memory
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Ethereum Virtual Machine (EVM) Memory.
 
 .. contents:: Table of Contents
     :backlinks: none
@@ -11,6 +10,7 @@ Introduction
 
 EVM memory operations.
 """
+
 from ethereum_types.bytes import Bytes
 from ethereum_types.numeric import U256, Uint
 
@@ -31,6 +31,7 @@ def memory_write(
         Starting pointer to the memory.
     value :
         Data to write to memory.
+
     """
     memory[start_position : int(start_position) + len(value)] = value
 
@@ -54,6 +55,7 @@ def memory_read_bytes(
     -------
     data_bytes :
         Data read from memory.
+
     """
     return Bytes(memory[start_position : Uint(start_position) + Uint(size)])
 
@@ -75,6 +77,7 @@ def buffer_read(buffer: Bytes, start_position: U256, size: U256) -> Bytes:
     -------
     data_bytes :
         Data read from memory.
+
     """
     buffer_slice = buffer[start_position : Uint(start_position) + Uint(size)]
     return right_pad_zero_bytes(bytes(buffer_slice), size)

@@ -8,6 +8,7 @@ Together, these blocks form a cryptographically secure journal recording the
 history of all state transitions that have happened since the genesis of the
 chain.
 """
+
 from dataclasses import dataclass
 from typing import Tuple
 
@@ -35,7 +36,7 @@ class Withdrawal:
     """
     Withdrawals represent a transfer of ETH from the consensus layer (beacon
     chain) to the execution layer, as validated by the consensus layer. Each
-    withdrawal is listed in the block's list of withdrawals. See [`block`]
+    withdrawal is listed in the block's list of withdrawals. See [`block`].
 
     [`block`]: ref:ethereum.forks.osaka.blocks.Block.withdrawals
     """
