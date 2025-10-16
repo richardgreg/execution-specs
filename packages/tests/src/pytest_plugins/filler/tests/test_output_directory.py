@@ -1,6 +1,7 @@
 """Test the filler plugin's output directory handling."""
 
 from pathlib import Path
+from typing import Any, Callable
 from unittest.mock import patch
 
 import pytest
@@ -13,7 +14,7 @@ from ..fixture_output import FixtureOutput
 MINIMAL_TEST_FILE_NAME = "test_example.py"
 MINIMAL_TEST_CONTENTS = """
 from ethereum_test_tools import Transaction
-def test_function(state_test, pre):
+def test_function(state_test, pre) -> None:
     tx = Transaction(to=0, gas_limit=21_000, sender=pre.fund_eoa())
     state_test(pre=pre, post={}, tx=tx)
 """
@@ -21,7 +22,10 @@ def test_function(state_test, pre):
 
 @pytest.fixture
 def minimal_test_path(pytester: pytest.Pytester) -> Path:
-    """Minimal test file that's written to a file using pytester and ready to fill."""
+    """
+    Minimal test file that's written to a file using pytester and ready to
+    fill.
+    """
     tests_dir = pytester.mkdir("tests")
     test_file = tests_dir / MINIMAL_TEST_FILE_NAME
     test_file.write_text(MINIMAL_TEST_CONTENTS)
@@ -47,8 +51,11 @@ def run_fill(
     fill_fork_from: str,
     fill_fork_until: str,
     default_t8n: TransitionTool,
-):
-    """Create a function to run the fill command with various output directory scenarios."""
+) -> Callable[..., pytest.RunResult]:
+    """
+    Create a function to run the fill command with various output directory
+    scenarios.
+    """
 
     def _run_fill(
         output_dir: Path,
@@ -56,7 +63,10 @@ def run_fill(
         expect_failure: bool = False,
         disable_capture_output: bool = False,
     ) -> pytest.RunResult:
-        """Run the fill command with the specified output directory and clean flag."""
+        """
+        Run the fill command with the specified output directory and clean
+        flag.
+        """
         pytester.copy_example(name="src/cli/pytest_commands/pytest_ini_files/pytest-fill.ini")
         args = [
             "-c",
@@ -87,7 +97,7 @@ def run_fill(
     return _run_fill
 
 
-def test_fill_to_empty_directory(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_empty_directory(tmp_path_factory: TempPathFactory, run_fill: Any) -> None:
     """Test filling to a new, empty directory."""
     output_dir = tmp_path_factory.mktemp("empty_fixtures")
 
@@ -97,7 +107,7 @@ def test_fill_to_empty_directory(tmp_path_factory: TempPathFactory, run_fill):
     assert (output_dir / ".meta").exists(), "Metadata directory was not created"
 
 
-def test_fill_to_nonexistent_directory(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_nonexistent_directory(tmp_path_factory: TempPathFactory, run_fill: Any) -> None:
     """Test filling to a nonexistent directory."""
     base_dir = tmp_path_factory.mktemp("base")
     output_dir = base_dir / "nonexistent_fixtures"
@@ -108,7 +118,9 @@ def test_fill_to_nonexistent_directory(tmp_path_factory: TempPathFactory, run_fi
     assert (output_dir / ".meta").exists(), "Metadata directory was not created"
 
 
-def test_fill_to_nonempty_directory_fails(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_nonempty_directory_fails(
+    tmp_path_factory: TempPathFactory, run_fill: Any
+) -> None:
     """Test filling to a non-empty directory fails without --clean."""
     # Create a directory with a file
     output_dir = tmp_path_factory.mktemp("nonempty_fixtures")
@@ -126,7 +138,9 @@ def test_fill_to_nonempty_directory_fails(tmp_path_factory: TempPathFactory, run
     )
 
 
-def test_fill_to_nonempty_directory_with_clean(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_nonempty_directory_with_clean(
+    tmp_path_factory: TempPathFactory, run_fill: Any
+) -> None:
     """Test filling to a non-empty directory succeeds with --clean."""
     # Create a directory with a file
     output_dir = tmp_path_factory.mktemp("nonempty_fixtures_clean")
@@ -140,8 +154,12 @@ def test_fill_to_nonempty_directory_with_clean(tmp_path_factory: TempPathFactory
     assert any(output_dir.glob("state_tests/**/*.json")), "No fixture files were created"
 
 
-def test_fill_to_directory_with_meta_fails(tmp_path_factory: TempPathFactory, run_fill):
-    """Test filling to a directory with .meta subdirectory fails without --clean."""
+def test_fill_to_directory_with_meta_fails(
+    tmp_path_factory: TempPathFactory, run_fill: Any
+) -> None:
+    """
+    Test filling to a directory with .meta subdirectory fails without --clean.
+    """
     # Create a directory with .meta
     output_dir = tmp_path_factory.mktemp("directory_with_meta")
     meta_dir = output_dir / ".meta"
@@ -155,7 +173,9 @@ def test_fill_to_directory_with_meta_fails(tmp_path_factory: TempPathFactory, ru
     )
 
 
-def test_fill_to_directory_with_meta_with_clean(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_directory_with_meta_with_clean(
+    tmp_path_factory: TempPathFactory, run_fill: Any
+) -> None:
     """Test filling to a directory with .meta succeeds with --clean."""
     # Create a directory with .meta
     output_dir = tmp_path_factory.mktemp("directory_with_meta_clean")
@@ -169,7 +189,7 @@ def test_fill_to_directory_with_meta_with_clean(tmp_path_factory: TempPathFactor
     assert not (meta_dir / "existing_meta_file.txt").exists(), "Existing meta file was not removed"
 
 
-def test_fill_stdout_always_works(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_stdout_always_works(tmp_path_factory: TempPathFactory, run_fill: Any) -> None:
     """Test filling to stdout always works regardless of output state."""
     stdout_path = Path("stdout")
     # create a directory called "stdout" - it should not have any effect
@@ -188,7 +208,7 @@ def test_fill_stdout_always_works(tmp_path_factory: TempPathFactory, run_fill):
     assert not any(stdout_path.glob("*.json")), "Fixture files were created when stdout is used"
 
 
-def test_fill_to_tarball_directory(tmp_path_factory: TempPathFactory, run_fill):
+def test_fill_to_tarball_directory(tmp_path_factory: TempPathFactory, run_fill: Any) -> None:
     """Test filling to a tarball output."""
     output_dir = tmp_path_factory.mktemp("tarball_fixtures")
     tarball_path = output_dir / "fixtures.tar.gz"
@@ -203,8 +223,10 @@ def test_fill_to_tarball_directory(tmp_path_factory: TempPathFactory, run_fill):
 
 
 # New tests for the is_master functionality
-def test_create_directories_skips_when_not_master():
-    """Test that create_directories skips operations when not the master process."""
+def test_create_directories_skips_when_not_master() -> None:
+    """
+    Test that create_directories skips operations when not the master process.
+    """
     fixture_output = FixtureOutput(
         output_path=Path("/fake/path"),
         clean=True,
@@ -226,8 +248,11 @@ def test_create_directories_skips_when_not_master():
         mock_rmtree.assert_not_called()
 
 
-def test_create_directories_operates_when_master():
-    """Test that create_directories performs operations when is the master process."""
+def test_create_directories_operates_when_master() -> None:
+    """
+    Test that create_directories performs operations when is the master
+    process.
+    """
     fixture_output = FixtureOutput(
         output_path=Path("/fake/path"),
         clean=True,
@@ -248,7 +273,7 @@ def test_create_directories_operates_when_master():
         mock_mkdir.assert_called()
 
 
-def test_create_directories_checks_empty_when_master():
+def test_create_directories_checks_empty_when_master() -> None:
     """Test that directory emptiness is checked only when is_master=True."""
     fixture_output = FixtureOutput(
         output_path=Path("/fake/path"),
@@ -264,7 +289,8 @@ def test_create_directories_checks_empty_when_master():
         patch.object(Path, "exists", return_value=True),
         patch.object(Path, "mkdir"),
     ):
-        # Call with is_master=True and expect an error about non-empty directory
+        # Call with is_master=True and expect an error about non-empty
+        # directory
         with pytest.raises(ValueError, match="not empty"):
             fixture_output.create_directories(is_master=True)
 
@@ -273,8 +299,11 @@ def test_create_directories_checks_empty_when_master():
         mock_summary.assert_called_once()
 
 
-def test_stdout_skips_directory_operations_regardless_of_master():
-    """Test that stdout output skips directory operations regardless of is_master value."""
+def test_stdout_skips_directory_operations_regardless_of_master() -> None:
+    """
+    Test that stdout output skips directory operations regardless of is_master
+    value.
+    """
     fixture_output = FixtureOutput(
         output_path=Path("stdout"),
         clean=True,

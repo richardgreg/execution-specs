@@ -10,7 +10,7 @@ import yaml
 from ethereum_test_base_types import ForkHash
 from ethereum_test_rpc import EthConfigResponse
 
-from ..types import NetworkConfig, NetworkConfigFile
+from ..execute_types import NetworkConfig, NetworkConfigFile
 
 EXPECTED_CANCUN = json.loads("""
 {
@@ -414,7 +414,7 @@ HoodiWithBPOs:
       target: 15
       max: 20
       baseFeeUpdateFraction: 5007716
-"""
+"""  # W505
 
 
 @pytest.fixture(scope="session")
@@ -435,7 +435,9 @@ def network(request: pytest.FixtureRequest, network_configs: NetworkConfigFile) 
 
 @pytest.fixture
 def eth_config(network: NetworkConfig, current_time: int) -> EthConfigResponse:
-    """Get the `eth_config` response from the client to be verified by all tests."""
+    """
+    Get the `eth_config` response from the client to be verified by all tests.
+    """
     return network.get_eth_config(current_time)
 
 
@@ -518,7 +520,7 @@ def eth_config(network: NetworkConfig, current_time: int) -> EthConfigResponse:
 def test_fork_config_from_fork(
     eth_config: EthConfigResponse,
     expected_eth_config: EthConfigResponse,
-):
+) -> None:
     """Test the `fork_config_from_fork` function."""
     current_config, next_config = (eth_config.current, eth_config.next)
     assert current_config.model_dump(
@@ -607,7 +609,7 @@ def test_fork_ids(
     expected_current_fork_id: ForkHash,
     expected_next_fork_id: ForkHash | None,
     expected_last_fork_id: ForkHash | None,
-):
+) -> None:
     """Test various configurations of fork Ids for different timestamps."""
     assert expected_current_fork_id == eth_config.current.fork_id, (
         f"Unexpected current fork id: {eth_config.current.fork_id} != {expected_current_fork_id}"

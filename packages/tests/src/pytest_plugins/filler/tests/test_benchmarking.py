@@ -1,6 +1,7 @@
 """Test the benchmarking pytest plugin for gas benchmark values."""
 
 import textwrap
+from pathlib import Path
 
 import pytest
 
@@ -11,7 +12,7 @@ test_module_dummy = textwrap.dedent(
     from ethereum_test_tools import Environment
 
     @pytest.mark.valid_at("Istanbul")
-    def test_dummy_benchmark_test(state_test, gas_benchmark_value):
+    def test_dummy_benchmark_test(state_test, gas_benchmark_value) -> None:
         state_test(
             env=env,pre={},post={},tx=None)
     """
@@ -24,7 +25,7 @@ test_module_without_fixture = textwrap.dedent(
     from ethereum_test_tools import Environment
 
     @pytest.mark.valid_at("Istanbul")
-    def test_dummy_no_benchmark_test(state_test):
+    def test_dummy_no_benchmark_test(state_test) -> None:
         state_test(env=env, pre={}, post={}, tx=None)
     """
 )
@@ -32,17 +33,16 @@ test_module_without_fixture = textwrap.dedent(
 
 def setup_test_directory_structure(
     pytester: pytest.Pytester, test_content: str, test_filename: str
-):
+) -> Path:
     """
     Set up the common test directory structure used across multiple tests.
 
     Args:
-        pytester: The pytest Pytester fixture
-        test_content: The content to write to the test file
-        test_filename: The name of the test file to create
+      pytester: The pytest Pytester fixture
+      test_content: The content to write to the test file
+      test_filename: The name of the test file to create
 
-    Returns:
-        The path to the created test module file
+    Returns: The path to the created test module file
 
     """
     tests_dir = pytester.mkdir("tests")
@@ -58,7 +58,7 @@ def setup_test_directory_structure(
     return test_module
 
 
-def test_gas_benchmark_option_added(pytester: pytest.Pytester):
+def test_gas_benchmark_option_added(pytester: pytest.Pytester) -> None:
     """Test that the --gas-benchmark-values option is properly added."""
     pytester.copy_example(name="src/cli/pytest_commands/pytest_ini_files/pytest-fill.ini")
 
@@ -70,8 +70,11 @@ def test_gas_benchmark_option_added(pytester: pytest.Pytester):
     assert any("Specify gas benchmark values for tests" in line for line in result.outlines)
 
 
-def test_benchmarking_mode_configured_with_option(pytester: pytest.Pytester):
-    """Test that fill_mode is set to BENCHMARKING when --gas-benchmark-values is used."""
+def test_benchmarking_mode_configured_with_option(pytester: pytest.Pytester) -> None:
+    """
+    Test that fill_mode is set to BENCHMARKING when --gas-benchmark-values is
+    used.
+    """
     setup_test_directory_structure(pytester, test_module_dummy, "test_dummy_benchmark.py")
 
     # Test with gas benchmark values
@@ -95,8 +98,11 @@ def test_benchmarking_mode_configured_with_option(pytester: pytest.Pytester):
     assert any("benchmark-gas-value_30M" in line for line in result.outlines)
 
 
-def test_benchmarking_mode_not_configured_without_option(pytester: pytest.Pytester):
-    """Test that fill_mode is not set to BENCHMARKING when --gas-benchmark-values is not used."""
+def test_benchmarking_mode_not_configured_without_option(pytester: pytest.Pytester) -> None:
+    """
+    Test that fill_mode is not set to BENCHMARKING when --gas-benchmark-values
+    is not used.
+    """
     setup_test_directory_structure(pytester, test_module_dummy, "test_dummy_benchmark.py")
 
     # Test without gas benchmark values

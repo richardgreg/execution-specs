@@ -1,6 +1,6 @@
 """
-Static filler pytest plugin that reads test cases from static files and fills them into test
-fixtures.
+Static filler pytest plugin that reads test cases from static files and fills
+them into test fixtures.
 """
 
 import inspect
@@ -8,7 +8,7 @@ import itertools
 import json
 import warnings
 from pathlib import Path
-from typing import Any, Callable, Dict, Generator, List, Tuple, Type
+from typing import Any, Callable, Dict, Generator, List, Self, Tuple, Type
 
 import pytest
 import yaml
@@ -19,7 +19,7 @@ from _pytest.python import Module
 from ethereum_test_fixtures import BaseFixture, LabeledFixtureFormat
 from ethereum_test_forks import Fork, get_closest_fork
 from ethereum_test_specs import BaseStaticTest, BaseTest
-from ethereum_test_tools.code.yul import Yul
+from ethereum_test_tools.tools_code.yul import Yul
 
 from ..forks.forks import ValidityMarker
 from ..shared.helpers import labeled_format_parameter_set
@@ -110,8 +110,11 @@ def get_all_combinations_from_parametrize_marks(
     return all_argument_names, all_value_combinations
 
 
-def pytest_collect_file(file_path: Path, parent) -> pytest.Collector | None:
-    """Pytest hook that collects test cases from static files and fills them into test fixtures."""
+def pytest_collect_file(file_path: Path, parent: Module) -> pytest.Collector | None:
+    """
+    Pytest hook that collects test cases from static files and fills them into
+    test fixtures.
+    """
     fill_static_tests_enabled = parent.config.getoption("fill_static_tests_enabled")
     if not fill_static_tests_enabled:
         return None
@@ -147,8 +150,8 @@ for ch in list(NoIntResolver.yaml_implicit_resolvers):
 
 class FillerFile(pytest.File):
     """
-    Filler file that reads test cases from static files and fills them into test
-    fixtures.
+    Filler file that reads test cases from static files and fills them into
+    test fixtures.
     """
 
     def collect(self: "FillerFile") -> Generator["FillerTestItem", None, None]:
@@ -241,7 +244,8 @@ class FillerFile(pytest.File):
                                     get_all_combinations_from_parametrize_marks(parametrize_marks)
                                 )
                                 for parameter_set in parameter_set_list:
-                                    # Copy and extend the params with the parameter set
+                                    # Copy and extend the params with the
+                                    # parameter set
                                     case_marks = (
                                         marks[:]
                                         + [
@@ -297,7 +301,7 @@ class FillerTestItem(pytest.Item):
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         original_name: str,
         func: Callable,
         params: Dict[str, Any],
@@ -305,8 +309,8 @@ class FillerTestItem(pytest.Item):
         fork: Fork,
         fixture_format: Type[BaseFixture],
         marks: List[pytest.Mark],
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize the filler test item."""
         super().__init__(*args, **kwargs)
         self.originalname = original_name
@@ -321,38 +325,41 @@ class FillerTestItem(pytest.Item):
             else:
                 self.add_marker(marker)  # type: ignore
 
-    def setup(self):
+    def setup(self) -> None:
         """Resolve and apply fixtures before test execution."""
         self._fixtureinfo = self.session._fixturemanager.getfixtureinfo(
             self,
             None,
             None,
         )
-        request = TopRequest(self, _ispytest=True)
+        request = TopRequest(
+            self,  # type: ignore[arg-type]
+            _ispytest=True,
+        )
         for fixture_name in self.fixturenames:
             if fixture_name == "request":
                 self.params[fixture_name] = request
             else:
                 self.params[fixture_name] = request.getfixturevalue(fixture_name)
 
-    def runtest(self):
+    def runtest(self) -> None:
         """Execute the test logic for this specific static test."""
         self.func(**self.params)
 
-    def reportinfo(self):
+    def reportinfo(self) -> Tuple[Path, int, str]:
         """Provide information for test reporting."""
         return self.fspath, 0, f"Static file test: {self.name}"
 
 
 @pytest.fixture
-def yul(fork: Fork, request: pytest.FixtureRequest):
+def yul(fork: Fork, request: pytest.FixtureRequest) -> Type[Yul]:
     """
     Fixture that allows contract code to be defined with Yul code.
 
-    This fixture defines a class that wraps the ::ethereum_test_tools.Yul
-    class so that upon instantiation within the test case, it provides the
-    test case's current fork parameter. The forks is then available for use
-    in solc's arguments for the Yul code compilation.
+    This fixture defines a class that wraps the ::ethereum_test_tools.Yul class
+    so that upon instantiation within the test case, it provides the test
+    case's current fork parameter. The forks is then available for use in
+    solc's arguments for the Yul code compilation.
 
     Test cases can override the default value by specifying a fixed version
     with the @pytest.mark.compile_yul_with(FORK) marker.
@@ -372,7 +379,7 @@ def yul(fork: Fork, request: pytest.FixtureRequest):
         else:
             pytest.fail(f"{request.node.name}: Fork {marker.args[0]} not found in forks list.")
     else:
-        solc_target_fork = get_closest_fork(fork, request.config.solc_version)
+        solc_target_fork = get_closest_fork(fork)
         assert solc_target_fork is not None, "No fork supports provided solc version."
         if solc_target_fork != fork and request.config.getoption("verbose") >= 1:
             warnings.warn(
@@ -380,7 +387,8 @@ def yul(fork: Fork, request: pytest.FixtureRequest):
             )
 
     class YulWrapper(Yul):
-        def __new__(cls, *args, **kwargs):
-            return super(YulWrapper, cls).__new__(cls, *args, **kwargs, fork=solc_target_fork)
+        def __new__(cls, *args: Any, **kwargs: Any) -> Self:
+            kwargs["fork"] = solc_target_fork
+            return super(YulWrapper, cls).__new__(cls, *args, **kwargs)
 
     return YulWrapper

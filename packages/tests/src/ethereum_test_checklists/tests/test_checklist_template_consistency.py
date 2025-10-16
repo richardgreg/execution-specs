@@ -2,7 +2,7 @@
 
 import re
 from pathlib import Path
-from typing import Set
+from typing import Any, Set
 
 import pytest
 
@@ -32,8 +32,10 @@ def extract_markdown_ids(markdown_content: str) -> Set[str]:
     return ids
 
 
-def get_all_checklist_ids(obj, current_path="") -> Set[str]:
-    """Recursively extract all checklist IDs from EIPChecklist and its children."""
+def get_all_checklist_ids(obj: Any) -> Set[str]:
+    """
+    Recursively extract all checklist IDs from EIPChecklist and its children.
+    """
     ids = set()
 
     # Iterate through all attributes of the object
@@ -58,8 +60,10 @@ def get_all_checklist_ids(obj, current_path="") -> Set[str]:
     return ids
 
 
-def test_checklist_template_consistency():
-    """Test that all IDs in markdown template match EIPChecklist class exactly."""
+def test_checklist_template_consistency() -> None:
+    """
+    Test that all IDs in markdown template match EIPChecklist class exactly.
+    """
     # Read the markdown template
     with open(TEMPLATE_PATH, "r", encoding="utf-8") as f:
         markdown_content = f.read()
@@ -96,12 +100,12 @@ def test_checklist_template_consistency():
         pytest.fail(error_message)
 
 
-def test_checklist_template_exists():
+def test_checklist_template_exists() -> None:
     """Test that the checklist template file exists."""
     assert TEMPLATE_PATH.exists(), f"Checklist template not found at {TEMPLATE_PATH}"
 
 
-def test_eip_checklist_class_structure():
+def test_eip_checklist_class_structure() -> None:
     """Test that the EIPChecklist class has expected structure."""
     assert hasattr(EIPChecklist, "General"), "EIPChecklist should have General class"
     assert hasattr(EIPChecklist, "Opcode"), "EIPChecklist should have Opcode class"
@@ -115,7 +119,7 @@ def test_eip_checklist_class_structure():
     )
 
 
-def test_id_extraction_functions():
+def test_id_extraction_functions() -> None:
     """Test that our ID extraction functions work correctly."""
     # Test markdown extraction
     sample_markdown = """
@@ -134,34 +138,38 @@ def test_id_extraction_functions():
     assert "general/code_coverage/eels" in checklist_ids
 
 
-def test_eip_checklist_decorator_usage():
-    """Test EIPChecklist items work correctly as decorators both with and without parentheses."""
+def test_eip_checklist_decorator_usage() -> None:
+    """
+    Test EIPChecklist items work correctly as decorators both with and without
+    parentheses.
+    """
 
     # Test decorator with parentheses
     @EIPChecklist.Opcode.Test.StackComplexOperations()
-    def test_function_with_parens():
+    def test_function_with_parens() -> None:
         pass
 
     # Verify the marker was applied
-    markers = list(test_function_with_parens.pytestmark)
+    markers = list(test_function_with_parens.pytestmark)  # type: ignore[attr-defined]
     assert len(markers) >= 1
     eip_markers = [m for m in markers if m.name == "eip_checklist"]
     assert len(eip_markers) == 1
     assert eip_markers[0].args == ("opcode/test/stack_complex_operations",)
 
-    # Test decorator without parentheses (direct usage - this is the key fix for issue #1)
+    # Test decorator without parentheses (direct usage - this is the key fix
+    # for issue #1)
     @EIPChecklist.Opcode.Test.StackOverflow
-    def test_function_no_parens():
+    def test_function_no_parens() -> None:
         pass
 
     # Verify the marker was applied
-    markers = list(test_function_no_parens.pytestmark)
+    markers = list(test_function_no_parens.pytestmark)  # type: ignore[attr-defined]
     eip_markers = [m for m in markers if m.name == "eip_checklist"]
     assert len(eip_markers) == 1
     assert eip_markers[0].args == ("opcode/test/stack_overflow",)
 
 
-def test_eip_checklist_pytest_param_usage():
+def test_eip_checklist_pytest_param_usage() -> None:
     """Test that EIPChecklist works correctly in pytest.param marks."""
     # Test that parentheses form works in pytest.param
     param_with_parens = pytest.param(
@@ -172,13 +180,13 @@ def test_eip_checklist_pytest_param_usage():
     assert param_with_parens.values == ("test_value",)
     assert param_with_parens.id == "gas_test"
     assert len(param_with_parens.marks) == 1
-    assert param_with_parens.marks[0].name == "eip_checklist"
-    assert param_with_parens.marks[0].args == ("opcode/test/gas_usage/normal",)
+    assert param_with_parens.marks[0].name == "eip_checklist"  # type: ignore[index]
+    assert param_with_parens.marks[0].args == ("opcode/test/gas_usage/normal",)  # type: ignore[index]
 
     # Test that multiple marks work
     param_multiple_marks = pytest.param(
         "test_value",
-        marks=[EIPChecklist.Opcode.Test.StackComplexOperations(), pytest.mark.slow],
+        marks=[EIPChecklist.Opcode.Test.StackComplexOperations(), pytest.mark.slow],  # type: ignore[list-item]
         id="complex_test",
     )
 
@@ -192,6 +200,7 @@ def test_eip_checklist_pytest_param_usage():
     with pytest.raises((TypeError, AssertionError)):
         pytest.param(
             "test_value",
-            marks=EIPChecklist.Opcode.Test.StackOverflow,  # Without () should fail
+            # Without () should fail
+            marks=EIPChecklist.Opcode.Test.StackOverflow,  # type: ignore[arg-type]
             id="should_fail",
         )

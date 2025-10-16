@@ -1,4 +1,6 @@
-"""Shared pytest fixtures and hooks for EEST generation modes (fill and execute)."""
+"""
+Shared pytest fixtures and hooks for EEST generation modes (fill and execute).
+"""
 
 from typing import List
 
@@ -13,20 +15,22 @@ from ethereum_test_types import EOA, Alloc, ChainConfig
 from ..spec_version_checker.spec_version_checker import EIPSpecTestItem
 
 ALL_FIXTURE_PARAMETERS = {
+    "gas_benchmark_value",
     "genesis_environment",
     "env",
 }
 """
-List of test parameters that have a default fixture value which can be retrieved and used
-for the test instance if it was not explicitly specified when calling from the test
-function.
+List of test parameters that have a default fixture value which can be
+retrieved and used for the test instance if it was not explicitly specified
+when calling from the test function.
 
-All parameter names included in this list must define a fixture in one of the plugins.
+All parameter names included in this list must define a fixture in one of the
+plugins.
 """
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_configure(config: pytest.Config):
+def pytest_configure(config: pytest.Config) -> None:
     """
     Pytest hook called after command line options have been parsed and before
     test collection begins.
@@ -34,12 +38,12 @@ def pytest_configure(config: pytest.Config):
     Couple of notes:
     1. Register the plugin's custom markers and process command-line options.
 
-        Custom marker registration:
-        https://docs.pytest.org/en/7.1.x/how-to/writing_plugins.html#registering-custom-markers
+       Custom marker registration:
+       https://docs.pytest.org/en/7.1.x/how-to/writing_plugins.html#registering-custom-markers
 
     2. `@pytest.hookimpl(tryfirst=True)` is applied to ensure that this hook is
-        called before the pytest-html plugin's pytest_configure to ensure that
-        it uses the modified `htmlpath` option.
+       called before the pytest-html plugin's pytest_configure to ensure that
+       it uses the modified `htmlpath` option.
     """
     if config.pluginmanager.has_plugin("pytest_plugins.filler.filler"):
         for fixture_format in BaseFixture.formats.values():
@@ -98,6 +102,10 @@ def pytest_configure(config: pytest.Config):
     )
     config.addinivalue_line(
         "markers",
+        "stateful: Tests for stateful benchmarking scenarios.",
+    )
+    config.addinivalue_line(
+        "markers",
         "exception_test: Negative tests that include an invalid block or transaction.",
     )
     config.addinivalue_line(
@@ -149,11 +157,18 @@ def pytest_configure(config: pytest.Config):
         "markers",
         "valid_for_bpo_forks: Marks a test as valid for BPO forks",
     )
+    config.addinivalue_line(
+        "markers",
+        "mainnet: Specialty tests crafted for running on mainnet and sanity checking.",
+    )
 
 
 @pytest.fixture(scope="function")
 def test_case_description(request: pytest.FixtureRequest) -> str:
-    """Fixture to extract and combine docstrings from the test class and the test function."""
+    """
+    Fixture to extract and combine docstrings from the test class and the test
+    function.
+    """
     description_unavailable = (
         "No description available - add a docstring to the python test class or function."
     )
@@ -169,24 +184,25 @@ def test_case_description(request: pytest.FixtureRequest) -> str:
     return combined_docstring
 
 
-def pytest_make_parametrize_id(config: pytest.Config, val: str, argname: str):
+def pytest_make_parametrize_id(config: pytest.Config, val: str, argname: str) -> str:
     """
-    Pytest hook called when generating test ids. We use this to generate
-    more readable test ids for the generated tests.
+    Pytest hook called when generating test ids. We use this to generate more
+    readable test ids for the generated tests.
     """
+    del config
     return f"{argname}_{val}"
 
 
 SPEC_TYPES_PARAMETERS: List[str] = list(BaseTest.spec_types.keys())
 
 
-def pytest_runtest_call(item: pytest.Item):
+def pytest_runtest_call(item: pytest.Item) -> None:
     """Pytest hook called in the context of test execution."""
     if isinstance(item, EIPSpecTestItem):
         return
 
     class InvalidFillerError(Exception):
-        def __init__(self, message):
+        def __init__(self, message: str):
             super().__init__(message)
 
     if not isinstance(item, pytest.Function):
@@ -219,7 +235,7 @@ def chain_config() -> ChainConfig:
     return ChainConfig()
 
 
-def pytest_addoption(parser: pytest.Parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command-line options to pytest."""
     static_filler_group = parser.getgroup("static", "Arguments defining static filler behavior")
     static_filler_group.addoption(

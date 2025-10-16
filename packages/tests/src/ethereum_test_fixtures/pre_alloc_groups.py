@@ -2,7 +2,7 @@
 
 import json
 from pathlib import Path
-from typing import Any, Dict, Iterator, List, Tuple
+from typing import Any, Dict, Generator, Iterator, KeysView, List, Tuple
 
 from filelock import FileLock
 from pydantic import Field, PrivateAttr, computed_field
@@ -22,7 +22,8 @@ class PreAllocGroup(CamelModel):
     pre-allocation group optimization.
     """
 
-    model_config = {"populate_by_name": True}  # Allow both field names and aliases
+    # Allow both field names and aliases
+    model_config = {"populate_by_name": True}
 
     test_ids: List[str] = Field(default_factory=list)
     environment: Environment = Field(..., description="Grouping environment for this test group")
@@ -65,9 +66,10 @@ class PreAllocGroup(CamelModel):
                     else:
                         new_account = self.pre[account]
                         if new_account != existing_account:
-                            # This procedure fails during xdist worker's pytest_sessionfinish
-                            # and is not reported to the master thread.
-                            # We signal here that the groups created contain a collision.
+                            # This procedure fails during xdist worker's
+                            # pytest_sessionfinish and is not reported to the
+                            # master thread. We signal here that the groups
+                            # created contain a collision.
                             collision_file_path = file.with_suffix(".fail")
                             collision_exception = Alloc.CollisionError(
                                 address=account,
@@ -87,7 +89,8 @@ class PreAllocGroups(EthereumTestRootModel):
     """
     Root model mapping pre-allocation group hashes to test groups.
 
-    If lazy_load is True, the groups are not loaded from the folder until they are accessed.
+    If lazy_load is True, the groups are not loaded from the folder until they
+    are accessed.
 
     Iterating will fail if lazy_load is True.
     """
@@ -96,7 +99,7 @@ class PreAllocGroups(EthereumTestRootModel):
 
     _folder_source: Path | None = PrivateAttr(None)
 
-    def __setitem__(self, key: str, value: Any):
+    def __setitem__(self, key: str, value: Any) -> None:
         """Set item in root dict."""
         assert self._folder_source is None, (
             "Cannot set item in root dict after folder source is set"
@@ -129,41 +132,43 @@ class PreAllocGroups(EthereumTestRootModel):
             assert value is not None, f"Value for key {key} is None"
             value.to_file(folder / f"{key}.json")
 
-    def __getitem__(self, item):
+    def __getitem__(self, item: str) -> PreAllocGroup:
         """Get item from root dict."""
         if self._folder_source is None:
-            item = self.root[item]
-            assert item is not None, f"Item {item} is None"
-            return item
+            value = self.root[item]
+            assert value is not None, f"Item {item} is None"
+            return value
         else:
             if self.root[item] is None:
                 with open(self._folder_source / f"{item}.json") as f:
                     self.root[item] = PreAllocGroup.model_validate_json(f.read())
-            return self.root[item]
+            result = self.root[item]
+            assert result is not None
+            return result
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[str]:  # type: ignore [override]
         """Iterate over root dict."""
         return iter(self.root)
 
-    def __contains__(self, item):
+    def __contains__(self, item: str) -> bool:
         """Check if item in root dict."""
         return item in self.root
 
-    def __len__(self):
+    def __len__(self) -> int:
         """Get length of root dict."""
         return len(self.root)
 
-    def keys(self):
+    def keys(self) -> KeysView[str]:
         """Get keys from root dict."""
         return self.root.keys()
 
-    def values(self) -> Iterator[PreAllocGroup]:
+    def values(self) -> Generator[PreAllocGroup, None, None]:
         """Get values from root dict."""
         for value in self.root.values():
             assert value is not None, "Value is None"
             yield value
 
-    def items(self) -> Iterator[Tuple[str, PreAllocGroup]]:
+    def items(self) -> Generator[Tuple[str, PreAllocGroup], None, None]:
         """Get items from root dict."""
         for key, value in self.root.items():
             assert value is not None, f"Value for key {key} is None"

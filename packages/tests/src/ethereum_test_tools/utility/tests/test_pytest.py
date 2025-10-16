@@ -6,7 +6,8 @@ from ethereum_test_tools import extend_with_defaults
 from ethereum_test_tools.utility.pytest import UnknownParameterInCasesError
 
 
-# TODO: This is from the docstring in extend_with_defaults; should be tested automatically
+# TODO: This is from the docstring in extend_with_defaults; should be tested
+# automatically
 @pytest.mark.parametrize(
     **extend_with_defaults(
         defaults={
@@ -28,13 +29,13 @@ from ethereum_test_tools.utility.pytest import UnknownParameterInCasesError
                 id="max_value_200",
             ),
             pytest.param(
-                {"min_value": -10, "max_value": 50},  # override both min_value
-                # and max_value
+                # override both min_value and max_value
+                {"min_value": -10, "max_value": 50},
                 id="min_-10_max_50",
             ),
             pytest.param(
-                {"min_value": 20, "max_value": 80, "average": 50},  # all defaults
-                # are overridden
+                # all defaults are overridden
+                {"min_value": 20, "max_value": 80, "average": 50},
                 id="min_20_max_80_avg_50",
             ),
             pytest.param(
@@ -45,7 +46,7 @@ from ethereum_test_tools.utility.pytest import UnknownParameterInCasesError
         ],
     )
 )
-def test_range(min_value, max_value, average):  # noqa: D103
+def test_range(min_value: int, max_value: int, average: int) -> None:  # noqa: D103
     assert min_value <= max_value
     assert min_value <= average <= max_value
 
@@ -126,7 +127,10 @@ def test_range(min_value, max_value, average):  # noqa: D103
         ),
     ],
 )
-def test_extend_with_defaults(defaults, cases, parametrize_kwargs, expected):  # noqa: D103
+def test_extend_with_defaults(
+    defaults: dict, cases: list, parametrize_kwargs: dict, expected: dict
+) -> None:  # noqa: D103
+    """Test the extend_with_defaults function."""
     result = extend_with_defaults(defaults, cases, **parametrize_kwargs)
     assert result["argnames"] == expected["argnames"]
     assert result["argvalues"] == expected["argvalues"]
@@ -135,7 +139,7 @@ def test_extend_with_defaults(defaults, cases, parametrize_kwargs, expected):  #
     assert result == parametrize_kwargs
 
 
-def test_extend_with_defaults_raises_for_unknown_default():  # noqa: D103
+def test_extend_with_defaults_raises_for_unknown_default() -> None:  # noqa: D103
     with pytest.raises(
         UnknownParameterInCasesError, match="only contain parameters present in defaults"
     ):
@@ -157,7 +161,7 @@ def test_extend_with_defaults_raises_for_unknown_default():  # noqa: D103
         ),
     ],
 )
-def test_extend_with_defaults_raises_value_error(defaults, cases):  # noqa: D103
+def test_extend_with_defaults_raises_value_error(defaults: dict, cases: list) -> None:  # noqa: D103
     expected_message = "each case must contain exactly one value; a dict of parameter values"
     with pytest.raises(ValueError, match=expected_message):
         extend_with_defaults(defaults, cases)

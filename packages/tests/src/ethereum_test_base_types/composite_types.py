@@ -1,7 +1,7 @@
 """Base composite types for Ethereum test cases."""
 
 from dataclasses import dataclass
-from typing import Any, ClassVar, Dict, List, SupportsBytes, Type, TypeAlias
+from typing import Any, ClassVar, Dict, ItemsView, Iterator, List, SupportsBytes, Type, TypeAlias
 
 from pydantic import Field, PrivateAttr, TypeAdapter
 
@@ -41,16 +41,18 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
 
     @dataclass(kw_only=True)
     class InvalidTypeError(Exception):
-        """Invalid type used when describing test's expected storage key or value."""
+        """
+        Invalid type used when describing test's expected storage key or value.
+        """
 
         key_or_value: Any
 
-        def __init__(self, key_or_value: Any, *args):
+        def __init__(self, key_or_value: Any, *args: Any) -> None:
             """Initialize the exception with the invalid type."""
             super().__init__(args)
             self.key_or_value = key_or_value
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return f"invalid type for key/value: {self.key_or_value}"
 
@@ -63,12 +65,12 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
 
         key_or_value: Any
 
-        def __init__(self, key_or_value: Any, *args):
+        def __init__(self, key_or_value: Any, *args: Any) -> None:
             """Initialize the exception with the invalid value."""
             super().__init__(args)
             self.key_or_value = key_or_value
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return f"invalid value for key/value: {self.key_or_value}"
 
@@ -78,20 +80,20 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
 
         key: int
 
-        def __init__(self, key: int, *args):
+        def __init__(self, key: int, *args: Any) -> None:
             """Initialize the exception with the missing key."""
             super().__init__(args)
             self.key = key
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return "key {0} not found in storage".format(Hash(self.key))
 
     @dataclass(kw_only=True)
     class KeyValueMismatchError(Exception):
         """
-        Test expected a certain value in a storage key but value found
-        was different.
+        Test expected a certain value in a storage key but value found was
+        different.
         """
 
         address: Address
@@ -100,8 +102,13 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
         got: int
         hint: str
 
-        def __init__(self, address: Address, key: int, want: int, got: int, hint: str = "", *args):
-            """Initialize the exception with the address, key, wanted and got values."""
+        def __init__(
+            self, address: Address, key: int, want: int, got: int, hint: str = "", *args: Any
+        ) -> None:
+            """
+            Initialize the exception with the address, key, wanted and got
+            values.
+            """
             super().__init__(args)
             self.address = address
             self.key = key
@@ -109,7 +116,7 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
             self.got = got
             self.hint = hint
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             label_str = ""
             if self.address.label is not None:
@@ -135,27 +142,27 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
         self,
         key: StorageKeyValueTypeConvertible | StorageKeyValueType,
         value: StorageKeyValueTypeConvertible | StorageKeyValueType,
-    ):
+    ) -> None:
         """Set an item in the storage."""
         self.root[StorageKeyValueTypeAdapter.validate_python(key)] = (
             StorageKeyValueTypeAdapter.validate_python(value)
         )
 
-    def __delitem__(self, key: StorageKeyValueTypeConvertible | StorageKeyValueType):
+    def __delitem__(self, key: StorageKeyValueTypeConvertible | StorageKeyValueType) -> None:
         """Delete an item from the storage."""
         del self.root[StorageKeyValueTypeAdapter.validate_python(key)]
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[StorageKeyValueType]:  # type: ignore [override]
         """Return an iterator over the storage."""
         return iter(self.root)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Return True if both storages are equal."""
         if not isinstance(other, Storage):
             return False
         return self.root == other.root
 
-    def __ne__(self, other) -> bool:
+    def __ne__(self, other: object) -> bool:
         """Return True if both storages are not equal."""
         if not isinstance(other, Storage):
             return False
@@ -178,19 +185,22 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
         self._current_slot = slot
         return self
 
-    def items(self):
+    def items(self) -> ItemsView[StorageKeyValueType, StorageKeyValueType]:
         """Return the items of the storage."""
         return self.root.items()
 
-    def set_expect_any(self, key: StorageKeyValueTypeConvertible | StorageKeyValueType):
-        """Mark key to be able to have any expected value when comparing storages."""
+    def set_expect_any(self, key: StorageKeyValueTypeConvertible | StorageKeyValueType) -> None:
+        """
+        Mark key to be able to have any expected value when comparing storages.
+        """
         self._any_map[StorageKeyValueTypeAdapter.validate_python(key)] = True
 
     def store_next(
         self, value: StorageKeyValueTypeConvertible | StorageKeyValueType | bool, hint: str = ""
     ) -> StorageKeyValueType:
         """
-        Store a value in the storage and returns the key where the value is stored.
+        Store a value in the storage and returns the key where the value is
+        stored.
 
         Increments the key counter so the next time this function is called,
         the next key is used.
@@ -208,10 +218,9 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
 
     def contains(self, other: "Storage") -> bool:
         """
-        Return True if self contains all keys with equal value as
-        contained by second storage.
-        Used for comparison with test expected post state and alloc returned
-        by the transition tool.
+        Return True if self contains all keys with equal value as contained by
+        second storage. Used for comparison with test expected post state and
+        alloc returned by the transition tool.
         """
         for key in other.keys():
             if key not in self:
@@ -220,13 +229,12 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
                 return False
         return True
 
-    def must_contain(self, address: Address, other: "Storage"):
+    def must_contain(self, address: Address, other: "Storage") -> None:
         """
-        Succeeds only if self contains all keys with equal value as
-        contained by second storage.
-        Used for comparison with test expected post state and alloc returned
-        by the transition tool.
-        Raises detailed exception when a difference is found.
+        Succeeds only if self contains all keys with equal value as contained
+        by second storage. Used for comparison with test expected post state
+        and alloc returned by the transition tool. Raises detailed exception
+        when a difference is found.
         """
         for key in other.keys():
             if key not in self:
@@ -242,7 +250,7 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
                     hint=self._hint_map.get(key, ""),
                 )
 
-    def must_be_equal(self, address: Address, other: "Storage | None"):
+    def must_be_equal(self, address: Address, other: "Storage | None") -> None:
         """Succeed only if "self" is equal to "other" storage."""
         # Test keys contained in both storage objects
         if other is None:
@@ -283,8 +291,9 @@ class Storage(EthereumTestRootModel[Dict[StorageKeyValueType, StorageKeyValueTyp
 
     def canary(self) -> "Storage":
         """
-        Return a canary storage filled with non-zero values where the current storage expects
-        zero values, to guarantee that the test overwrites the storage.
+        Return a canary storage filled with non-zero values where the current
+        storage expects zero values, to guarantee that the test overwrites the
+        storage.
         """
         return Storage({key: HashInt(0xBA5E) for key in self.keys() if self[key] == 0})
 
@@ -294,22 +303,15 @@ class Account(CamelModel):
 
     nonce: ZeroPaddedHexNumber = ZeroPaddedHexNumber(0)
     """
-    The scalar value equal to a) the number of transactions sent by
-    an Externally Owned Account, b) the amount of contracts created by a
-    contract.
+    The scalar value equal to a) the number of transactions sent by an
+    Externally Owned Account, b) the amount of contracts created by a contract.
     """
     balance: ZeroPaddedHexNumber = ZeroPaddedHexNumber(0)
-    """
-    The amount of Wei (10<sup>-18</sup> Eth) the account has.
-    """
+    """The amount of Wei (10<sup>-18</sup> Eth) the account has."""
     code: Bytes = Bytes(b"")
-    """
-    Bytecode contained by the account.
-    """
+    """Bytecode contained by the account."""
     storage: Storage = Field(default_factory=Storage)
-    """
-    Storage within a contract.
-    """
+    """Storage within a contract."""
 
     NONEXISTENT: ClassVar[None] = None
     """
@@ -328,14 +330,18 @@ class Account(CamelModel):
         want: int | None
         got: int | None
 
-        def __init__(self, address: Address, want: int | None, got: int | None, *args):
-            """Initialize the exception with the address, wanted and got values."""
+        def __init__(
+            self, address: Address, want: int | None, got: int | None, *args: Any
+        ) -> None:
+            """
+            Initialize the exception with the address, wanted and got values.
+            """
             super().__init__(args)
             self.address = address
             self.want = want
             self.got = got
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             label_str = ""
             if self.address.label is not None:
@@ -348,22 +354,26 @@ class Account(CamelModel):
     @dataclass(kw_only=True)
     class BalanceMismatchError(Exception):
         """
-        Test expected a certain balance for an account but a different
-        value was found.
+        Test expected a certain balance for an account but a different value
+        was found.
         """
 
         address: Address
         want: int | None
         got: int | None
 
-        def __init__(self, address: Address, want: int | None, got: int | None, *args):
-            """Initialize the exception with the address, wanted and got values."""
+        def __init__(
+            self, address: Address, want: int | None, got: int | None, *args: Any
+        ) -> None:
+            """
+            Initialize the exception with the address, wanted and got values.
+            """
             super().__init__(args)
             self.address = address
             self.want = want
             self.got = got
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             label_str = ""
             if self.address.label is not None:
@@ -376,32 +386,37 @@ class Account(CamelModel):
     @dataclass(kw_only=True)
     class CodeMismatchError(Exception):
         """
-        Test expected a certain bytecode for an account but a different
-        one was found.
+        Test expected a certain bytecode for an account but a different one was
+        found.
         """
 
         address: Address
         want: bytes | None
         got: bytes | None
 
-        def __init__(self, address: Address, want: bytes | None, got: bytes | None, *args):
-            """Initialize the exception with the address, wanted and got values."""
+        def __init__(
+            self, address: Address, want: bytes | None, got: bytes | None, *args: Any
+        ) -> None:
+            """
+            Initialize the exception with the address, wanted and got values.
+            """
             super().__init__(args)
             self.address = address
             self.want = want
             self.got = got
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             label_str = ""
             if self.address.label is not None:
                 label_str = f" ({self.address.label})"
             return (
                 f"unexpected code for account {self.address}{label_str}: "
-                + f"want {self.want}, got {self.got}"
+                f"want {self.want.hex() if self.want else self.want}, "
+                f"got {self.got.hex() if self.got else self.got}"
             )
 
-    def check_alloc(self: "Account", address: Address, account: "Account"):
+    def check_alloc(self: "Account", address: Address, account: "Account") -> None:
         """
         Check the returned alloc against an expected account in post state.
         Raises exception on failure.
@@ -491,7 +506,7 @@ class BlobSchedule(EthereumTestRootModel[Dict[str, ForkBlobSchedule]]):
 
     root: Dict[str, ForkBlobSchedule] = Field(default_factory=dict, validate_default=True)
 
-    def append(self, *, fork: str, schedule: Any):
+    def append(self, *, fork: str, schedule: Any) -> None:
         """Append a new fork schedule."""
         if not isinstance(schedule, ForkBlobSchedule):
             schedule = ForkBlobSchedule(**schedule)

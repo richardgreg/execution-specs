@@ -23,10 +23,10 @@ class BaseExecute(CamelModel):
     requires_engine_rpc: ClassVar[bool] = False
 
     @classmethod
-    def __pydantic_init_subclass__(cls, **kwargs):
+    def __pydantic_init_subclass__(cls, **kwargs: Any) -> None:
         """
-        Register all subclasses of BaseExecute with a execute format name set
-        as possible execute formats.
+        Register all subclasses of BaseExecute with a execute format
+        name set as possible execute formats.
         """
         if cls.format_name:
             # Register the new execute format
@@ -34,8 +34,12 @@ class BaseExecute(CamelModel):
 
     @abstractmethod
     def execute(
-        self, fork: Fork, eth_rpc: EthRPC, engine_rpc: EngineRPC | None, request: FixtureRequest
-    ):
+        self,
+        fork: Fork,
+        eth_rpc: EthRPC,
+        engine_rpc: EngineRPC | None,
+        request: FixtureRequest,
+    ) -> None:
         """Execute the format."""
         pass
 
@@ -44,8 +48,8 @@ class LabeledExecuteFormat:
     """
     Represents an execution format with a custom label.
 
-    This label will be used in the test id and also will be added as a marker to the
-    generated test case when executing the test.
+    This label will be used in the test id and also will be added as a marker
+    to the generated test case when executing the test.
     """
 
     format: Type[BaseExecute]
@@ -85,8 +89,8 @@ class LabeledExecuteFormat:
         """
         Check if two labeled execute formats are equal.
 
-        If the other object is a ExecuteFormat type, the format of the labeled execute
-        format will be compared with the format of the other object.
+        If the other object is a ExecuteFormat type, the format of the labeled
+        execute format will be compared with the format of the other object.
         """
         if isinstance(other, LabeledExecuteFormat):
             return self.format == other.format

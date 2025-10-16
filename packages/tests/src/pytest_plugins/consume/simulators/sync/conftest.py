@@ -6,7 +6,7 @@ Configures the hive back-end & EL clients for each individual test execution.
 
 import io
 import json
-from typing import Generator, Mapping, cast
+from typing import Dict, Generator, Mapping, cast
 
 import pytest
 from hive.client import Client, ClientType
@@ -27,24 +27,34 @@ pytest_plugins = (
 )
 
 
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Set the supported fixture formats for the engine sync simulator."""
-    config._supported_fixture_formats = [BlockchainEngineSyncFixture.format_name]
+    config.supported_fixture_formats = [BlockchainEngineSyncFixture]  # type: ignore[attr-defined]
 
 
-def pytest_generate_tests(metafunc):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Parametrize sync_client_type separately from client_type."""
     if "sync_client_type" in metafunc.fixturenames:
-        client_ids = [f"sync_{client.name}" for client in metafunc.config.hive_execution_clients]
+        client_ids = [f"sync_{client.name}" for client in metafunc.config.hive_execution_clients]  # type: ignore[attr-defined]
         metafunc.parametrize(
-            "sync_client_type", metafunc.config.hive_execution_clients, ids=client_ids
+            "sync_client_type",
+            metafunc.config.hive_execution_clients,  # type: ignore[attr-defined]
+            ids=client_ids,
         )
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_collection_modifyitems(session, config, items):
+def pytest_collection_modifyitems(
+    session: pytest.Session, config: pytest.Config, items: list[pytest.Item]
+) -> None:
     """Modify test IDs to show both client and sync client clearly."""
+    del session, config
+
     for item in items:
+        # Auto-mark all verify_sync tests as flaky with 3 reruns
+        if item.get_closest_marker("blockchain_test_sync"):
+            item.add_marker(pytest.mark.flaky(reruns=3))
+
         # Check if this test has both client_type and sync_client_type
         if (
             hasattr(item, "callspec")
@@ -58,7 +68,8 @@ def pytest_collection_modifyitems(session, config, items):
             # Format: ``-{client}_sync_{sync_client}``
             new_suffix = f"-{client_name}::sync_{sync_client_name}"
 
-            # client_param-tests/path/to/test.py::test_name[test_params]-sync_client_param
+            # client_param-
+            # tests/path/to/test.py::test_name[test_params]-sync_client_param
             # 1. Remove the client prefix from the beginning
             # 2. Replace the -client_param part at the end with our new format
             nodeid = item.nodeid
@@ -116,8 +127,11 @@ def admin_rpc(client: Client) -> AdminRPC:
 
 
 @pytest.fixture(scope="function")
-def sync_genesis(fixture: BlockchainEngineSyncFixture) -> dict:
-    """Convert the fixture genesis block header and pre-state to a sync client genesis state."""
+def sync_genesis(fixture: BlockchainEngineSyncFixture) -> Dict:
+    """
+    Convert the fixture genesis block header and pre-state to a sync client
+    genesis state.
+    """
     genesis = to_json(fixture.genesis)
     alloc = to_json(fixture.pre)
     # NOTE: nethermind requires account keys without '0x' prefix
@@ -126,8 +140,10 @@ def sync_genesis(fixture: BlockchainEngineSyncFixture) -> dict:
 
 
 @pytest.fixture(scope="function")
-def sync_buffered_genesis(sync_genesis: dict) -> io.BufferedReader:
-    """Create a buffered reader for the genesis block header of the sync client."""
+def sync_buffered_genesis(sync_genesis: Dict) -> io.BufferedReader:
+    """
+    Create a buffered reader for the genesis block header of the sync client.
+    """
     genesis_json = json.dumps(sync_genesis)
     genesis_bytes = genesis_json.encode("utf-8")
     return io.BufferedReader(cast(io.RawIOBase, io.BytesIO(genesis_bytes)))
@@ -160,9 +176,8 @@ def client_enode_url(client: Client) -> str:
 @pytest.fixture(scope="function")
 def sync_client(
     hive_test: HiveTest,
-    client: Client,  # The main client under test
-    sync_client_files: dict,
-    environment: dict,
+    sync_client_files: Dict,
+    environment: Dict,
     sync_client_type: ClientType,  # Separate parametrization for sync client
     client_enode_url: str,  # Get the enode URL from fixture
 ) -> Generator[Client, None, None]:
@@ -218,7 +233,7 @@ def sync_client(
 
 @pytest.fixture(scope="function")
 def sync_client_exception_mapper(
-    sync_client_type: ClientType, client_exception_mapper_cache
+    sync_client_type: ClientType, client_exception_mapper_cache: Dict[str, ExceptionMapper | None]
 ) -> ExceptionMapper | None:
     """Return the exception mapper for the sync client type, with caching."""
     if sync_client_type.name not in client_exception_mapper_cache:

@@ -8,7 +8,7 @@ from ethereum_test_types import EnvironmentDefaults
 from .execute_fill import OpMode
 
 
-def pytest_addoption(parser: pytest.Parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command line options for gas benchmark values."""
     evm_group = parser.getgroup("evm", "Arguments defining evm executable behavior")
     evm_group.addoption(
@@ -22,13 +22,13 @@ def pytest_addoption(parser: pytest.Parser):
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_configure(config):
+def pytest_configure(config: pytest.Config) -> None:
     """Configure the fill and execute mode to benchmarking."""
     if config.getoption("gas_benchmark_value"):
-        config.op_mode = OpMode.BENCHMARKING
+        config.op_mode = OpMode.BENCHMARKING  # type: ignore[attr-defined]
 
 
-def pytest_generate_tests(metafunc: pytest.Metafunc):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Generate tests for the gas benchmark values."""
     if "gas_benchmark_value" in metafunc.fixturenames:
         gas_benchmark_values = metafunc.config.getoption("gas_benchmark_value")
@@ -55,7 +55,10 @@ BENCHMARKING_MAX_GAS = 1_000_000_000_000
 
 @pytest.fixture
 def genesis_environment(request: pytest.FixtureRequest) -> Environment:  # noqa: D103
-    """Return an Environment instance with appropriate gas limit based on test type."""
+    """
+    Return an Environment instance with appropriate gas limit based on test
+    type.
+    """
     if request.node.get_closest_marker("benchmark") is not None:
         return Environment(gas_limit=BENCHMARKING_MAX_GAS)
     return Environment()
@@ -63,7 +66,10 @@ def genesis_environment(request: pytest.FixtureRequest) -> Environment:  # noqa:
 
 @pytest.fixture
 def env(request: pytest.FixtureRequest) -> Environment:  # noqa: D103
-    """Return an Environment instance with appropriate gas limit based on test type."""
+    """
+    Return an Environment instance with appropriate gas limit based on test
+    type.
+    """
     if request.node.get_closest_marker("benchmark") is not None:
         return Environment(gas_limit=BENCHMARKING_MAX_GAS)
     return Environment()

@@ -1,10 +1,10 @@
 """
 Classes and helpers used for templates, navigation menus and file output.
 
-The dataclass fields are used to define the page properties fields which
-are used in the jinja2 templates when generating site content (located in
-docs/templates). The classes also define each page's navigation menu entry
-and target output file.
+The dataclass fields are used to define the page properties fields which are
+used in the jinja2 templates when generating site content (located in
+docs/templates). The classes also define each page's navigation menu entry and
+target output file.
 
 A few helpers are defined with EEST logic in order to sanitize strings from
 file paths for use in navigation menu.
@@ -21,9 +21,10 @@ from jinja2 import Environment
 from ethereum_test_tools import Opcodes
 
 
-def apply_name_filters(input_string: str):
+def apply_name_filters(input_string: str) -> str:
     """
-    Apply a list of capitalizations/regexes to names used in titles & nav menus.
+    Apply a list of capitalizations/regexes to names used in titles & nav
+    menus.
 
     Note: As of 2024-10-08, with 634 doc pages, this function constitutes ~2.0s
     of the total runtime (~5.5s). This seems to be insignificant with the time
@@ -62,7 +63,9 @@ def apply_name_filters(input_string: str):
 
 
 def snake_to_capitalize(string: str) -> str:  # noqa: D103
-    """Convert valid identifiers to a capitalized string, otherwise leave as-is."""
+    """
+    Convert valid identifiers to a capitalized string, otherwise leave as-is.
+    """
     if string.isidentifier():
         return " ".join(word.capitalize() for word in string.split("_"))
     return string
@@ -74,14 +77,17 @@ def sanitize_string_title(string: str) -> str:
 
 
 def nav_path_to_sanitized_str_tuple(nav_path: Path) -> tuple:
-    """Convert a nav path to a tuple of sanitized strings for use in mkdocs navigation."""
+    """
+    Convert a nav path to a tuple of sanitized strings for use in mkdocs
+    navigation.
+    """
     return tuple(sanitize_string_title(part) for part in nav_path.parts)
 
 
 class FileOpener(Protocol):
     """
-    Protocol to replace `mkdocs_gen_files` so it doesn't have to be imported/installed for
-    unit tests.
+    Protocol to replace `mkdocs_gen_files` so it doesn't have to be
+    imported/installed for unit tests.
     """
 
     def open(self, path: Path, mode: str) -> ContextManager[IO[Any]]:
@@ -94,8 +100,8 @@ class PagePropsBase:
     """
     Common test reference doc page properties and definitions.
 
-    The dataclass attributes are made directly available in the jinja2
-    found in `docs/templates/*.j2`.
+    The dataclass attributes are made directly available in the jinja2 found in
+    `docs/templates/*.j2`.
     """
 
     title: str
@@ -105,6 +111,7 @@ class PagePropsBase:
     pytest_node_id: str
     package_name: str
     is_benchmark: bool = False
+    is_stateful: bool = False
 
     @property
     @abstractmethod
@@ -125,7 +132,7 @@ class PagePropsBase:
         path = top_level_nav_entry / Path(*self.path.parts[1:]).with_suffix("")
         return nav_path_to_sanitized_str_tuple(path)
 
-    def write_page(self, file_opener: FileOpener, jinja2_env: Environment):
+    def write_page(self, file_opener: FileOpener, jinja2_env: Environment) -> None:
         """Write the page to the target directory."""
         template = jinja2_env.get_template(self.template)
         rendered_content = template.render(**asdict(self))
@@ -151,15 +158,19 @@ class EipChecklistPageProps(PagePropsBase):
         """Get the target output file for this page."""
         return self.path
 
-    def write_page(self, file_opener: FileOpener, jinja2_env: Environment):
+    def write_page(self, file_opener: FileOpener, jinja2_env: Environment) -> None:
         """Write the page to the target directory."""
+        del jinja2_env
         with file_opener.open(self.target_output_file, "w") as destination:
             destination.write("\n".join(self.lines))
 
 
 @dataclass
 class TestCase:
-    """Properties used to define a single test case in test function parameter tables."""
+    """
+    Properties used to define a single test case in test function parameter
+    tables.
+    """
 
     full_id: str
     abbreviated_id: str
@@ -193,17 +204,18 @@ class FunctionPageProps(PagePropsBase):
         """Get the target output file for this page."""
         return self.path.with_suffix("") / f"{self.title}.md"
 
-    def nav_entry(self, top_level_nav_entry) -> tuple:
+    def nav_entry(self, top_level_nav_entry: str) -> tuple:
         """Get the mkdocs navigation entry for this page."""
         nav_path_prefix = super().nav_entry(top_level_nav_entry)  # already sanitized
         return (*nav_path_prefix, f"<code>{self.title}</code>")
 
-    def write_page(self, file_opener: FileOpener, jinja2_env: Environment):
+    def write_page(self, file_opener: FileOpener, jinja2_env: Environment) -> None:
         """
-        Test functions also get a static HTML page with parametrized test cases.
+        Test functions also get a static HTML page with parametrized test
+        cases.
 
-        This is intended for easier viewing (without mkdocs styling) of the data-table
-        that documents the parametrized test cases.
+        This is intended for easier viewing (without mkdocs styling) of the
+        data-table that documents the parametrized test cases.
         """
         super().write_page(file_opener, jinja2_env)
         if not self.cases:
@@ -218,7 +230,10 @@ class FunctionPageProps(PagePropsBase):
 
 @dataclass
 class TestFunction:
-    """Properties used to build the test function overview table in test module pages."""
+    """
+    Properties used to build the test function overview table in test module
+    pages.
+    """
 
     name: str
     test_type: str
@@ -228,7 +243,10 @@ class TestFunction:
 
 @dataclass
 class ModulePageProps(PagePropsBase):
-    """Definitions used for test modules, e.g., `tests/berlin/eip2930_access_list/test_acl.py`."""
+    """
+    Definitions used for test modules, e.g.,
+    `tests/berlin/eip2930_access_list/test_acl.py`.
+    """
 
     test_functions: List[TestFunction] = field(default_factory=list)
 
@@ -247,7 +265,10 @@ class ModulePageProps(PagePropsBase):
 
 @dataclass
 class DirectoryPageProps(PagePropsBase):
-    """Definitions used for parent directories in test paths, e.g., `tests/berlin`."""
+    """
+    Definitions used for parent directories in test paths, e.g.,
+    `tests/berlin`.
+    """
 
     @property
     def template(self) -> str:
@@ -262,7 +283,9 @@ class DirectoryPageProps(PagePropsBase):
 
 @dataclass
 class MarkdownPageProps(PagePropsBase):
-    """Definitions used to verbatim include markdown files included in test paths."""
+    """
+    Definitions used to verbatim include markdown files included in test paths.
+    """
 
     @property
     def template(self) -> str:
@@ -274,7 +297,7 @@ class MarkdownPageProps(PagePropsBase):
         """Get the target output file for this page."""
         return self.path
 
-    def write_page(self, file_opener: FileOpener, jinja2_env: Environment):
+    def write_page(self, file_opener: FileOpener, jinja2_env: Environment) -> None:
         """
         Write the page to the target directory.
 

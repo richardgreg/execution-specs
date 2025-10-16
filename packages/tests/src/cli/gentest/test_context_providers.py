@@ -2,13 +2,14 @@
 Various providers which generate contexts required to create test scripts.
 
 Classes:
-- Provider: An provider generates required context for creating a test.
-- BlockchainTestProvider: The BlockchainTestProvider takes a transaction hash and creates
-  required context to create a test.
+  Provider: An provider generates required context for creating a
+            test.
+  BlockchainTestProvider: The BlockchainTestProvider takes a transaction
+                          hash and creates required context to create a test.
 
 Example:
-    provider = BlockchainTestContextProvider(transaction=transaction)
-    context = provider.get_context()
+  provider = BlockchainTestContextProvider(transaction=transaction)
+  context = provider.get_context()
 
 """
 
@@ -19,7 +20,7 @@ from typing import Any, Dict, Optional
 from pydantic import BaseModel
 
 from ethereum_test_base_types import Account, Hash
-from ethereum_test_rpc.types import TransactionByHashResponse
+from ethereum_test_rpc.rpc_types import TransactionByHashResponse
 from ethereum_test_tools import Environment, Transaction
 
 from .request_manager import RPCRequest
@@ -43,7 +44,8 @@ class StateTestProvider(Provider):
     transaction_response: Optional[TransactionByHashResponse] = None
     state: Optional[Dict[str, Dict]] = None
 
-    def _make_rpc_calls(self):
+    def _make_rpc_calls(self) -> None:
+        """Make RPC calls to fetch transaction and block data."""
         request = RPCRequest()
         print(
             f"Perform tx request: eth_get_transaction_by_hash({self.transaction_hash})",
@@ -55,7 +57,8 @@ class StateTestProvider(Provider):
         self.state = request.debug_trace_call(self.transaction_response)
 
         print("Perform eth_get_block_by_number", file=stderr)
-        self.block = request.eth_get_block_by_number(self.transaction_response.block_number)
+        assert self.transaction_response.block_number is not None
+        self.block = request.eth_get_block_by_number(int(self.transaction_response.block_number))
 
         print("Generate py test", file=stderr)
 
@@ -80,7 +83,8 @@ class StateTestProvider(Provider):
 
     def _get_transaction(self) -> Transaction:
         assert self.transaction_response is not None
-        # Validate the RPC TransactionHashResponse and convert it to a Transaction instance.
+        # Validate the RPC TransactionHashResponse and convert it to a
+        # Transaction instance.
         return Transaction.model_validate(self.transaction_response.model_dump())
 
     def get_context(self) -> Dict[str, Any]:
@@ -89,7 +93,7 @@ class StateTestProvider(Provider):
 
         Returns:
             Dict[str, Any]: A dictionary containing environment,
-            pre-state, a transaction and its hash.
+                            pre-state, a transaction and its hash.
 
         """
         self._make_rpc_calls()

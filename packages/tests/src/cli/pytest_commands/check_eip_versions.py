@@ -1,6 +1,6 @@
 """CLI entry point for the EIP version checker pytest-based command."""
 
-from typing import List
+from typing import Any, List
 
 import click
 
@@ -12,12 +12,17 @@ from .processors import HelpFlagsProcessor
 
 @click.command(context_settings={"ignore_unknown_options": True})
 @common_pytest_options
-def check_eip_versions(pytest_args: List[str], **kwargs) -> None:
+def check_eip_versions(pytest_args: List[str], **kwargs: Any) -> None:
     """Run pytest with the `spec_version_checker` plugin."""
+    del kwargs
+
     command = PytestCommand(
         config_file="pytest-check-eip-versions.ini",
         argument_processors=[HelpFlagsProcessor("check-eip-versions")],
     )
 
-    args_with_until = ["--until", CheckEipVersionsConfig().UNTIL_FORK] + list(pytest_args)
+    args_with_until = [
+        "--until",
+        CheckEipVersionsConfig().UNTIL_FORK,
+    ] + list(pytest_args)
     command.execute(args_with_until)

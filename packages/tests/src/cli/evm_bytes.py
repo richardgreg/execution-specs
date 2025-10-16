@@ -1,14 +1,13 @@
 """Define an entry point wrapper for pytest."""
 
 from dataclasses import dataclass, field
-from typing import List
+from typing import Any, List
 
 import click
 
 from ethereum_test_base_types import ZeroPaddedHexNumber
-from ethereum_test_vm import Macro
+from ethereum_test_vm import Bytecode, Macro
 from ethereum_test_vm import Opcodes as Op
-from ethereum_test_vm.bytecode import Bytecode
 
 OPCODES_WITH_EMPTY_LINES_AFTER = {
     Op.STOP,
@@ -63,7 +62,8 @@ class OpcodeWithOperands:
     @property
     def bytecode(self) -> Bytecode:
         """Opcode as bytecode with its operands if any."""
-        # opcode.opcode[*opcode.operands] crashes `black` formatter and doesn't work.
+        # opcode.opcode[*opcode.operands] crashes `black` formatter and doesn't
+        # work.
         if self.opcode:
             return self.opcode.__getitem__(*self.operands) if self.operands else self.opcode
         else:
@@ -71,12 +71,12 @@ class OpcodeWithOperands:
 
 
 def process_evm_bytes(evm_bytes: bytes) -> List[OpcodeWithOperands]:  # noqa: D103
-    evm_bytes = bytearray(evm_bytes)
+    evm_bytes_array = bytearray(evm_bytes)
 
     opcodes: List[OpcodeWithOperands] = []
 
-    while evm_bytes:
-        opcode_byte = evm_bytes.pop(0)
+    while evm_bytes_array:
+        opcode_byte = evm_bytes_array.pop(0)
 
         opcode: Op
         for op in Op:
@@ -93,21 +93,21 @@ def process_evm_bytes(evm_bytes: bytes) -> List[OpcodeWithOperands]:  # noqa: D1
                     opcode=opcode,
                     operands=[
                         int.from_bytes(
-                            evm_bytes[: opcode.data_portion_length], "big", signed=signed
+                            evm_bytes_array[: opcode.data_portion_length], "big", signed=signed
                         )
                     ],
                 )
             )
-            evm_bytes = evm_bytes[opcode.data_portion_length :]
+            evm_bytes_array = evm_bytes_array[opcode.data_portion_length :]
         elif opcode == Op.RJUMPV:
-            if len(evm_bytes) == 0:
+            if len(evm_bytes_array) == 0:
                 opcodes.append(OpcodeWithOperands(opcode=opcode))
             else:
-                max_index = evm_bytes.pop(0)
+                max_index = evm_bytes_array.pop(0)
                 operands: List[int] = []
                 for _ in range(max_index + 1):
-                    operands.append(int.from_bytes(evm_bytes[:2], "big", signed=True))
-                    evm_bytes = evm_bytes[2:]
+                    operands.append(int.from_bytes(evm_bytes_array[:2], "big", signed=True))
+                    evm_bytes_array = evm_bytes_array[2:]
                 opcodes.append(OpcodeWithOperands(opcode=opcode, operands=operands))
         else:
             opcodes.append(OpcodeWithOperands(opcode=opcode))
@@ -156,11 +156,11 @@ assembly_option = click.option(
         "help_option_names": ["-h", "--help"],
     },
 )
-def evm_bytes():
+def evm_bytes() -> None:
     """
     Convert EVM bytecode to EEST's Python Opcodes or an assembly string.
 
-    The input can be either a hex string or a binary file containing EVM bytes.
+    The input can be either a hex string or a binary file.
     """
     pass
 
@@ -168,7 +168,7 @@ def evm_bytes():
 @evm_bytes.command(short_help="Convert a hex string to Python Opcodes or assembly.")
 @assembly_option
 @click.argument("hex_string")
-def hex_string(hex_string: str, assembly: bool):
+def hex_string(hex_string: str, assembly: bool) -> None:
     """
     Convert the HEX_STRING representing EVM bytes to EEST Python Opcodes.
 
@@ -182,7 +182,8 @@ def hex_string(hex_string: str, assembly: bool):
 
     Output 1:
         \b
-        Op.PUSH1[0x42] + Op.PUSH1[0x0] + Op.MSTORE + Op.PUSH1[0x20] + Op.PUSH1[0x0] + Op.RETURN
+        Op.PUSH1[0x42] + Op.PUSH1[0x0] + Op.MSTORE + Op.PUSH1[0x20] +
+        Op.PUSH1[0x0] + Op.RETURN
 
     Example 2: Convert a hex string to assembly
         uv run evm_bytes hex-string --assembly 604260005260206000F3
@@ -204,18 +205,20 @@ def hex_string(hex_string: str, assembly: bool):
 @evm_bytes.command(short_help="Convert a binary file to Python Opcodes or assembly.")
 @assembly_option
 @click.argument("binary_file", type=click.File("rb"))
-def binary_file(binary_file, assembly: bool):
+def binary_file(binary_file: Any, assembly: bool) -> None:
     """
     Convert the BINARY_FILE containing EVM bytes to Python Opcodes or assembly.
 
-    BINARY_FILE is a binary file containing EVM bytes, use `-` to read from stdin.
+    BINARY_FILE is a binary file containing EVM bytes, use `-` to read from
+    stdin.
 
     Returns:
         (str): The processed EVM opcodes in Python or assembly format.
 
     Example: Convert the Withdrawal Request contract to assembly
         \b
-        uv run evm_bytes binary-file ./src/ethereum_test_forks/forks/contracts/withdrawal_request.bin --assembly
+        uv run evm_bytes binary-file ./src/ethereum_test_forks/forks/
+            contracts/withdrawal_request.bin --assembly
 
     Output:
         \b
@@ -226,6 +229,6 @@ def binary_file(binary_file, assembly: bool):
         jumpi
         ...
 
-    """  # noqa: E501,D301
+    """  # noqa: D301
     processed_output = format_opcodes(process_evm_bytes(binary_file.read()), assembly=assembly)
     click.echo(processed_output)

@@ -64,11 +64,14 @@ class BaseFixture(CamelModel):
 
     @classmethod
     def output_base_dir_name(cls) -> str:
-        """Return name of the subdirectory where this type of fixture should be dumped to."""
+        """
+        Return name of the subdirectory where this type of fixture should be
+        dumped to.
+        """
         return cls.format_name.replace("test", "tests")
 
     @classmethod
-    def __pydantic_init_subclass__(cls, **kwargs):
+    def __pydantic_init_subclass__(cls, **kwargs: Any) -> None:
         """
         Register all subclasses of BaseFixture with a fixture format name set
         as possible fixture formats.
@@ -129,7 +132,7 @@ class BaseFixture(CamelModel):
         fixture_source_url: str,
         ref_spec: ReferenceSpec | None,
         _info_metadata: Dict[str, Any],
-    ):
+    ) -> None:
         """Fill the info field for this fixture."""
         if "comment" not in self.info:
             self.info["comment"] = "`execution-spec-tests` generated test"
@@ -153,6 +156,7 @@ class BaseFixture(CamelModel):
 
         By default, all fixtures support all forks.
         """
+        del fork
         return True
 
     @classmethod
@@ -161,7 +165,11 @@ class BaseFixture(CamelModel):
         fork: Fork,
         markers: List[pytest.Mark],
     ) -> bool:
-        """Discard a fixture format from filling if the appropriate marker is used."""
+        """
+        Discard a fixture format from filling if the appropriate marker is
+        used.
+        """
+        del fork, markers
         return False
 
 
@@ -169,8 +177,8 @@ class LabeledFixtureFormat:
     """
     Represents a fixture format with a custom label.
 
-    This label will be used in the test id and also will be added as a marker to the
-    generated test case when filling the test.
+    This label will be used in the test id and also will be added as a marker
+    to the generated test case when filling the test.
     """
 
     format: Type[BaseFixture]
@@ -210,8 +218,8 @@ class LabeledFixtureFormat:
         """
         Check if two labeled fixture formats are equal.
 
-        If the other object is a FixtureFormat type, the format of the labeled fixture
-        format will be compared with the format of the other object.
+        If the other object is a FixtureFormat type, the format of the labeled
+        fixture format will be compared with the format of the other object.
         """
         if isinstance(other, LabeledFixtureFormat):
             return self.format == other.format

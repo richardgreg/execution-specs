@@ -1,11 +1,13 @@
 """Test timing class used to time tests."""
 
 import time
-from typing import List
+from typing import Any, List, Self
 
 
 class TimingData:
-    """The times taken to perform the various steps of a test case (seconds)."""
+    """
+    The times taken to perform the various steps of a test case (seconds).
+    """
 
     name: str
     start_time: float | None
@@ -28,12 +30,12 @@ class TimingData:
             return None
         return f"{num:.{precision}f}"
 
-    def __enter__(self):
+    def __enter__(self) -> Self:
         """Start timing the test case."""
         self.start_time = time.perf_counter()
         return self
 
-    def __exit__(self, exc_type, exc_value, traceback):
+    def __exit__(self, exc_type: Any, exc_value: Any, traceback: Any) -> None:
         """Record the time taken since the last time recorded."""
         self.end_time = time.perf_counter()
 

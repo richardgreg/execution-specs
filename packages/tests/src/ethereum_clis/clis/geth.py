@@ -71,7 +71,7 @@ class GethExceptionMapper(ExceptionMapper):
         TransactionException.TYPE_4_TX_PRE_FORK: ("transaction type not supported"),
         TransactionException.INITCODE_SIZE_EXCEEDED: "max initcode size exceeded",
         TransactionException.NONCE_MISMATCH_TOO_LOW: "nonce too low",
-        BlockException.INVALID_DEPOSIT_EVENT_LAYOUT: "unable to parse deposit data",
+        TransactionException.NONCE_MISMATCH_TOO_HIGH: "nonce too high",
         BlockException.INCORRECT_BLOB_GAS_USED: "blob gas used mismatch",
         BlockException.INCORRECT_EXCESS_BLOB_GAS: "invalid excessBlobGas",
         BlockException.INVALID_VERSIONED_HASHES: "invalid number of versionedHashes",
@@ -79,6 +79,9 @@ class GethExceptionMapper(ExceptionMapper):
         BlockException.SYSTEM_CONTRACT_CALL_FAILED: "system call failed to execute:",
         BlockException.INVALID_BLOCK_HASH: "blockhash mismatch",
         BlockException.RLP_BLOCK_LIMIT_EXCEEDED: "block RLP-encoded size exceeds maximum",
+        BlockException.INVALID_BAL_EXTRA_ACCOUNT: "BAL change not reported in computed",
+        BlockException.INVALID_BAL_MISSING_ACCOUNT: "additional mutations compared to BAL",
+        BlockException.INVALID_BLOCK_ACCESS_LIST: "unequal",
     }
     mapping_regex: ClassVar[Dict[ExceptionBase, str]] = {
         TransactionException.TYPE_3_TX_MAX_BLOB_GAS_ALLOWANCE_EXCEEDED: (
@@ -88,6 +91,23 @@ class GethExceptionMapper(ExceptionMapper):
             r"blob gas used \d+ exceeds maximum allowance \d+"
         ),
         BlockException.INVALID_GAS_USED_ABOVE_LIMIT: r"invalid gasUsed: have \d+, gasLimit \d+",
+        BlockException.INVALID_DEPOSIT_EVENT_LAYOUT: (
+            r"invalid requests hash|failed to parse deposit logs"
+        ),
+        # Geth does not validate the sizes or offsets of the deposit
+        # contract logs. As a workaround we have set
+        # INVALID_DEPOSIT_EVENT_LAYOUT equal to INVALID_REQUESTS.
+        #
+        # Although this is out of spec, it is understood that this
+        # will not cause an issue so long as the mainnet/testnet
+        # deposit contracts don't change.
+        #
+        # The offsets are checked second and the sizes are checked
+        # third within the `is_valid_deposit_event_data` function:
+        # https://eips.ethereum.org/EIPS/eip-6110#block-validity
+        #
+        # EELS definition for `is_valid_deposit_event_data`:
+        # https://github.com/ethereum/execution-specs/blob/5ddb904fa7ba27daeff423e78466744c51e8cb6a/src/ethereum/forks/prague/requests.py#L51
     }
 
 
@@ -125,7 +145,7 @@ class GethEvm(EthereumCLI):
         result: subprocess.CompletedProcess,
         fixture_path: Path,
         debug_output_path: Path,
-    ):
+    ) -> None:
         # our assumption is that each command element is a string
         assert all(isinstance(x, str) for x in command), (
             f"Not all elements of 'command' list are strings: {command}"
@@ -196,7 +216,8 @@ class GethTransitionTool(GethEvm, TransitionTool):
         """
         Return True if the fork is supported by the tool.
 
-        If the fork is a transition fork, we want to check the fork it transitions to.
+        If the fork is a transition fork, we want to check the fork it
+        transitions to.
         """
         return fork.transition_tool_name() in self.help_string
 
@@ -213,12 +234,12 @@ class GethFixtureConsumer(
         fixture_path: Path,
         fixture_name: Optional[str] = None,
         debug_output_path: Optional[Path] = None,
-    ):
+    ) -> None:
         """
         Consume a single blockchain test.
 
-        The `evm blocktest` command takes the `--run` argument which can be used to select a
-        specific fixture from the fixture file when executing.
+        The `evm blocktest` command takes the `--run` argument which can be
+        used to select a specific fixture from the fixture file when executing.
         """
         subcommand = "blocktest"
         global_options = []
@@ -269,10 +290,10 @@ class GethFixtureConsumer(
         """
         Consume an entire state test file.
 
-        The `evm statetest` will always execute all the tests contained in a file without the
-        possibility of selecting a single test, so this function is cached in order to only call
-        the command once and `consume_state_test` can simply select the result that
-        was requested.
+        The `evm statetest` will always execute all the tests contained in a
+        file without the possibility of selecting a single test, so this
+        function is cached in order to only call the command once and
+        `consume_state_test` can simply select the result that was requested.
         """
         subcommand = "statetest"
         global_options: List[str] = []
@@ -308,12 +329,12 @@ class GethFixtureConsumer(
         fixture_path: Path,
         fixture_name: Optional[str] = None,
         debug_output_path: Optional[Path] = None,
-    ):
+    ) -> None:
         """
         Consume a single state test.
 
-        Uses the cached result from `consume_state_test_file` in order to not call the command
-        every time an select a single result from there.
+        Uses the cached result from `consume_state_test_file` in order to not
+        call the command every time an select a single result from there.
         """
         file_results = self.consume_state_test_file(
             fixture_path=fixture_path,
@@ -341,8 +362,11 @@ class GethFixtureConsumer(
         fixture_path: Path,
         fixture_name: Optional[str] = None,
         debug_output_path: Optional[Path] = None,
-    ):
-        """Execute the appropriate geth fixture consumer for the fixture at `fixture_path`."""
+    ) -> None:
+        """
+        Execute the appropriate geth fixture consumer for the fixture at
+        `fixture_path`.
+        """
         if fixture_format == BlockchainFixture:
             self.consume_blockchain_test(
                 fixture_path=fixture_path,

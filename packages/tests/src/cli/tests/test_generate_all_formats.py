@@ -5,7 +5,7 @@ from unittest.mock import patch
 from cli.pytest_commands.fill import FillCommand
 
 
-def test_generate_all_formats_creates_two_phase_execution():
+def test_generate_all_formats_creates_two_phase_execution() -> None:
     """Test that --generate-all-formats triggers two-phase execution."""
     command = FillCommand()
 
@@ -29,8 +29,10 @@ def test_generate_all_formats_creates_two_phase_execution():
     assert "--generate-pre-alloc-groups" not in phase2_args
 
 
-def test_generate_all_formats_preserves_other_args():
-    """Test that --generate-all-formats preserves other command line arguments."""
+def test_generate_all_formats_preserves_other_args() -> None:
+    """
+    Test that --generate-all-formats preserves other command line arguments.
+    """
     command = FillCommand()
 
     with patch.object(command, "process_arguments", side_effect=lambda x: x):
@@ -53,7 +55,7 @@ def test_generate_all_formats_preserves_other_args():
         assert "tests/somedir/" in execution.args
 
 
-def test_generate_all_formats_removes_clean_from_phase2():
+def test_generate_all_formats_removes_clean_from_phase2() -> None:
     """Test that --clean is removed from phase 2."""
     command = FillCommand()
 
@@ -72,7 +74,7 @@ def test_generate_all_formats_removes_clean_from_phase2():
     assert "--clean" not in phase2_args
 
 
-def test_legacy_generate_pre_alloc_groups_still_works():
+def test_legacy_generate_pre_alloc_groups_still_works() -> None:
     """Test that the legacy --generate-pre-alloc-groups flag still works."""
     command = FillCommand()
 
@@ -86,14 +88,15 @@ def test_legacy_generate_pre_alloc_groups_still_works():
     phase1_args = executions[0].args
     assert "--generate-pre-alloc-groups" in phase1_args
 
-    # Phase 2: Should have --use-pre-alloc-groups but NOT --generate-all-formats
+    # Phase 2: Should have --use-pre-alloc-groups but NOT --generate-all-
+    # formats
     phase2_args = executions[1].args
     assert "--use-pre-alloc-groups" in phase2_args
     assert "--generate-all-formats" not in phase2_args
     assert "--generate-pre-alloc-groups" not in phase2_args
 
 
-def test_single_phase_without_flags():
+def test_single_phase_without_flags() -> None:
     """Test that normal execution without flags creates single phase."""
     command = FillCommand()
 
@@ -109,8 +112,10 @@ def test_single_phase_without_flags():
     assert "--generate-all-formats" not in execution.args
 
 
-def test_tarball_output_auto_enables_generate_all_formats():
-    """Test that tarball output automatically enables --generate-all-formats."""
+def test_tarball_output_auto_enables_generate_all_formats() -> None:
+    """
+    Test that tarball output automatically enables --generate-all-formats.
+    """
     command = FillCommand()
 
     with patch.object(command, "process_arguments", side_effect=lambda x: x):
@@ -124,15 +129,19 @@ def test_tarball_output_auto_enables_generate_all_formats():
     phase1_args = executions[0].args
     assert "--generate-pre-alloc-groups" in phase1_args
 
-    # Phase 2: Should have --generate-all-formats (auto-added) and --use-pre-alloc-groups
+    # Phase 2: Should have --generate-all-formats (auto-added) and --use-pre-
+    # alloc-groups
     phase2_args = executions[1].args
     assert "--generate-all-formats" in phase2_args
     assert "--use-pre-alloc-groups" in phase2_args
     assert "--output=fixtures.tar.gz" in phase2_args
 
 
-def test_tarball_output_with_explicit_generate_all_formats():
-    """Test that explicit --generate-all-formats with tarball output works correctly."""
+def test_tarball_output_with_explicit_generate_all_formats() -> None:
+    """
+    Test that explicit --generate-all-formats with tarball output works
+    correctly.
+    """
     command = FillCommand()
 
     with patch.object(command, "process_arguments", side_effect=lambda x: x):
@@ -149,8 +158,11 @@ def test_tarball_output_with_explicit_generate_all_formats():
     assert phase2_args.count("--generate-all-formats") == 1
 
 
-def test_regular_output_does_not_auto_trigger_two_phase():
-    """Test that regular directory output doesn't auto-trigger two-phase execution."""
+def test_regular_output_does_not_auto_trigger_two_phase() -> None:
+    """
+    Test that regular directory output doesn't auto-trigger two-phase
+    execution.
+    """
     command = FillCommand()
 
     with patch.object(command, "process_arguments", side_effect=lambda x: x):
@@ -166,7 +178,7 @@ def test_regular_output_does_not_auto_trigger_two_phase():
     assert "--generate-all-formats" not in execution.args
 
 
-def test_tarball_output_detection_various_formats():
+def test_tarball_output_detection_various_formats() -> None:
     """Test tarball output detection with various argument formats."""
     command = FillCommand()
 

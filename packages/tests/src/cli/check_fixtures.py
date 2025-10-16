@@ -23,18 +23,19 @@ def count_json_files_exclude_index(start_path: Path) -> int:
     return json_file_count
 
 
-def check_json(json_file_path: Path):
+def check_json(json_file_path: Path) -> None:
     """
     Check all fixtures in the specified json file:
     1. Load the json file into a pydantic model. This checks there are no
-        Validation errors when loading fixtures into EEST models.
+       Validation errors when loading fixtures into EEST models.
     2. Serialize the loaded pydantic model to "json" (actually python data
-        structures, ready to written as json).
+       structures, ready to written as json).
     3. Load the serialized data back into a pydantic model (to get an updated
-        hash) from step 2.
+       hash) from step 2.
     4. Compare hashes:
         a. Compare the newly calculated hashes from step 2. and 3. and
-        b. If present, compare info["hash"] with the calculated hash from step 2.
+        b. If present, compare info["hash"] with the calculated hash from
+           step 2.
     """
     fixtures: Fixtures = Fixtures.model_validate_json(json_file_path.read_text())
     fixtures_json = to_json(fixtures)
@@ -49,11 +50,15 @@ def check_json(json_file_path: Path):
             )
         if "hash" in fixture.info and fixture.info["hash"] != original_hash:
             info_hash = fixture.info["hash"]
+            info_hash_str = str(info_hash) if not isinstance(info_hash, str) else info_hash
             raise HashMismatchExceptionError(
                 original_hash,
-                fixture.info["hash"],
-                message=f"Fixture info['hash'] does not match calculated hash for {fixture_name}:"
-                f"'{info_hash}' != '{original_hash}'",
+                info_hash_str,
+                message=(
+                    f"Fixture info['hash'] does not match calculated "
+                    f"hash for {fixture_name}: '{info_hash}' != "
+                    f"'{original_hash}'"
+                ),
             )
 
 
@@ -85,8 +90,10 @@ def check_json(json_file_path: Path):
     expose_value=True,
     help="Stop and raise any exceptions encountered while checking fixtures.",
 )
-def check_fixtures(input_str: str, quiet_mode: bool, stop_on_error: bool):
-    """Perform some checks on the fixtures contained in the specified directory."""
+def check_fixtures(input_str: str, quiet_mode: bool, stop_on_error: bool) -> bool:
+    """
+    Perform checks on fixtures in the specified directory.
+    """
     input_path = Path(input_str)
     success = True
     file_count = 0

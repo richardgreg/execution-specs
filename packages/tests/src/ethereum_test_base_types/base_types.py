@@ -24,15 +24,18 @@ from .conversions import (
 
 class ToStringSchema:
     """
-    Type converter to add a simple pydantic schema that correctly
-    parses and serializes the type.
+    Type converter to add a simple pydantic schema that correctly parses and
+    serializes the type.
     """
 
     @staticmethod
     def __get_pydantic_core_schema__(
         source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         return no_info_plain_validator_function(
             source_type,
             serialization=to_string_ser_schema(),
@@ -42,7 +45,7 @@ class ToStringSchema:
 class Number(int, ToStringSchema):
     """Class that helps represent numbers in tests."""
 
-    def __new__(cls, input_number: NumberConvertible | Self):
+    def __new__(cls, input_number: NumberConvertible | Self) -> Self:
         """Create a new Number object."""
         return super(Number, cls).__new__(cls, to_number(input_number))
 
@@ -65,7 +68,7 @@ class Number(int, ToStringSchema):
 class Wei(Number):
     """Class that helps represent wei that can be parsed from strings."""
 
-    def __new__(cls, input_number: NumberConvertible | Self):
+    def __new__(cls, input_number: NumberConvertible | Self) -> Self:
         """Create a new Number object."""
         if isinstance(input_number, str):
             words = input_number.split()
@@ -80,13 +83,15 @@ class Wei(Number):
                 base, exp = value_str.split("**")
                 value = float(base) ** int(exp)
             else:
-                value = float(value_str)
+                value = int(value_str) if value_str.isdecimal() else float(value_str)
             return super(Number, cls).__new__(cls, value * multiplier)
         return super(Number, cls).__new__(cls, to_number(input_number))
 
     @staticmethod
     def _get_multiplier(unit: str) -> int:
-        """Return the multiplier for the given unit of wei, handling synonyms."""
+        """
+        Return the multiplier for the given unit of wei, handling synonyms.
+        """
         match unit:
             case "wei":
                 return 1
@@ -117,7 +122,10 @@ class HexNumber(Number):
     def __get_pydantic_core_schema__(
         source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         return no_info_plain_validator_function(
             source_type,
             serialization=to_string_ser_schema(),
@@ -143,7 +151,10 @@ class ZeroPaddedHexNumber(HexNumber):
     def __get_pydantic_core_schema__(
         source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         return no_info_plain_validator_function(
             source_type,
             serialization=to_string_ser_schema(),
@@ -159,7 +170,7 @@ NumberBoundTypeVar = TypeVar("NumberBoundTypeVar", Number, HexNumber, ZeroPadded
 class Bytes(bytes, ToStringSchema):
     """Class that helps represent bytes of variable length in tests."""
 
-    def __new__(cls, input_bytes: BytesConvertible = b""):
+    def __new__(cls, input_bytes: BytesConvertible = b"") -> Self:
         """Create a new Bytes object."""
         if type(input_bytes) is cls:
             return input_bytes
@@ -173,7 +184,7 @@ class Bytes(bytes, ToStringSchema):
         """Return the hexadecimal representation of the bytes."""
         return self.hex()
 
-    def hex(self, *args, **kwargs) -> str:
+    def hex(self, *args: Any, **kwargs: Any) -> str:
         """Return the hexadecimal representation of the bytes."""
         return "0x" + super().hex(*args, **kwargs)
 
@@ -197,7 +208,10 @@ class Bytes(bytes, ToStringSchema):
     def __get_pydantic_core_schema__(
         source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         return no_info_plain_validator_function(
             source_type,
             serialization=to_string_ser_schema(),
@@ -228,7 +242,7 @@ class FixedSizeHexNumber(int, ToStringSchema):
 
         return Sized
 
-    def __new__(cls, input_number: NumberConvertible | Self):
+    def __new__(cls, input_number: NumberConvertible | Self) -> Self:
         """Create a new Number object."""
         i = to_number(input_number)
         if i > cls.max_value:
@@ -256,7 +270,10 @@ class FixedSizeHexNumber(int, ToStringSchema):
     def __get_pydantic_core_schema__(
         cls: Type[Self], source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         pattern = f"^0x([0-9a-fA-F]{{{cls.byte_length * 2}}})*$"
         return no_info_plain_validator_function(
             source_type,
@@ -292,7 +309,7 @@ class FixedSizeBytes(Bytes):
         *,
         left_padding: bool = False,
         right_padding: bool = False,
-    ):
+    ) -> Self:
         """Create a new FixedSizeBytes object."""
         if type(input_bytes) is cls:
             return input_bytes
@@ -341,7 +358,10 @@ class FixedSizeBytes(Bytes):
     def __get_pydantic_core_schema__(
         cls: Type[Self], source_type: Any, handler: GetCoreSchemaHandler
     ) -> PlainValidatorFunctionSchema:
-        """Call the class constructor without info and appends the serialization schema."""
+        """
+        Call the class constructor without info and appends the serialization
+        schema.
+        """
         pattern = f"^0x([0-9a-fA-F]{{{cls.byte_length * 2}}})*$"
         return no_info_plain_validator_function(
             source_type,
@@ -351,7 +371,9 @@ class FixedSizeBytes(Bytes):
 
 
 class ForkHash(FixedSizeBytes[4]):  # type: ignore
-    """Class that helps represent the CRC config hashes and identifiers of a fork."""
+    """
+    Class that helps represent the CRC config hashes and identifiers of a fork.
+    """
 
     pass
 
@@ -364,10 +386,10 @@ class Address(FixedSizeBytes[20]):  # type: ignore
     def __new__(
         cls,
         input_bytes: "FixedSizeBytesConvertible | Address",
-        *args,
+        *args: Any,
         label: str | None = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> Self:
         """Create a new Address object with an optional label."""
         instance = super(Address, cls).__new__(cls, input_bytes, *args, **kwargs)
         if isinstance(input_bytes, Address) and label is None:
@@ -389,12 +411,15 @@ class StorageKey(FixedSizeBytes[32]):  # type: ignore
     than 32 bytes.
     """
 
-    def __new__(cls, value, **kwargs):
+    def __new__(
+        cls, input_bytes: FixedSizeBytesConvertible | FixedSizeBytes, **kwargs: Any
+    ) -> Self:
         """Create a new StorageKey with automatic left padding."""
-        # Always apply left_padding for storage keys unless explicitly set to False
+        # Always apply left_padding for storage keys unless explicitly set to
+        # False
         if "left_padding" not in kwargs:
             kwargs["left_padding"] = True
-        return super().__new__(cls, value, **kwargs)
+        return super().__new__(cls, input_bytes, **kwargs)
 
 
 class Bloom(FixedSizeBytes[256]):  # type: ignore

@@ -9,8 +9,10 @@ from ..consume import CACHED_DOWNLOADS_DIRECTORY, FixturesSource
 class TestSimplifiedConsumeBehavior:
     """Test suite for the simplified consume behavior."""
 
-    def test_fixtures_source_from_release_url_no_api_calls(self):
-        """Test that direct release URLs do not make API calls for release page."""
+    def test_fixtures_source_from_release_url_no_api_calls(self) -> None:
+        """
+        Test that direct release URLs do not make API calls for release page.
+        """
         test_url = "https://github.com/ethereum/execution-spec-tests/releases/download/v3.0.0/fixtures_develop.tar.gz"
 
         with patch("pytest_plugins.consume.consume.FixtureDownloader") as mock_downloader:
@@ -25,8 +27,10 @@ class TestSimplifiedConsumeBehavior:
             assert source.url == test_url
             assert source.input_option == test_url
 
-    def test_fixtures_source_from_release_spec_makes_api_calls(self):
-        """Test that release specs still make API calls and get release page."""
+    def test_fixtures_source_from_release_spec_makes_api_calls(self) -> None:
+        """
+        Test that release specs still make API calls and get release page.
+        """
         test_spec = "stable@latest"
 
         with patch("pytest_plugins.consume.consume.get_release_url") as mock_get_url:
@@ -52,7 +56,7 @@ class TestSimplifiedConsumeBehavior:
                         == "https://github.com/ethereum/execution-spec-tests/releases/tag/v3.0.0"
                     )
 
-    def test_fixtures_source_from_regular_url_no_release_page(self):
+    def test_fixtures_source_from_regular_url_no_release_page(self) -> None:
         """Test that regular URLs (non-GitHub) don't have release page."""
         test_url = "http://example.com/fixtures.tar.gz"
 
@@ -67,8 +71,10 @@ class TestSimplifiedConsumeBehavior:
             assert source.release_page == ""
             assert source.url == test_url
 
-    def test_output_formatting_without_release_page_for_direct_urls(self):
-        """Test output formatting when release page is empty for direct URLs."""
+    def test_output_formatting_without_release_page_for_direct_urls(self) -> None:
+        """
+        Test output formatting when release page is empty for direct URLs.
+        """
         from unittest.mock import MagicMock
 
         from pytest import Config
@@ -96,8 +102,10 @@ class TestSimplifiedConsumeBehavior:
         assert "Path:" in reason
         assert "Input:" in reason
 
-    def test_output_formatting_with_release_page_for_specs(self):
-        """Test output formatting when release page is present for release specs."""
+    def test_output_formatting_with_release_page_for_specs(self) -> None:
+        """
+        Test output formatting when release page is present for release specs.
+        """
         from unittest.mock import MagicMock
 
         from pytest import Config
@@ -132,7 +140,7 @@ class TestSimplifiedConsumeBehavior:
 class TestFixturesSourceFromInput:
     """Test the from_input method without no_api_calls parameter."""
 
-    def test_from_input_handles_release_url(self):
+    def test_from_input_handles_release_url(self) -> None:
         """Test that from_input properly handles release URLs."""
         test_url = "https://github.com/ethereum/execution-spec-tests/releases/download/v3.0.0/fixtures_develop.tar.gz"
 
@@ -145,7 +153,7 @@ class TestFixturesSourceFromInput:
                 test_url, CACHED_DOWNLOADS_DIRECTORY, None
             )
 
-    def test_from_input_handles_release_spec(self):
+    def test_from_input_handles_release_spec(self) -> None:
         """Test that from_input properly handles release specs."""
         test_spec = "stable@latest"
 
@@ -158,7 +166,7 @@ class TestFixturesSourceFromInput:
                 test_spec, CACHED_DOWNLOADS_DIRECTORY, None
             )
 
-    def test_from_input_handles_regular_url(self):
+    def test_from_input_handles_regular_url(self) -> None:
         """Test that from_input properly handles regular URLs."""
         test_url = "http://example.com/fixtures.tar.gz"
 
@@ -169,7 +177,7 @@ class TestFixturesSourceFromInput:
 
             mock_from_url.assert_called_once_with(test_url, CACHED_DOWNLOADS_DIRECTORY, None)
 
-    def test_from_input_handles_extract_to_parameter(self):
+    def test_from_input_handles_extract_to_parameter(self) -> None:
         """Test that from_input properly passes extract_to parameter."""
         test_url = "https://github.com/ethereum/execution-spec-tests/releases/download/v3.0.0/fixtures_develop.tar.gz"
         extract_to_path = Path("/custom/extract/path")

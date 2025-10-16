@@ -1,4 +1,6 @@
-"""Test that the correct error is produced if bad/invalid validity markers are specified."""
+"""
+Test the correct error is produced with bad/invalid validity markers.
+"""
 
 import pytest
 
@@ -211,14 +213,16 @@ invalid_validity_marker_test_cases = (
     [test_case for _, test_case in invalid_validity_marker_test_cases],
     ids=[test_id for test_id, _ in invalid_validity_marker_test_cases],
 )
-def test_invalid_validity_markers(pytester, error_string, test_function):
+def test_invalid_validity_markers(
+    pytester: pytest.Pytester, error_string: str, test_function: str
+) -> None:
     """
     Test that a test with an invalid marker cases:
-        - Creates an outcome with exactly one error.
-        - Triggers the expected error string in pytest's console output.
+    - Creates an outcome with exactly one error.
+    - Triggers the expected error string in pytest's console output.
 
-    Each invalid marker/marker combination is tested with one test in its own test
-    session.
+    Each invalid marker/marker combination is tested with one test in its own
+    test session.
     """
     pytester.makepyfile(test_function)
     pytester.copy_example(name="src/cli/pytest_commands/pytest_ini_files/pytest-fill.ini")

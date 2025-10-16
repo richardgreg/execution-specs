@@ -25,12 +25,12 @@ from ethereum_test_forks import (
     get_transition_forks,
     transition_fork_to,
 )
-from pytest_plugins.logging import get_logger
+from pytest_plugins.custom_logging import get_logger
 
 logger = get_logger(__name__)
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command-line options to pytest."""
     fork_group = parser.getgroup("Forks", "Specify the fork range to generate fixtures for")
     fork_group.addoption(
@@ -87,10 +87,12 @@ class ForkParametrizer:
         Initialize a new fork parametrizer object for a given fork.
 
         Args:
-            fork: The fork for which the test cases will be parametrized.
-            marks: A list of pytest marks to apply to all the test cases parametrized by the fork.
-            fork_covariant_parameters: A list of fork covariant parameters for the test case, for
-                unit testing purposes only.
+          fork: The fork for which the test cases will be parametrized.
+          marks: A list of pytest marks to apply to all the test cases
+                 parametrized by the fork.
+          fork_covariant_parameters: A list of fork covariant parameters
+                                     for the test case, for unit testing
+                                     purposes only.
 
         """
         if marks is None:
@@ -122,7 +124,8 @@ class ForkParametrizer:
     def argvalues(self) -> List[ParameterSet]:
         """Return the parameter values for the test case."""
         parameter_set_combinations = itertools.product(
-            # Add the values for each parameter, all of them are lists of at least one element.
+            # Add the values for each parameter, all of them are lists of at
+            # least one element.
             *[p.values for p in self.fork_covariant_parameters],
         )
 
@@ -148,14 +151,14 @@ class ForkParametrizer:
 
 class CovariantDescriptor:
     """
-    A descriptor for a parameter that is covariant with the fork:
-    the parametrized values change depending on the fork.
+    A descriptor for a parameter that is covariant with the fork: the
+    parametrized values change depending on the fork.
     """
 
     argnames: List[str] = []
     fn: Callable[[Fork], List[Any] | Iterable[Any]] | None = None
 
-    selector: FunctionType | None = None
+    selector: Callable[..., bool] | None = None
     marks: None | pytest.Mark | pytest.MarkDecorator | List[pytest.Mark | pytest.MarkDecorator] = (
         None
     )
@@ -165,7 +168,7 @@ class CovariantDescriptor:
         argnames: List[str] | str,
         fn: Callable[[Fork], List[Any] | Iterable[Any]] | None = None,
         *,
-        selector: FunctionType | None = None,
+        selector: Callable[..., bool] | None = None,
         marks: None
         | pytest.Mark
         | pytest.MarkDecorator
@@ -175,11 +178,13 @@ class CovariantDescriptor:
         Initialize a new covariant descriptor.
 
         Args:
-            argnames: The names of the parameters that are covariant with the fork.
-            fn: A function that takes the fork as the single parameter and returns the values for
-                the parameter for each fork.
-            selector: A function that filters the values for the parameter.
-            marks: A list of pytest marks to apply to the test cases parametrized by the parameter.
+          argnames: The names of the parameters that are covariant with the
+                    fork.
+          fn: A function that takes the fork as the single parameter and
+              returns the values for the parameter for each fork.
+          selector: A function that filters the values for the parameter.
+          marks: A list of pytest marks to apply to the test cases
+                 parametrized by the parameter.
 
         """
         self.argnames = (
@@ -188,7 +193,7 @@ class CovariantDescriptor:
             else argnames
         )
         self.fn = fn
-        self.selector = selector  # type: ignore[assignment]
+        self.selector = selector
         self.marks = marks
 
     def process_value(
@@ -208,7 +213,7 @@ class CovariantDescriptor:
             parameters_values = [parameters_values]
         marks = self.marks
         if self.selector is None or self.selector(
-            *parameters_values[: self.selector.__code__.co_argcount]  # type: ignore
+            *parameters_values[: self.selector.__code__.co_argcount]
         ):
             if isinstance(marks, FunctionType):
                 marks = marks(*parameters_values[: marks.__code__.co_argcount])
@@ -216,7 +221,7 @@ class CovariantDescriptor:
             if marks is None:
                 marks = []
             elif not isinstance(marks, list):
-                marks = [marks]  # type: ignore
+                marks = [marks]
 
             return pytest.param(*parameters_values, marks=marks)
 
@@ -226,8 +231,8 @@ class CovariantDescriptor:
         """
         Filter the values for the covariant parameter.
 
-        I.e. if the marker has an argument, the argument is interpreted as a lambda function
-        that filters the values.
+        I.e. if the marker has an argument, the argument is interpreted as a
+        lambda function that filters the values.
         """
         processed_values: List[ParameterSet] = []
         for value in values:
@@ -251,18 +256,21 @@ class CovariantDescriptor:
 
 class CovariantDecorator(CovariantDescriptor):
     """
-    A marker used to parametrize a function by a covariant parameter with the values
-    returned by a fork method.
+    A marker used to parametrize a function by a covariant parameter with the
+    values returned by a fork method.
 
-    The decorator must be subclassed with the appropriate class variables before initialization.
+    The decorator must be subclassed with the appropriate class variables
+    before initialization.
 
     Attributes:
-        marker_name: Name of the marker.
-        description: Description of the marker.
-        fork_attribute_name: Name of the method to call on the fork to get the values.
-        marker_parameter_names: Names of the parameters to be parametrized in the test function.
-        indirect: Whether the parameters should be passed through fixtures (indirect
-            parametrization).
+      marker_name: Name of the marker.
+      description: Description of the marker.
+      fork_attribute_name: Name of the method to call on the fork to
+                           get the values.
+      marker_parameter_names: Names of the parameters to be parametrized
+                              in the test function.
+      indirect: Whether the parameters should be passed through fixtures
+                (indirect parametrization).
 
     """
 
@@ -276,11 +284,12 @@ class CovariantDecorator(CovariantDescriptor):
         """
         Initialize the covariant decorator.
 
-        The decorator must already be subclassed with the appropriate class variables before
-        initialization.
+        The decorator must already be subclassed with the appropriate class
+        variables before initialization.
 
         Args:
-            metafunc: The metafunc object that pytest uses when generating tests.
+            metafunc: The metafunc object that pytest uses when generating
+                tests.
 
         """
         self.metafunc = metafunc
@@ -403,12 +412,13 @@ fork_covariant_decorators: List[Type[CovariantDecorator]] = [
 ]
 
 
-def pytest_configure(config: pytest.Config):
+def pytest_configure(config: pytest.Config) -> None:
     """
     Register the plugin's custom markers and process command-line options.
 
     Custom marker registration:
-    https://docs.pytest.org/en/7.1.x/how-to/writing_plugins.html#registering-custom-markers
+    https://docs.pytest.org/en/7.1.x/how-to/
+    writing_plugins.html# registering-custom-markers
     """
     config.addinivalue_line(
         "markers",
@@ -453,7 +463,7 @@ def pytest_configure(config: pytest.Config):
         """
     )
 
-    def get_fork_option(config, option_name: str, parameter_name: str) -> Set[Fork]:
+    def get_fork_option(config: pytest.Config, option_name: str, parameter_name: str) -> Set[Fork]:
         """Post-process get option to allow for external fork conditions."""
         config_str = config.getoption(option_name)
         try:
@@ -531,8 +541,10 @@ def pytest_configure(config: pytest.Config):
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_report_header(config, start_path):
+def pytest_report_header(config: pytest.Config, start_path: Any) -> List[str]:
     """Pytest hook called to obtain the report header."""
+    del start_path
+
     bold = "\033[1m"
     warning = "\033[93m"
     reset = "\033[39;49m"
@@ -540,11 +552,11 @@ def pytest_report_header(config, start_path):
         (
             bold
             + "Generating fixtures for: "
-            + ", ".join([f.name() for f in sorted(config.selected_fork_set)])
+            + ", ".join([f.name() for f in sorted(config.selected_fork_set)])  # type: ignore[attr-defined]
             + reset
         ),
     ]
-    if all(fork.is_deployed() for fork in config.selected_fork_set):
+    if all(fork.is_deployed() for fork in config.selected_fork_set):  # type: ignore[attr-defined]
         header += [
             (
                 bold + warning + "Only generating fixtures with stable/deployed forks: "
@@ -556,14 +568,17 @@ def pytest_report_header(config, start_path):
 
 
 @pytest.fixture(autouse=True)
-def fork(request):
+def fork(request: pytest.FixtureRequest) -> None:
     """Parametrize test cases by fork."""
     pass
 
 
 @pytest.fixture(scope="session")
 def session_fork(request: pytest.FixtureRequest) -> Fork | None:
-    """Session-wide fork object used if the plugin is configured in single-fork mode."""
+    """
+    Session-wide fork object used if the plugin is configured in single-fork
+    mode.
+    """
     if hasattr(request.config, "single_fork_mode") and request.config.single_fork_mode:
         return list(request.config.selected_fork_set)[0]  # type: ignore
     raise AssertionError(
@@ -582,12 +597,14 @@ class ValidityMarker(ABC):
 
     Subclassing this class allows for the creation of new validity markers.
 
-    Instantiation must be done per test function, and the `process` method must be called to
-    process the fork arguments.
+    Instantiation must be done per test function, and the `process` method must
+    be called to process the fork arguments.
 
     When subclassing, the following optional parameters can be set:
-    - marker_name: Name of the marker, if not set, the class name is converted to underscore.
-    - mutually_exclusive: List of other marker types incompatible with this one.
+    - marker_name: Name of the marker, if not set, the class name is
+                   converted to underscore.
+    - mutually_exclusive: List of other marker types incompatible
+                          with this one.
     - flag: Whether the marker is a flag and should always be included.
     """
 
@@ -602,12 +619,13 @@ class ValidityMarker(ABC):
         marker_name: str | None = None,
         mutually_exclusive: List[Type["ValidityMarker"]] | None = None,
         flag: bool = False,
-        **kwargs,
+        **kwargs: Any,
     ) -> None:
         """Register the validity marker subclass."""
         super().__init_subclass__(**kwargs)
         if marker_name is None:
-            # Use the class name converted to underscore: https://stackoverflow.com/a/1176023
+            # Use the class name converted to underscore:
+            # https://stackoverflow.com/a/1176023
             marker_name = MARKER_NAME_REGEX.sub("_", cls.__name__).lower()
         cls.marker_name = marker_name
         cls.mutually_exclusive = mutually_exclusive if mutually_exclusive else []
@@ -616,7 +634,7 @@ class ValidityMarker(ABC):
             raise ValueError(f"Duplicate validity marker class: {cls}")
         ALL_VALIDITY_MARKERS[marker_name] = cls
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Post-initialize the validity marker."""
         if self.flag:
             return
@@ -659,14 +677,18 @@ class ValidityMarker(ABC):
 
     @staticmethod
     def get_test_fork_set(validity_markers: List["ValidityMarker"]) -> Set[Fork]:
-        """Get the set of forks where a test is valid from the validity markers and filters."""
+        """
+        Get the set of forks where a test is valid from the validity markers
+        and filters.
+        """
         if not len(
             [validity_marker for validity_marker in validity_markers if not validity_marker.flag]
         ):
             # Limit to non-transition forks if no validity markers were applied
             test_fork_set = set(ALL_FORKS)
         else:
-            # Start with all forks and transitions if any validity markers were applied
+            # Start with all forks and transitions if any validity markers were
+            # applied
             test_fork_set = set(ALL_FORKS_WITH_TRANSITIONS)
 
         for v in validity_markers:
@@ -677,14 +699,20 @@ class ValidityMarker(ABC):
 
     @staticmethod
     def get_test_fork_set_from_markers(markers: Iterator[pytest.Mark]) -> Set[Fork]:
-        """Get the set of forks where a test is valid using the markers applied to the test."""
+        """
+        Get the set of forks where a test is valid using the markers applied to
+        the test.
+        """
         return ValidityMarker.get_test_fork_set(ValidityMarker.get_all_validity_markers(markers))
 
     @staticmethod
     def get_test_fork_set_from_metafunc(
         metafunc: Metafunc,
     ) -> Set[Fork]:
-        """Get the set of forks where a test is valid using its pytest meta-function."""
+        """
+        Get the set of forks where a test is valid using its pytest
+        meta-function.
+        """
         return ValidityMarker.get_test_fork_set_from_markers(metafunc.definition.iter_markers())
 
     @staticmethod
@@ -703,22 +731,23 @@ class ValidityMarker(ABC):
         return forks & fork_set
 
     @abstractmethod
-    def _process_with_marker_args(self, *args, **kwargs) -> Set[Fork]:
+    def _process_with_marker_args(self, *args: Any, **kwargs: Any) -> Set[Fork]:
         """
         Process the fork arguments as specified for the marker.
 
         Method must be implemented by the subclass.
 
-        If the validity marker is of flag type, the returned forks will be subtracted from the
-        fork set, otherwise the returned forks will be intersected with the current set.
+        If the validity marker is of flag type, the returned forks will be
+        subtracted from the fork set, otherwise the returned forks will be
+        intersected with the current set.
         """
         pass
 
 
 class ValidFrom(ValidityMarker):
     """
-    Marker used to specify the fork from which the test is valid. The test will not be filled for
-    forks before the specified fork.
+    Marker used to specify the fork from which the test is valid. The test will
+    not be filled for forks before the specified fork.
 
     ```python
     import pytest
@@ -733,11 +762,11 @@ class ValidFrom(ValidityMarker):
         pass
     ```
 
-    In this example, the test will only be filled for the London fork and after, e.g. London,
-    Paris, Shanghai, Cancun, etc.
+    In this example, the test will only be filled for the London fork and
+    after, e.g. London, Paris, Shanghai, Cancun, etc.
     """
 
-    def _process_with_marker_args(self, *fork_args) -> Set[Fork]:
+    def _process_with_marker_args(self, *fork_args: str) -> Set[Fork]:
         """Process the fork arguments."""
         forks: Set[Fork] = self.process_fork_arguments(*fork_args)
         resulting_set: Set[Fork] = set()
@@ -748,8 +777,8 @@ class ValidFrom(ValidityMarker):
 
 class ValidUntil(ValidityMarker):
     """
-    Marker to specify the fork until which the test is valid. The test will not be filled for
-    forks after the specified fork.
+    Marker to specify the fork until which the test is valid. The test will not
+    be filled for forks after the specified fork.
 
     ```python
     import pytest
@@ -764,11 +793,11 @@ class ValidUntil(ValidityMarker):
         pass
     ```
 
-    In this example, the test will only be filled for the London fork and before, e.g. London,
-    Berlin, Istanbul, etc.
+    In this example, the test will only be filled for the London fork and
+    before, e.g. London, Berlin, Istanbul, etc.
     """
 
-    def _process_with_marker_args(self, *fork_args) -> Set[Fork]:
+    def _process_with_marker_args(self, *fork_args: str) -> Set[Fork]:
         """Process the fork arguments."""
         forks: Set[Fork] = self.process_fork_arguments(*fork_args)
         resulting_set: Set[Fork] = set()
@@ -794,21 +823,23 @@ class ValidAt(ValidityMarker):
         pass
     ```
 
-    In this example, the test will only be filled for the London and Cancun forks.
+    In this example, the test will only be filled for the London and Cancun
+    forks.
     """
 
-    def _process_with_marker_args(self, *fork_args) -> Set[Fork]:
+    def _process_with_marker_args(self, *fork_args: str) -> Set[Fork]:
         """Process the fork arguments."""
         return self.process_fork_arguments(*fork_args)
 
 
 class ValidAtTransitionTo(ValidityMarker, mutually_exclusive=[ValidAt, ValidFrom, ValidUntil]):
     """
-    Marker to specify that a test is only meant to be filled at the transition to the specified
-    fork.
+    Marker to specify that a test is only meant to be filled at the transition
+    to the specified fork.
 
-    The test usually starts at the fork prior to the specified fork at genesis and at block 5 (for
-    pre-merge forks) or at timestamp 15,000 (for post-merge forks) the fork transition occurs.
+    The test usually starts at the fork prior to the specified fork at genesis
+    and at block 5 (for pre-merge forks) or at timestamp 15,000 (for post-merge
+    forks) the fork transition occurs.
 
     ```python
     import pytest
@@ -823,40 +854,44 @@ class ValidAtTransitionTo(ValidityMarker, mutually_exclusive=[ValidAt, ValidFrom
         pass
     ```
 
-    In this example, the test will only be filled for the fork that transitions to London at block
-    number 5, `BerlinToLondonAt5`, and no other forks.
+    In this example, the test will only be filled for the fork that transitions
+    to London at block number 5, `BerlinToLondonAt5`, and no other forks.
 
-    To see or add a new transition fork, see the `ethereum_test_forks.forks.transition` module.
+    To see or add a new transition fork, see the
+    `ethereum_test_forks.forks.transition` module.
 
-    Note that the test uses a `BlockchainTestFiller` fixture instead of a `StateTestFiller`,
-    as the transition forks are used to test changes throughout the blockchain progression, and
-    not just the state change of a single transaction.
+    Note that the test uses a `BlockchainTestFiller` fixture instead of a
+    `StateTestFiller`, as the transition forks are used to test changes
+    throughout the blockchain progression, and not just the state change of a
+    single transaction.
 
     This marker also accepts the following keyword arguments:
 
-    - `subsequent_transitions`: Force the test to also fill for subsequent fork transitions.
-    - `until`: Implies `subsequent_transitions` and puts a limit on which transition fork will the
-        test filling will be limited to.
+    - `subsequent_transitions`: Force the test to also fill for subsequent fork
+    transitions.
+    - `until`: Implies `subsequent_transitions` and puts a limit
+    on which transition fork will the test filling will be limited to.
 
     For example:
     ```python
     @pytest.mark.valid_at_transition_to("Cancun", subsequent_transitions=True)
     ```
 
-    produces tests on `ShanghaiToCancunAtTime15k` and `CancunToPragueAtTime15k`, and any transition
-    fork after that.
+    produces tests on `ShanghaiToCancunAtTime15k` and
+    `CancunToPragueAtTime15k`, and any transition fork after that.
 
     And:
     ```python
-    @pytest.mark.valid_at_transition_to("Cancun", subsequent_transitions=True, until="Prague")
+    @pytest.mark.valid_at_transition_to("Cancun",
+    subsequent_transitions=True, until="Prague")
     ```
 
-    produces tests on `ShanghaiToCancunAtTime15k` and `CancunToPragueAtTime15k`, but no forks after
-    Prague.
+    produces tests on `ShanghaiToCancunAtTime15k` and
+    `CancunToPragueAtTime15k`, but no forks after Prague.
     """
 
     def _process_with_marker_args(
-        self, *fork_args, subsequent_forks: bool = False, until: str | None = None
+        self, *fork_args: str, subsequent_forks: bool = False, until: str | None = None
     ) -> Set[Fork]:
         """Process the fork arguments."""
         forks: Set[Fork] = self.process_fork_arguments(*fork_args)
@@ -914,7 +949,7 @@ class ValidForBPOForks(ValidityMarker, marker_name="valid_for_bpo_forks", flag=T
         return resulting_set
 
 
-def pytest_generate_tests(metafunc: pytest.Metafunc):
+def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
     """Pytest hook used to dynamically generate test cases."""
     test_name = metafunc.function.__name__
     try:
@@ -982,7 +1017,10 @@ def pytest_generate_tests(metafunc: pytest.Metafunc):
 def add_fork_covariant_parameters(
     metafunc: Metafunc, fork_parametrizers: List[ForkParametrizer]
 ) -> None:
-    """Iterate over the fork covariant descriptors and add their values to the test function."""
+    """
+    Iterate over the fork covariant descriptors and add their values to the
+    test function.
+    """
     # Process all covariant decorators uniformly
     for covariant_descriptor in fork_covariant_decorators:
         if list(metafunc.definition.iter_markers(covariant_descriptor.marker_name)):

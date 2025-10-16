@@ -1,6 +1,6 @@
 """
-Command to scan and overwrite the static tests' gas limits to new optimized value given in the
-input file.
+Command to scan and overwrite the static tests' gas limits to new optimized
+value given in the input file.
 """
 
 import json
@@ -45,8 +45,16 @@ class StaticTestFile(EthereumTestRootModel):
     root: Dict[str, StateStaticTest]
 
 
-def _check_fixtures(*, input_path: Path, max_gas_limit: int | None, dry_run: bool, verbose: bool):
-    """Perform some checks on the fixtures contained in the specified directory."""
+def _check_fixtures(
+    *,
+    input_path: Path,
+    max_gas_limit: int | None,
+    dry_run: bool,
+    verbose: bool,
+) -> None:
+    """
+    Perform checks on fixtures in the specified directory.
+    """
     # Load the test dictionary from the input JSON file
     test_dict = GasLimitDict.model_validate_json(input_path.read_text())
 
@@ -206,8 +214,10 @@ MAX_GAS_LIMIT = 16_777_216
     expose_value=True,
     help="Print extra information.",
 )
-def main(input_str: str, max_gas_limit, dry_run: bool, verbose: bool):
-    """Perform some checks on the fixtures contained in the specified directory."""
+def main(input_str: str, max_gas_limit: int | None, dry_run: bool, verbose: bool) -> None:
+    """
+    Perform checks on fixtures in the specified directory.
+    """
     input_path = Path(input_str)
     if not dry_run:
         # Always dry-run first before actually modifying

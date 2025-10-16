@@ -1,8 +1,8 @@
 """
 Pytest plugin for generating EIP test completion checklists.
 
-This plugin collects checklist markers from tests and generates a filled checklist
-for each EIP based on the template at
+This plugin collects checklist markers from tests and generates a filled
+checklist for each EIP based on the template at
 docs/writing_tests/checklist_templates/eip_testing_checklist_template.md
 """
 
@@ -19,7 +19,7 @@ from .gen_test_doc.page_props import EipChecklistPageProps
 logger = logging.getLogger("mkdocs")
 
 
-def pytest_addoption(parser: pytest.Parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command-line options for checklist generation."""
     group = parser.getgroup("checklist", "EIP checklist generation options")
     group.addoption(
@@ -63,7 +63,7 @@ WARNINGS_LINE = "<!-- WARNINGS LINE -->"
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_configure(config):  # noqa: D103
+def pytest_configure(config: pytest.Config) -> None:  # noqa: D103
     config.pluginmanager.register(EIPChecklistCollector(), "eip-checklist-collector")
 
 
@@ -118,7 +118,7 @@ class EIPItem:
                 status = "❓"
             else:
                 status = "✅"
-            tests = ", ".join(sorted(map(resolve_test_link, self.tests)))
+            tests = ", ".join(sorted(self.tests))
         elif self.not_applicable:
             status = "N/A"
             tests = self.not_applicable_reason
@@ -160,17 +160,6 @@ def resolve_id(item_id: str) -> Set[str]:
     return covered_ids
 
 
-def resolve_test_link(test_id: str) -> str:
-    """Resolve a test ID to a test link."""
-    # test_id example: tests/fork/eip1234_some_eip/test_file.py::test_function[test_param1-...]
-    # Relative path:  ../../../../tests/fork/eip1234_some_eip/test_file/test_function/
-    pattern = r"(.*)\.py::(\w+)"
-    match = re.match(pattern, test_id)
-    if not match:
-        return test_id
-    return f"[{test_id}](../../../../{match.group(1)}/{match.group(2)}/)"
-
-
 ALL_CHECKLIST_WARNINGS: Dict[str, Type["ChecklistWarning"]] = {}
 
 
@@ -206,7 +195,9 @@ class ConflictingChecklistItemsWarning(ChecklistWarning):
 
     @classmethod
     def from_items(cls, all_items: Dict[str, EIPItem]) -> ChecklistWarning | None:
-        """Generate a conflicting checklist items warning from a list of items."""
+        """
+        Generate a conflicting checklist items warning from a list of items.
+        """
         conflicting_items = [
             item for item in all_items.values() if item.not_applicable and item.covered
         ]
@@ -222,8 +213,7 @@ class ConflictingChecklistItemsWarning(ChecklistWarning):
         for item in conflicting_items:
             details.append(
                 f"| {item.id} | {item.description} | "
-                + f"{item.not_applicable_reason} | "
-                + f"{', '.join(sorted(map(resolve_test_link, item.tests)))} |"
+                + f"{item.not_applicable_reason} | {', '.join(sorted(item.tests))} |"
             )
 
         return cls(details=details)
@@ -244,6 +234,7 @@ class EIP:
     @property
     def covered_items(self) -> int:
         """Return the number of covered items."""
+        return sum(1 for item in self.items.values() if item.covered and not item.not_applicable)
         return sum(1 for item in self.items.values() if item.covered and not item.not_applicable)
 
     @property
@@ -270,7 +261,7 @@ class EIP:
                 warnings.append(warning)
         return warnings
 
-    def mark_not_applicable(self):
+    def mark_not_applicable(self) -> None:
         """Read the not-applicable items from the EIP."""
         if self.path is None:
             return
@@ -298,7 +289,7 @@ class EIP:
                 for id_covered in ids:
                     self.items[id_covered].not_applicable_reason = reason
 
-    def mark_external_coverage(self):
+    def mark_external_coverage(self) -> None:
         """Read the externally covered items from the EIP."""
         if self.path is None:
             return
@@ -346,8 +337,8 @@ class EIP:
         # Replace the title line with the EIP number
         lines[lines.index(TITLE_LINE)] = f"# EIP-{self.number} Test Checklist"
 
-        # Last, add the warnings if there are any, this must be the last thing we do
-        # to avoid shifting the lines below the percentage line
+        # Last, add the warnings if there are any, this must be the last thing
+        # we do to avoid shifting the lines below the percentage line
         if self.warnings:
             warnings_line_idx = lines.index(WARNINGS_LINE)
             warnings_lines = ["", "## ⚠️ Checklist Warnings ⚠️", ""]
@@ -373,7 +364,7 @@ class EIP:
 class EIPChecklistCollector:
     """Collects and manages EIP checklist items from test markers."""
 
-    def __init__(self: "EIPChecklistCollector"):
+    def __init__(self: "EIPChecklistCollector") -> None:
         """Initialize the EIP checklist collector."""
         self.eips: Dict[int, EIP] = {}
 
@@ -450,12 +441,14 @@ class EIPChecklistCollector:
                         eip.add_covered_test(id_covered, item.nodeid)
 
     @pytest.hookimpl(tryfirst=True)
-    def pytest_runtestloop(self, session):
+    def pytest_runtestloop(self, session: pytest.Session) -> bool:
         """Skip test execution, only generate checklists."""
         session.testscollected = 0
         return True
 
-    def pytest_collection_modifyitems(self, config: pytest.Config, items: List[pytest.Item]):
+    def pytest_collection_modifyitems(
+        self, config: pytest.Config, items: List[pytest.Item]
+    ) -> None:
         """Collect checklist markers during test collection."""
         for item in items:
             eip = self.get_eip_from_item(item)

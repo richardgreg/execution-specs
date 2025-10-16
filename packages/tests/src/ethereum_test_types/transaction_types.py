@@ -33,11 +33,12 @@ from ethereum_test_base_types import (
     TestPrivateKey,
 )
 from ethereum_test_exceptions import TransactionException
-from pytest_plugins.logging import get_logger
+from pytest_plugins.custom_logging import get_logger
 
 from .account_types import EOA
 from .blob_types import Blob
 from .chain_config_types import ChainConfigDefaults
+from .phase_manager import TestPhase, TestPhaseManager
 from .receipt_types import TransactionReceipt
 from .utils import int_to_bytes, keccak256
 
@@ -81,14 +82,15 @@ class AuthorizationTupleGeneric(CamelModel, Generic[NumberBoundTypeVar], Signabl
 
     def get_rlp_signing_prefix(self) -> bytes:
         """
-        Return a prefix that has to be appended to the serialized signing object.
+        Return a prefix that has to be appended to the serialized signing
+        object.
 
         By default, an empty string is returned.
         """
         return self.magic.to_bytes(1, byteorder="big")
 
     @model_serializer(mode="wrap", when_used="json-unless-none")
-    def duplicate_v_as_y_parity(self, serializer):
+    def duplicate_v_as_y_parity(self, serializer: Any) -> Any:
         """
         Add a duplicate 'yParity' field (same as `v`) in JSON fixtures.
 
@@ -107,11 +109,14 @@ class AuthorizationTuple(AuthorizationTupleGeneric[HexNumber]):
     secret_key: Hash | None = None
 
     def model_post_init(self, __context: Any) -> None:
-        """Automatically signs the authorization tuple if a secret key or sender are provided."""
+        """
+        Automatically signs the authorization tuple if a secret key or sender
+        are provided.
+        """
         super().model_post_init(__context)
         self.sign()
 
-    def sign(self: "AuthorizationTuple"):
+    def sign(self: "AuthorizationTuple") -> None:
         """Signs the authorization tuple with a private key."""
         signature_bytes: bytes | None = None
         rlp_signing_bytes = self.rlp_signing_bytes()
@@ -198,7 +203,9 @@ class TransactionValidateToAsEmptyString(CamelModel):
     @model_validator(mode="before")
     @classmethod
     def validate_to_as_empty_string(cls, data: Any) -> Any:
-        """If the `to` field is an empty string, set the model value to None."""
+        """
+        If the `to` field is an empty string, set the model value to None.
+        """
         if (
             isinstance(data, dict)
             and "to" in data
@@ -210,11 +217,16 @@ class TransactionValidateToAsEmptyString(CamelModel):
 
 
 class TransactionFixtureConverter(TransactionValidateToAsEmptyString):
-    """Handler for serializing and validating the `to` field as an empty string."""
+    """
+    Handler for serializing and validating the `to` field as an empty string.
+    """
 
     @model_serializer(mode="wrap", when_used="json-unless-none")
-    def serialize_to_as_empty_string(self, serializer):
-        """Serialize the `to` field as the empty string if the model value is None."""
+    def serialize_to_as_empty_string(self, serializer: Any) -> Any:
+        """
+        Serialize the `to` field as the empty string if the model value is
+        None.
+        """
         default = serializer(self)
         if default is not None and "to" not in default:
             default["to"] = ""
@@ -222,16 +234,18 @@ class TransactionFixtureConverter(TransactionValidateToAsEmptyString):
 
 
 class TransactionTransitionToolConverter(TransactionValidateToAsEmptyString):
-    """Handler for serializing and validating the `to` field as an empty string."""
+    """
+    Handler for serializing and validating the `to` field as an empty string.
+    """
 
     @model_serializer(mode="wrap", when_used="json-unless-none")
-    def serialize_to_as_none(self, serializer):
+    def serialize_to_as_none(self, serializer: Any) -> Any:
         """
         Serialize the `to` field as `None` if the model value is None.
 
-        This is required as we use `exclude_none=True` when serializing, but the
-        t8n tool explicitly requires a value of `None` (respectively null), for
-        if the `to` field should be unset (contract creation).
+        This is required as we use `exclude_none=True` when serializing, but
+        the t8n tool explicitly requires a value of `None` (respectively null),
+        for if the `to` field should be unset (contract creation).
         """
         default = serializer(self)
         if default is not None and "to" not in default:
@@ -250,8 +264,8 @@ class TransactionTestMetadata(CamelModel):
 
     def to_json(self) -> str:
         """
-        Convert the transaction metadata into json string for it to be embedded in the
-        request id.
+        Convert the transaction metadata into json string for it to be embedded
+        in the request id.
         """
         return self.model_dump_json(exclude_none=True, by_alias=True)
 
@@ -279,27 +293,30 @@ class Transaction(
     zero: ClassVar[Literal[0]] = 0
 
     metadata: TransactionTestMetadata | None = Field(None, exclude=True)
+    test_phase: TestPhase | None = Field(
+        default_factory=TestPhaseManager.get_current_phase, exclude=True
+    )
 
     model_config = ConfigDict(validate_assignment=True)
 
     class InvalidFeePaymentError(Exception):
         """Transaction described more than one fee payment type."""
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return "only one type of fee payment field can be used in a single tx"
 
     class InvalidSignaturePrivateKeyError(Exception):
         """
-        Transaction describes both the signature and private key of
-        source account.
+        Transaction describes both the signature and private key of source
+        account.
         """
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return "can't define both 'signature' and 'private_key'"
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: Any) -> None:
         """Ensure transaction has no conflicting properties."""
         super().model_post_init(__context)
 
@@ -313,17 +330,17 @@ class Transaction(
         if "ty" not in self.model_fields_set:
             # Try to deduce transaction type from included fields
             if self.initcodes is not None:
-                self.ty = 6
+                self.ty = HexNumber(6)
             elif self.authorization_list is not None:
-                self.ty = 4
+                self.ty = HexNumber(4)
             elif self.max_fee_per_blob_gas is not None or self.blob_versioned_hashes is not None:
-                self.ty = 3
+                self.ty = HexNumber(3)
             elif self.max_fee_per_gas is not None or self.max_priority_fee_per_gas is not None:
-                self.ty = 2
+                self.ty = HexNumber(2)
             elif self.access_list is not None:
-                self.ty = 1
+                self.ty = HexNumber(1)
             else:
-                self.ty = 0
+                self.ty = HexNumber(0)
 
         if "v" in self.model_fields_set and self.secret_key is not None:
             raise Transaction.InvalidSignaturePrivateKeyError()
@@ -337,22 +354,22 @@ class Transaction(
 
         # Set default values for fields that are required for certain tx types
         if self.ty <= 1 and self.gas_price is None:
-            self.gas_price = TransactionDefaults.gas_price
+            self.gas_price = HexNumber(TransactionDefaults.gas_price)
         if self.ty >= 1 and self.access_list is None:
             self.access_list = []
         if self.ty < 1:
             assert self.access_list is None, "access_list must be None"
 
         if self.ty >= 2 and self.max_fee_per_gas is None:
-            self.max_fee_per_gas = TransactionDefaults.max_fee_per_gas
+            self.max_fee_per_gas = HexNumber(TransactionDefaults.max_fee_per_gas)
         if self.ty >= 2 and self.max_priority_fee_per_gas is None:
-            self.max_priority_fee_per_gas = TransactionDefaults.max_priority_fee_per_gas
+            self.max_priority_fee_per_gas = HexNumber(TransactionDefaults.max_priority_fee_per_gas)
         if self.ty < 2:
             assert self.max_fee_per_gas is None, "max_fee_per_gas must be None"
             assert self.max_priority_fee_per_gas is None, "max_priority_fee_per_gas must be None"
 
         if self.ty == 3 and self.max_fee_per_blob_gas is None:
-            self.max_fee_per_blob_gas = 1
+            self.max_fee_per_blob_gas = HexNumber(1)
         if self.ty != 3:
             assert self.blob_versioned_hashes is None, "blob_versioned_hashes must be None"
             assert self.max_fee_per_blob_gas is None, "max_fee_per_blob_gas must be None"
@@ -397,7 +414,7 @@ class Transaction(
             + bytes([v])
         )
 
-    def sign(self: "Transaction"):
+    def sign(self: "Transaction") -> None:
         """Signs the authorization tuple with a private key."""
         signature_bytes: bytes | None = None
         rlp_signing_bytes = self.rlp_signing_bytes()
@@ -522,8 +539,8 @@ class Transaction(
 
     def get_rlp_signing_fields(self) -> List[str]:
         """
-        Return the list of values included in the envelope used for signing depending on
-        the transaction type.
+        Return the list of values included in the envelope used for signing
+        depending on the transaction type.
         """
         field_list: List[str]
         if self.ty == 6:
@@ -611,8 +628,8 @@ class Transaction(
 
     def get_rlp_fields(self) -> List[str]:
         """
-        Return the list of values included in the list used for rlp encoding depending on
-        the transaction type.
+        Return the list of values included in the list used for rlp encoding
+        depending on the transaction type.
         """
         fields = self.get_rlp_signing_fields()
         if self.ty == 0 and self.protected:
@@ -621,8 +638,8 @@ class Transaction(
 
     def get_rlp_prefix(self) -> bytes:
         """
-        Return the transaction type as bytes to be appended at the beginning of the
-        serialized transaction if type is not 0.
+        Return the transaction type as bytes to be appended at the beginning of
+        the serialized transaction if type is not 0.
         """
         if self.ty > 0:
             return bytes([self.ty])
@@ -630,8 +647,8 @@ class Transaction(
 
     def get_rlp_signing_prefix(self) -> bytes:
         """
-        Return the transaction type as bytes to be appended at the beginning of the
-        serialized transaction signing envelope if type is not 0.
+        Return the transaction type as bytes to be appended at the beginning of
+        the serialized transaction signing envelope if type is not 0.
         """
         if self.ty > 0:
             return bytes([self.ty])
@@ -650,7 +667,10 @@ class Transaction(
 
     @cached_property
     def serializable_list(self) -> Any:
-        """Return list of values included in the transaction as a serializable object."""
+        """
+        Return list of values included in the transaction as a serializable
+        object.
+        """
         return self.rlp() if self.ty > 0 else self.to_list(signing=False)
 
     @staticmethod
@@ -663,7 +683,9 @@ class Transaction(
 
     @staticmethod
     def list_blob_versioned_hashes(input_txs: List["Transaction"]) -> List[Hash]:
-        """Get list of ordered blob versioned hashes from a list of transactions."""
+        """
+        Get list of ordered blob versioned hashes from a list of transactions.
+        """
         return [
             blob_versioned_hash
             for tx in input_txs
@@ -687,11 +709,10 @@ class NetworkWrappedTransaction(CamelModel, RLPSerializable):
     Network wrapped transaction as defined in
     [EIP-4844](https://eips.ethereum.org/EIPS/eip-4844#networking).
 
-    < Osaka:
-        rlp([tx_payload_body,                   blobs, commitments, proofs])
+    < Osaka: rlp([tx_payload_body, blobs, commitments, proofs])
 
-    >= Osaka:
-        rlp([tx_payload_body, wrapper_version,  blobs, commitments, cell_proofs])
+    >= Osaka: rlp([tx_payload_body, wrapper_version,  blobs, commitments,
+                   cell_proofs])
     """
 
     tx: Transaction
@@ -740,15 +761,18 @@ class NetworkWrappedTransaction(CamelModel, RLPSerializable):
 
     def get_rlp_fields(self) -> List[str]:
         """
-        Return an ordered list of field names to be included in RLP serialization.
+        Return an ordered list of field names to be included in RLP
+        serialization.
 
         Function can be overridden to customize the logic to return the fields.
 
         By default, rlp_fields class variable is used.
 
-        The list can be nested list up to one extra level to represent nested fields.
+        The list can be nested list up to one extra level to represent nested
+        fields.
         """
-        # only put a wrapper_version field for >=osaka (value 1), otherwise omit field
+        # only put a wrapper_version field for >=osaka (value 1), otherwise
+        # omit field
         wrapper = []
         if self.wrapper_version is not None:
             wrapper = ["wrapper_version"]
@@ -761,11 +785,11 @@ class NetworkWrappedTransaction(CamelModel, RLPSerializable):
         if self.cell_proofs is not None:
             rlp_cell_proofs = ["cell_proofs"]
 
-        rlp_fields: List[
-            str
-        ] = [  # structure explained in https://eips.ethereum.org/EIPS/eip-7594#Networking
+        rlp_fields: List[str] = [  # structure explained in
+            # https://eips.ethereum.org/EIPS/eip-7594#Networking
             "tx",  # tx_payload_body
-            *wrapper,  # wrapper_version, which is always 1 for osaka (was non-existing before)
+            *wrapper,  # wrapper_version, which is always 1 for osaka (was non-
+            # existing before)
             "blobs",  # Blob.data
             "commitments",
             *rlp_proofs,
@@ -782,8 +806,8 @@ class NetworkWrappedTransaction(CamelModel, RLPSerializable):
 
     def get_rlp_prefix(self) -> bytes:
         """
-        Return the transaction type as bytes to be appended at the beginning of the
-        serialized transaction if type is not 0.
+        Return the transaction type as bytes to be appended at the beginning of
+        the serialized transaction if type is not 0.
         """
         if self.tx.ty > 0:
             return bytes([self.tx.ty])

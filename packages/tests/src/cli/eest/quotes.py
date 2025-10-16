@@ -25,12 +25,12 @@ make_something_great = [
 ]
 
 
-def wrap_quote(quote, width=80):
+def wrap_quote(quote: str, width: int = 80) -> str:
     """Wrap quote text to the given width."""
     return textwrap.fill(quote, width=width)
 
 
-def box_quote(quote):
+def box_quote(quote: str) -> str:
     """Return quote wrapped in a box with borders."""
     # Wrap the quote first
     wrapped_quote = wrap_quote(quote)
@@ -50,6 +50,8 @@ def box_quote(quote):
     return f"\n {quote} \n"
 
 
-def get_quote():
-    """Return random inspirational quote related to system design formatted in a box."""
+def get_quote() -> str:
+    """
+    Return random inspirational quote formatted in a box.
+    """
     return box_quote(random.choice(make_something_great))

@@ -1,34 +1,34 @@
 """
 A pytest plugin that generates test case documentation for use in mkdocs.
 
-It generates the top-level "Test Case Reference" section in EEST's mkdocs
-site.
+It generates the top-level "Test Case Reference" section in EEST's mkdocs site.
 
 Note:
 ----
-- No output directory is specified for the generated output; file IO occurs
-    via the `mkdocs-gen-files` plugin. `mkdocs serve` writes intermediate files
-    to our local `docs/` directory and then copies it to the site directory.
-    We modify `docs/navigation.md` and write all other output underneath
-    `docs/tests`. If mkdocs is interrupted, these intermediate artifacts are
-    left in `docs/`.
+- No output directory is specified for the generated output; file IO
+occurs via the `mkdocs-gen-files` plugin. `mkdocs serve` writes intermediate
+files to our local `docs/` directory and then copies it to the site directory.
+We modify `docs/navigation.md` and write all other output underneath
+`docs/tests`. If mkdocs is interrupted, these intermediate artifacts are left
+in `docs/`.
 
 Usage:
 ------
 
 !!! note "Ensuring a clean build"
 
-    In case mkdocs has polluted the `docs/` directory with intermediate files, run:
+In case mkdocs has polluted the `docs/` directory with intermediate files, run:
 
-    ```console
-    git restore docs/navigation.md  # Careful if you have local modifications!
-    rm -rf docs/tests docs/docs site
-    ```
+```console
+git restore docs/navigation.md  # Careful if you have local modifications!
+rm -rf docs/tests docs/docs site
+```
 
 To test doc generation, run the plugin without mkdocs:
 
 ```console
-uv run fill -p pytest_plugins.filler.gen_test_doc.gen_test_doc --gen-docs --fork=<fork> tests
+uv run fill -p pytest_plugins.filler.gen_test_doc.gen_test_doc --gen-docs \
+    --fork=<fork> tests
 ```
 
 Or to build and view the site:
@@ -48,7 +48,7 @@ from collections import defaultdict
 from pathlib import Path
 from typing import Any, Dict, List, Set, Tuple, cast
 
-import mkdocs_gen_files  # type: ignore
+import mkdocs_gen_files  # type: ignore[unused-ignore, import-not-found]
 import pytest
 from jinja2 import Environment, FileSystemLoader, StrictUndefined
 from pytest import Item
@@ -79,7 +79,7 @@ logger = logging.getLogger("mkdocs")
 docstring_test_function_history: Dict[str, str] = {}
 
 
-def pytest_addoption(parser):  # noqa: D103
+def pytest_addoption(parser: pytest.Parser) -> None:  # noqa: D103
     gen_docs = parser.getgroup(
         "gen_docs", "Arguments related to generating test case documentation"
     )
@@ -103,7 +103,7 @@ def pytest_addoption(parser):  # noqa: D103
 
 
 @pytest.hookimpl(tryfirst=True)
-def pytest_configure(config):  # noqa: D103
+def pytest_configure(config: pytest.Config) -> None:  # noqa: D103
     if config.getoption("gen_docs"):
         config.option.disable_html = True
         config.pluginmanager.register(TestDocsGenerator(config), "test-case-doc-generator")
@@ -128,8 +128,8 @@ def get_test_function_import_path(item: pytest.Item) -> str:
     """
     Retrieve the fully qualified import path for an item's test function.
 
-    This is used in jinja2 templates to get the test function, respectively
-    the test function's class, documentation with mkdocstrings.
+    This is used in jinja2 templates to get the test function, respectively the
+    test function's class, documentation with mkdocstrings.
     """
     item = cast(pytest.Function, item)  # help mypy infer type
     module_name = item.module.__name__
@@ -150,7 +150,8 @@ def get_import_path(path: Path) -> str:
     Get the import path for a given path.
 
     - For modules, strip the file extension.
-    - For directories (i.e., packages such as `tests.berlin`), `with_suffix()` is ignored.
+    - For directories (i.e., packages such as `tests.berlin`),
+      `with_suffix()` is ignored.
 
     To do:
     ------
@@ -233,7 +234,7 @@ def get_test_function_test_type(item: pytest.Item) -> str:
 class TestDocsGenerator:
     """Pytest plugin class for generating test case documentation."""
 
-    def __init__(self, config) -> None:
+    def __init__(self, config: pytest.Config) -> None:
         """Initialize the plugin with the given pytest config."""
         self.config = config
         self.target_fork: str = config.getoption("gen_docs_target_fork")
@@ -254,7 +255,9 @@ class TestDocsGenerator:
         self.page_props: PagePropsLookup = {}
 
     @pytest.hookimpl(hookwrapper=True, trylast=True)
-    def pytest_collection_modifyitems(self, config: pytest.Config, items: List[pytest.Item]):
+    def pytest_collection_modifyitems(
+        self, config: pytest.Config, items: List[pytest.Item]
+    ) -> object:
         """Generate html doc for each test item that pytest has collected."""
         yield
 
@@ -273,7 +276,8 @@ class TestDocsGenerator:
         self.create_module_page_props()
         # add the pages to the page_props dict
         self.page_props = {**self.page_props, **self.function_page_props, **self.module_page_props}
-        # this adds pages for the intermediate directory structure (tests, tests/berlin)
+        # this adds pages for the intermediate directory structure (tests,
+        # tests/berlin)
         self.add_directory_page_props()
         # add other interesting pages
         self.add_spec_page_props()
@@ -283,21 +287,28 @@ class TestDocsGenerator:
         self.update_mkdocs_nav()
 
     @pytest.hookimpl(tryfirst=True)
-    def pytest_runtestloop(self, session):
+    def pytest_runtestloop(self, session: pytest.Session) -> bool:
         """Skip test execution, only generate docs."""
         session.testscollected = 0
         return True
 
-    def pytest_terminal_summary(self, terminalreporter, exitstatus, config):
+    def pytest_terminal_summary(
+        self,
+        terminalreporter: Any,
+        exitstatus: int,
+        config: pytest.Config,
+    ) -> None:
         """Add a summary line for the docs."""
+        del exitstatus, config
         terminalreporter.write_sep("=", f"{len(self.page_props)} doc pages generated", bold=True)
 
-    def _setup_logger(self):
+    def _setup_logger(self) -> None:
         """
         Configure the mkdocs logger and adds a StreamHandler if outside mkdocs.
 
         We use the mkdocs logger to report warnings if conditions are invalid -
-        this will inform the user and fail the build with `mkdocs build --strict`.
+        this will inform the user and fail the build with `mkdocs build
+        --strict`.
         """
         if not logger.hasHandlers() or logger.level == logging.NOTSET:
             stream_handler = logging.StreamHandler(sys.stdout)
@@ -309,12 +320,12 @@ class TestDocsGenerator:
         """
         Return site's base in its URL for inclusion of local files.
 
-            This is required in order to include docs/javascripts/site.js, for
+        This is required in order to include docs/javascripts/site.js, for
         example, in the standalone html pages.
 
-        Github pages deploys to a sub-directory "execution-spec-tests" and
-        mike deploys a version of the site underneath a sub-directory named
-        after the version, e.g.:
+        Github pages deploys to a sub-directory "execution-spec-tests" and mike
+        deploys a version of the site underneath a sub-directory named after
+        the version, e.g.:
 
         - https://eest.ethereum.org/main/
         - https://eest.ethereum.org/v4.1.0/
@@ -339,7 +350,7 @@ class TestDocsGenerator:
         # local test build, e.g. via `uv run mkdocs serve`
         return "/execution-spec-tests/"
 
-    def add_global_page_props_to_env(self):
+    def add_global_page_props_to_env(self) -> None:
         """Populate global page properties used in j2 templates."""
         global_page_props = {
             "target_fork": self.target_fork,
@@ -352,7 +363,8 @@ class TestDocsGenerator:
 
     def create_function_page_props(self, test_functions: Dict["str", List[Item]]) -> None:
         """
-        Traverse all test items and create a lookup of doc pages & required props.
+        Traverse all test items and create a lookup of doc pages & required
+        props.
 
         To do: Needs refactor.
         """
@@ -361,17 +373,20 @@ class TestDocsGenerator:
         ]
         for function_id, function_items in test_functions.items():
             assert all(isinstance(item, pytest.Function) for item in function_items)
-            items = cast(List[pytest.Function], function_items)  # help mypy infer type
+            # help mypy infer type
+            items = cast(List[pytest.Function], function_items)
 
             # extract parametrized test cases for each test function
             test_cases = []
             if getattr(items[0], "callspec", None):
                 for item in items:
                     param_set = item.callspec.params
-                    # Don't show skipped parameters as columns in the test case table
+                    # Don't show skipped parameters as columns in the test case
+                    # table
                     keys = [key for key in param_set.keys() if key not in skip_params]
                     values = [param_set[key] for key in keys]
-                    # TODO: This formatting of bytes objects should be moved elsewhere
+                    # TODO: This formatting of bytes objects should be moved
+                    # elsewhere
                     values = [
                         (
                             " ".join(
@@ -398,7 +413,7 @@ class TestDocsGenerator:
 
             module_relative_path = Path(items[0].module.__file__).relative_to(Path.cwd())
             source_url = generate_github_url(
-                module_relative_path,
+                str(module_relative_path),
                 branch_or_commit_or_tag=self.ref,
                 line_number=items[0].function.__code__.co_firstlineno,
             )
@@ -406,8 +421,8 @@ class TestDocsGenerator:
             if not valid_from_marker:
                 valid_from_fork = "Frontier"
             else:
-                # NOTE: The EOF tests cases contain two fork names in their valid_from marker,
-                # separated by a comma. Take the last.
+                # NOTE: The EOF tests cases contain two fork names in their
+                # valid_from marker, separated by a comma. Take the last.
                 valid_from_fork = valid_from_marker.args[0].split(",")[-1]
 
             target_or_valid_fork = (
@@ -424,6 +439,7 @@ class TestDocsGenerator:
             )
 
             is_benchmark = items[0].get_closest_marker("benchmark") is not None
+            is_stateful = items[0].get_closest_marker("stateful") is not None
 
             self.function_page_props[function_id] = FunctionPageProps(
                 title=get_test_function_name(items[0]),
@@ -440,6 +456,7 @@ class TestDocsGenerator:
                 html_static_page_target=f"./{get_test_function_name(items[0])}.html",
                 mkdocs_function_page_target=f"./{get_test_function_name(items[0])}/",
                 is_benchmark=is_benchmark,
+                is_stateful=is_stateful,
             )
 
     def create_module_page_props(self) -> None:
@@ -455,6 +472,7 @@ class TestDocsGenerator:
                     pytest_node_id=str(module_path),
                     package_name=get_import_path(module_path),
                     is_benchmark=function_page.is_benchmark,
+                    is_stateful=function_page.is_stateful,
                     test_functions=[
                         TestFunction(
                             name=function_page.title,
@@ -468,6 +486,8 @@ class TestDocsGenerator:
                 existing_module_page = self.module_page_props[str(function_page.path)]
                 if function_page.is_benchmark:
                     existing_module_page.is_benchmark = True
+                if function_page.is_stateful:
+                    existing_module_page.is_stateful = True
                 existing_module_page.test_functions.append(
                     TestFunction(
                         name=function_page.title,
@@ -481,7 +501,8 @@ class TestDocsGenerator:
         """
         Discover the intermediate directory pages and extract their properties.
 
-        These directories may not have any test modules within them, e.g., tests/berlin/.
+        These directories may not have any test modules within them, e.g.,
+        tests/berlin/.
         """
         sub_paths: Set[Path] = set()
         for module_page in self.module_page_props.values():
@@ -503,19 +524,29 @@ class TestDocsGenerator:
             is_benchmark = any(
                 module_page.is_benchmark
                 for module_page in self.module_page_props.values()
-                if module_page.path.parent == directory
+                if directory in module_page.path.parents or module_page.path.parent == directory
+            )
+            is_stateful = any(
+                module_page.is_stateful
+                for module_page in self.module_page_props.values()
+                if directory in module_page.path.parents or module_page.path.parent == directory
             )
 
             self.page_props[str(directory)] = DirectoryPageProps(
                 title=sanitize_string_title(str(directory.name)),
                 path=directory,
                 pytest_node_id=str(directory),
-                source_code_url=generate_github_url(directory, branch_or_commit_or_tag=self.ref),
-                # TODO: This won't work in all cases; should be from the development fork
-                # Currently breaks for `tests/unscheduled/eip7692_eof_v1/index.md`  # noqa: SC100
+                source_code_url=generate_github_url(
+                    str(directory), branch_or_commit_or_tag=self.ref
+                ),
+                # TODO: This won't work in all cases; should be from the
+                # development fork Currently breaks for
+                # `tests/unscheduled/eip7692_eof_v1/index.md`
                 target_or_valid_fork=fork.capitalize() if fork else "Unknown",
-                package_name=get_import_path(directory),  # init.py will be used for docstrings
+                # init.py will be used for docstrings
+                package_name=get_import_path(directory),
                 is_benchmark=is_benchmark,
+                is_stateful=is_stateful,
             )
 
     def find_files_within_collection_scope(self, file_pattern: str) -> List[Path]:
@@ -538,12 +569,17 @@ class TestDocsGenerator:
         return [Path(file) for file in set(files)]
 
     def add_spec_page_props(self) -> None:
-        """Add page path properties for spec files discovered in the collection scope."""
+        """
+        Add page path properties for spec files discovered in the collection
+        scope.
+        """
         for spec_path in self.find_files_within_collection_scope("spec.py"):
             self.page_props[str(spec_path)] = ModulePageProps(
                 title="Spec",
                 path=spec_path,
-                source_code_url=generate_github_url(spec_path, branch_or_commit_or_tag=self.ref),
+                source_code_url=generate_github_url(
+                    str(spec_path), branch_or_commit_or_tag=self.ref
+                ),
                 pytest_node_id=str(spec_path),
                 package_name=get_import_path(spec_path),
                 target_or_valid_fork="",
@@ -551,44 +587,60 @@ class TestDocsGenerator:
             )
 
     def add_markdown_page_props(self) -> None:
-        """Add page path properties for markdown files discovered in the collection scope."""
+        """
+        Add page path properties for markdown files discovered in the
+        collection scope.
+        """
         for md_path in self.find_files_within_collection_scope("*.md"):
             self.page_props[str(md_path)] = MarkdownPageProps(
                 title=md_path.stem,
                 path=md_path,
-                source_code_url=generate_github_url(md_path, branch_or_commit_or_tag=self.ref),
-                pytest_node_id=str(md_path),  # abuse: not a test, but used in source code link
+                source_code_url=generate_github_url(
+                    str(md_path), branch_or_commit_or_tag=self.ref
+                ),
+                # abuse: not a test, but used in source code link
+                pytest_node_id=str(md_path),
                 target_or_valid_fork="",
                 package_name="",
             )
 
     def update_mkdocs_nav(self) -> None:
-        """Add the generated 'Test Case Reference' entries to the mkdocs navigation menu."""
+        """
+        Add the generated 'Test Case Reference' entries to the mkdocs
+        navigation menu.
+        """
         fork_order = {fork.name().lower(): i for i, fork in enumerate(reversed(get_forks()))}
 
         def sort_by_fork_deployment_and_path(x: PageProps) -> Tuple[Any, ...]:
             """
-            Key function used to sort navigation menu entries for test case ref docs.
+            Key function used to sort navigation menu entries for test case ref
+            docs.
 
             Nav entries / output files contain special cases such as:
 
             - ("Test Case Reference",) -> tests/index.md
             - ("Test Case Reference", "Berlin") -> tests/berlin/index.md
             - ("Test Case Reference", "EIP-7692 EOF V1", tracker.md")
-                tests/unscheduled/eip7692_eof_v1/tracker.md
+            tests/unscheduled/eip7692_eof_v1/tracker.md
             - ("Test Case Reference", "Shanghai", "EIP-3855 PUSH0", "Spec") ->
-                tests/shanghai/eip3855_push0/spec.py
+            tests/shanghai/eip3855_push0/spec.py
 
-            This function provides and ordering to sort nav men entries as follows:
+            This function provides and ordering to sort nav men entries as
+            follows:
 
-            1. Forks are listed in the chronological order that they were deployed.
-            2. Special files listed first (before test pages): "*.md" and `Spec.py`,
-            3. The page's corresponding file path under `./tests/`.
+            1. Forks are listed in the chronological order that they were
+            deployed.
+            2. Special files listed first (before test pages): "*.md"
+            and `Spec.py`,
+            3. The page's corresponding file path under
+            `./tests/`.
             """
             length = len(x.path.parts)
             if length > 1:
-                fork = str(x.path.parts[1]).lower()  # the fork folder from the relative path
-                if fork not in fork_order:  # unscheduled features added to the end
+                # the fork folder from the relative path
+                fork = str(x.path.parts[1]).lower()
+                # unscheduled features added to the end
+                if fork not in fork_order:
                     return (999, str(x.path))
             if length == 1:
                 return (0,)
@@ -610,4 +662,4 @@ class TestDocsGenerator:
     def write_pages(self) -> None:
         """Write all pages to the target directory."""
         for page in self.page_props.values():
-            page.write_page(mkdocs_gen_files, self.jinja2_env)  # type: ignore[arg-type]
+            page.write_page(mkdocs_gen_files, self.jinja2_env)  # type: ignore[arg-type, unused-ignore]

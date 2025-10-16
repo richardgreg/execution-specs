@@ -1,6 +1,7 @@
 """Test blockchain sync fixture generation with verify_sync pytest marker."""
 
 import textwrap
+from typing import Any
 
 from ethereum_clis import TransitionTool
 
@@ -20,7 +21,7 @@ test_module_with_verify_sync = textwrap.dedent(
     TEST_ADDRESS = Account(balance=1_000_000)
 
     @pytest.mark.valid_at("Cancun")
-    def test_verify_sync_default(blockchain_test):
+    def test_verify_sync_default(blockchain_test) -> None:
         blockchain_test(
             pre={TestAddress: TEST_ADDRESS},
             post={},
@@ -30,7 +31,7 @@ test_module_with_verify_sync = textwrap.dedent(
 
     @pytest.mark.valid_at("Cancun")
     @pytest.mark.verify_sync
-    def test_verify_sync_with_marker(blockchain_test):
+    def test_verify_sync_with_marker(blockchain_test) -> None:
         blockchain_test(
             pre={TestAddress: TEST_ADDRESS},
             post={},
@@ -47,7 +48,7 @@ test_module_with_verify_sync = textwrap.dedent(
             ),
         ]
     )
-    def test_verify_sync_with_param_marks(blockchain_test, has_exception):
+    def test_verify_sync_with_param_marks(blockchain_test, has_exception) -> None:
         blockchain_test(
             pre={TestAddress: TEST_ADDRESS},
             post={},
@@ -65,16 +66,19 @@ test_module_with_verify_sync = textwrap.dedent(
 
 
 def test_verify_sync_marker(
-    pytester,
+    pytester: Any,
     default_t8n: TransitionTool,
-):
+) -> None:
     """
     Test blockchain sync fixture generation with verify_sync marker.
 
     The test module has 3 test functions (4 test cases with parametrization):
-    - test_verify_sync_default: generates all formats except sync (no verify_sync marker)
-    - test_verify_sync_with_marker: generates all formats including sync (has verify_sync marker)
-    - test_verify_sync_with_param_marks: tests parametrized marks with verify_sync (2 cases)
+      - test_verify_sync_default: generates all formats except sync
+                                  (no verify_sync marker)
+      - test_verify_sync_with_marker: generates all formats including sync
+                                      (has verify_sync marker)
+      - test_verify_sync_with_param_marks: tests parametrized marks with
+                                           verify_sync (2 cases)
 
     Each test generates fixture formats:
     - BlockchainFixture (always)
@@ -83,13 +87,15 @@ def test_verify_sync_marker(
 
     Expected outcomes:
     - 4 test cases total
-    - Each generates BlockchainFixture (4) and BlockchainEngineFixture (4) = 8 fixtures
+    - Each generates BlockchainFixture (4) and BlockchainEngineFixture (4) =
+      8 fixtures
+
     - Sync fixtures:
-        - test_verify_sync_with_marker: 1 sync fixture ✓
-        - test_verify_sync_with_param_marks[no_exception]: 1 sync fixture ✓
-        - Total sync fixtures: 2
-    - Not generated (due to exception_test marker):
-        - test_verify_sync_with_param_marks[with_exception]: sync fixture not generated
+      - test_verify_sync_with_marker: 1 sync fixture ✓
+      - test_verify_sync_with_param_marks[no_exception]: 1 sync fixture ✓
+      - Total sync fixtures: 2 - Not generated (due to exception_test marker):
+      - test_verify_sync_with_param_marks[with_exception]:  sync fixture
+                                                            not generated
 
     Final counts:
     - Passed: 8 (base fixtures) + 2 (sync fixtures) = 10 passed

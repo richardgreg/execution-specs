@@ -3,7 +3,7 @@
 import json
 from dataclasses import dataclass, field
 from enum import Enum, auto
-from typing import Any, Dict, List, Literal, Optional, Self, Tuple
+from typing import Any, Dict, ItemsView, Iterator, List, Literal, Optional, Self, Tuple
 
 from coincurve.keys import PrivateKey
 from ethereum_types.bytes import Bytes20
@@ -50,8 +50,8 @@ class State:
 
 def set_account(state: State, address: Bytes20, account: Optional[FrontierAccount]) -> None:
     """
-    Set the `Account` object at an address. Setting to `None` deletes
-    the account (but not its storage, see `destroy_account()`).
+    Set the `Account` object at an address. Setting to `None` deletes the
+    account (but not its storage, see `destroy_account()`).
     """
     trie_set(state._main_trie, address, account)
 
@@ -93,9 +93,11 @@ def state_root(state: State) -> Bytes32:
 
 class EOA(Address):
     """
-    An Externally Owned Account (EOA) is an account controlled by a private key.
+    An Externally Owned Account (EOA) is an account controlled by a private
+    key.
 
-    The EOA is defined by its address and (optionally) by its corresponding private key.
+    The EOA is defined by its address and (optionally) by its corresponding
+    private key.
     """
 
     key: Hash | None
@@ -107,7 +109,7 @@ class EOA(Address):
         *,
         key: FixedSizeBytesConvertible | None = None,
         nonce: NumberConvertible = 0,
-    ):
+    ) -> "EOA":
         """Init the EOA."""
         if address is None:
             if key is None:
@@ -145,7 +147,7 @@ class Alloc(BaseAlloc):
         address: Address
         account: Account | None
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return f"unexpected account in allocation {self.address}: {self.account}"
 
@@ -155,7 +157,7 @@ class Alloc(BaseAlloc):
 
         address: Address
 
-        def __str__(self):
+        def __str__(self) -> str:
             """Print exception string."""
             return f"Account missing from allocation {self.address}"
 
@@ -242,11 +244,11 @@ class Alloc(BaseAlloc):
 
         return Alloc(merged)
 
-    def __iter__(self):
+    def __iter__(self) -> Iterator[Address]:  # type: ignore [override]
         """Return iterator over the allocation."""
         return iter(self.root)
 
-    def items(self):
+    def items(self) -> ItemsView[Address, Account | None]:
         """Return iterator over the allocation items."""
         return self.root.items()
 
@@ -256,19 +258,21 @@ class Alloc(BaseAlloc):
             address = Address(address)
         return self.root[address]
 
-    def __setitem__(self, address: Address | FixedSizeBytesConvertible, account: Account | None):
+    def __setitem__(
+        self, address: Address | FixedSizeBytesConvertible, account: Account | None
+    ) -> None:
         """Set account associated with an address."""
         if not isinstance(address, Address):
             address = Address(address)
         self.root[address] = account
 
-    def __delitem__(self, address: Address | FixedSizeBytesConvertible):
+    def __delitem__(self, address: Address | FixedSizeBytesConvertible) -> None:
         """Delete account associated with an address."""
         if not isinstance(address, Address):
             address = Address(address)
         self.root.pop(address, None)
 
-    def __eq__(self, other) -> bool:
+    def __eq__(self, other: object) -> bool:
         """Return True if both allocations are equal."""
         if not isinstance(other, Alloc):
             return False
@@ -309,7 +313,7 @@ class Alloc(BaseAlloc):
                     )
         return Hash(state_root(state))
 
-    def verify_post_alloc(self, got_alloc: "Alloc"):
+    def verify_post_alloc(self, got_alloc: "Alloc") -> None:
         """
         Verify that the allocation matches the expected post in the test.
         Raises exception on unexpected values.
@@ -354,10 +358,13 @@ class Alloc(BaseAlloc):
         delegation: Address | Literal["Self"] | None = None,
         nonce: NumberConvertible | None = None,
     ) -> EOA:
-        """Add a previously unused EOA to the pre-alloc with the balance specified by `amount`."""
+        """
+        Add a previously unused EOA to the pre-alloc with the balance specified
+        by `amount`.
+        """
         raise NotImplementedError("fund_eoa is not implemented in the base class")
 
-    def fund_address(self, address: Address, amount: NumberConvertible):
+    def fund_address(self, address: Address, amount: NumberConvertible) -> None:
         """
         Fund an address with a given amount.
 
@@ -370,7 +377,7 @@ class Alloc(BaseAlloc):
         """
         Return a previously unused account guaranteed to be empty.
 
-        This ensures the account has zero balance, zero nonce, no code, and no storage.
-        The account is not a precompile or a system contract.
+        This ensures the account has zero balance, zero nonce, no code, and no
+        storage. The account is not a precompile or a system contract.
         """
         raise NotImplementedError("empty_account is not implemented in the base class")

@@ -249,12 +249,11 @@ from ..transaction_types import Transaction
     ],
 )
 def test_transaction_signing(
-    request,
     tx: Transaction,
     expected_signature: Tuple[int, int, int],
     expected_sender: str,
     expected_serialized: str,
-):
+) -> None:
     """Test that transaction signing / serialization works as expected."""
     tx = tx.with_signature_and_sender()
     signature = (tx.v, tx.r, tx.s)

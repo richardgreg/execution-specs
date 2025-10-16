@@ -531,8 +531,9 @@ fixture_header_ones = FixtureHeader(
             id="invalid_fixture_block_2",
         ),
         pytest.param(
-            False,  # Can not be deserialized: A single expect_exception str will not be
-            # deserialized as a list and therefore will not match the model_instance definition.
+            False,  # Can not be deserialized: A single expect_exception str
+            # will not be deserialized as a list and therefore will not
+            # match the model_instance definition.
             InvalidFixtureBlock(
                 rlp="0x00",
                 expect_exception=[TransactionException.INTRINSIC_GAS_TOO_LOW],
@@ -958,13 +959,14 @@ class TestPydanticModelConversion:
 
     def test_json_serialization(
         self, can_be_deserialized: bool, model_instance: Any, json_repr: str | Dict[str, Any]
-    ):
+    ) -> None:
         """Test that to_json returns the expected JSON for the given object."""
+        del can_be_deserialized
         assert to_json(model_instance) == json_repr
 
     def test_json_deserialization(
         self, can_be_deserialized: bool, model_instance: Any, json_repr: str | Dict[str, Any]
-    ):
+    ) -> None:
         """Test that to_json returns the expected JSON for the given object."""
         if not can_be_deserialized:
             pytest.skip(reason="The model instance in this case can not be deserialized")
@@ -1305,8 +1307,9 @@ class TestPydanticAdaptersConversion:
         adapter: TypeAdapter,
         type_instance: Any,
         json_repr: str | Dict[str, Any],
-    ):
+    ) -> None:
         """Test that to_json returns the expected JSON for the given object."""
+        del can_be_deserialized
         assert (
             adapter.dump_python(
                 type_instance,
@@ -1323,7 +1326,7 @@ class TestPydanticAdaptersConversion:
         adapter: TypeAdapter,
         type_instance: Any,
         json_repr: str | Dict[str, Any],
-    ):
+    ) -> None:
         """Test that to_json returns the expected JSON for the given object."""
         if not can_be_deserialized:
             pytest.skip(reason="The model instance in this case can not be deserialized")

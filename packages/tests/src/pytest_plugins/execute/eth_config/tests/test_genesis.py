@@ -28,7 +28,7 @@ from ethereum_test_rpc import (
     ForkConfigBlobSchedule,
 )
 
-from ..types import ForkActivationTimes, Genesis, NetworkConfig
+from ..execute_types import ForkActivationTimes, Genesis, NetworkConfig
 
 CURRENT_FILE = Path(realpath(__file__))
 CURRENT_FOLDER = CURRENT_FILE.parent
@@ -87,8 +87,10 @@ def genesis_contents(genesis_file_name: str) -> str:
     ],
 )
 def test_genesis_parsing(
-    genesis_contents: str, expected_hash: Hash, expected_network_config: NetworkConfig
-):
+    genesis_contents: str,
+    expected_hash: Hash,
+    expected_network_config: NetworkConfig,
+) -> None:
     """
     Verify genesis config file is parsed and correctly converted into a network
     configuration.

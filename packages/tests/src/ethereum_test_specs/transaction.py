@@ -23,7 +23,9 @@ from .base import BaseTest
 
 
 class TransactionTest(BaseTest):
-    """Filler type that tests the transaction over the period of a single block."""
+    """
+    Filler type that tests the transaction over the period of a single block.
+    """
 
     tx: Transaction
     pre: Alloc | None = None
@@ -80,6 +82,8 @@ class TransactionTest(BaseTest):
         fixture_format: FixtureFormat,
     ) -> BaseFixture:
         """Generate the TransactionTest fixture."""
+        del t8n
+
         self.check_exception_test(exception=self.tx.error is not None)
         if fixture_format == TransactionFixture:
             return self.make_transaction_test_fixture(fork)
@@ -93,6 +97,8 @@ class TransactionTest(BaseTest):
         execute_format: ExecuteFormat,
     ) -> BaseExecute:
         """Execute the transaction test by sending it to the live network."""
+        del fork
+
         if execute_format == TransactionPost:
             return TransactionPost(
                 blocks=[[self.tx]],

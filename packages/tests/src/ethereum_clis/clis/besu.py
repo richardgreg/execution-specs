@@ -9,7 +9,7 @@ import textwrap
 from pathlib import Path
 from typing import ClassVar, Dict, Optional
 
-import requests  # type: ignore
+import requests
 
 from ethereum_test_exceptions import (
     BlockException,
@@ -19,8 +19,8 @@ from ethereum_test_exceptions import (
 )
 from ethereum_test_forks import Fork
 
+from ..cli_types import TransitionToolOutput
 from ..transition_tool import TransitionTool, dump_files_to_directory, model_dump_config
-from ..types import TransitionToolOutput
 
 
 class BesuTransitionTool(TransitionTool):
@@ -57,10 +57,10 @@ class BesuTransitionTool(TransitionTool):
         self.help_string = result.stdout
         self.besu_trace_dir = tempfile.TemporaryDirectory() if self.trace else None
 
-    def start_server(self):
+    def start_server(self) -> None:
         """
-        Start the t8n-server process, extract the port, and leave it running
-        for future reuse.
+        Start the t8n-server process, extract the port, and leave it
+        running for future reuse.
         """
         args = [
             str(self.binary),
@@ -70,7 +70,8 @@ class BesuTransitionTool(TransitionTool):
 
         if self.trace:
             args.append("--trace")
-            args.append(f"--output.basedir={self.besu_trace_dir.name}")
+            if self.besu_trace_dir:
+                args.append(f"--output.basedir={self.besu_trace_dir.name}")
 
         self.process = subprocess.Popen(
             args=args,
@@ -79,16 +80,20 @@ class BesuTransitionTool(TransitionTool):
         )
 
         while True:
+            if self.process.stdout is None:
+                raise Exception("Failed starting Besu subprocess")
             line = str(self.process.stdout.readline())
 
             if not line or "Failed to start transition server" in line:
                 raise Exception("Failed starting Besu subprocess\n" + line)
             if "Transition server listening on" in line:
-                port = re.search("Transition server listening on (\\d+)", line).group(1)
-                self.server_url = f"http://localhost:{port}/"
-                break
+                match = re.search("Transition server listening on (\\d+)", line)
+                if match:
+                    port = match.group(1)
+                    self.server_url = f"http://localhost:{port}/"
+                    break
 
-    def shutdown(self):
+    def shutdown(self) -> None:
         """Stop the t8n-server process if it was started."""
         if self.process:
             self.process.kill()
@@ -103,6 +108,8 @@ class BesuTransitionTool(TransitionTool):
         slow_request: bool = False,
     ) -> TransitionToolOutput:
         """Execute `evm t8n` with the specified arguments."""
+        del slow_request
+
         if not self.process:
             self.start_server()
 
@@ -289,10 +296,10 @@ class BesuExceptionMapper(ExceptionMapper):
         TransactionException.GAS_LIMIT_EXCEEDS_MAXIMUM: (
             r"transaction invalid Transaction gas limit must be at most \d+"
         ),
-        TransactionException.TYPE_3_TX_BLOB_COUNT_EXCEEDED: (
-            r"Blob transaction has too many blobs: \d+"
-        ),
         TransactionException.TYPE_3_TX_MAX_BLOB_GAS_ALLOWANCE_EXCEEDED: (
-            r"Invalid Blob Count: \d+"
+            r"Blob transaction 0x[0-9a-f]+ exceeds block blob gas limit: \d+ > \d+"
+        ),
+        TransactionException.TYPE_3_TX_BLOB_COUNT_EXCEEDED: (
+            r"Blob transaction has too many blobs: \d+|Invalid Blob Count: \d+"
         ),
     }

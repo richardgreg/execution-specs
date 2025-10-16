@@ -10,23 +10,28 @@ These fixtures are used when creating the hive test suite.
 
 Log Capture Architecture:
 -------------------------
-This module implements a log capture approach that ensures all logs, including those
-generated during fixture teardown, are properly captured and included in the test results.
+This module implements a log capture approach that ensures all logs,
+including those generated during fixture teardown, are properly
+captured and included in the test results.
 
-The key insight is that we need to ensure that test finalization happens *before* the
-test suite is finalized, but *after* all fixtures have been torn down so we can capture
-their logs. This is accomplished through the fixture teardown mechanism in pytest:
+The key insight is that we need to ensure that test finalization happens
+*before* the test suite is finalized, but *after* all fixtures have been torn
+down so we can capture their logs. This is accomplished through the fixture
+teardown mechanism in pytest:
 
-1. Since the `hive_test` fixture depends on the `test_suite` fixture, pytest guarantees
-   that the teardown of `hive_test` runs before the teardown of `test_suite`
-2. All logs are processed and the test is finalized in the teardown phase of the
-   `hive_test` fixture using the pytest test report data
-3. This sequencing ensures that all logs are captured and the test is properly finalized
-   before its parent test suite is finalized
+1. Since the `hive_test` fixture depends on the `test_suite` fixture, pytest
+guarantees that the teardown of `hive_test` runs before the teardown of
+`test_suite`
 
-This approach relies on the pytest fixture dependency graph and teardown ordering to
-ensure proper sequencing, which is more reliable than using hooks which might run in
-an unpredictable order relative to fixture teardown.
+2. All logs are processed and the test is finalized in the
+teardown phase of the `hive_test` fixture using the pytest test report data
+
+3. This sequencing ensures that all logs are captured and the test is properly
+finalized before its parent test suite is finalized
+
+This approach relies on the pytest fixture dependency graph and teardown
+ordering to ensure proper sequencing, which is more reliable than using hooks
+which might run in an unpredictable order relative to fixture teardown.
 """
 
 import json
@@ -34,6 +39,7 @@ import os
 import warnings
 from dataclasses import asdict
 from pathlib import Path
+from typing import Any, Generator, List
 
 import pytest
 from filelock import FileLock
@@ -41,13 +47,13 @@ from hive.client import ClientRole
 from hive.simulation import Simulation
 from hive.testing import HiveTest, HiveTestResult, HiveTestSuite
 
-from ..logging import get_logger
+from ..custom_logging import get_logger
 from .hive_info import ClientFile, HiveInfo
 
 logger = get_logger(__name__)
 
 
-def pytest_configure(config):  # noqa: D103
+def pytest_configure(config: pytest.Config) -> None:  # noqa: D103
     hive_simulator_url = config.getoption("hive_simulator")
     if hive_simulator_url is None:
         pytest.exit(
@@ -59,12 +65,12 @@ def pytest_configure(config):  # noqa: D103
             "or in fish:\n"
             "set -x HIVE_SIMULATOR http://127.0.0.1:3000"
         )
-    # TODO: Try and get these into fixtures; this is only here due to the "dynamic" parametrization
-    # of client_type with hive_execution_clients.
-    config.hive_simulator_url = hive_simulator_url
-    config.hive_simulator = Simulation(url=hive_simulator_url)
+    # TODO: Try and get these into fixtures; this is only here due to the
+    # "dynamic" parametrization of client_type with hive_execution_clients.
+    config.hive_simulator_url = hive_simulator_url  # type: ignore[attr-defined]
+    config.hive_simulator = Simulation(url=hive_simulator_url)  # type: ignore[attr-defined]
     try:
-        config.hive_execution_clients = config.hive_simulator.client_types(
+        config.hive_execution_clients = config.hive_simulator.client_types(  # type: ignore[attr-defined]
             role=ClientRole.ExecutionClient
         )
     except Exception as e:
@@ -80,7 +86,7 @@ def pytest_configure(config):  # noqa: D103
         pytest.exit(message)
 
 
-def pytest_addoption(parser: pytest.Parser):  # noqa: D103
+def pytest_addoption(parser: pytest.Parser) -> None:  # noqa: D103
     pytest_hive_group = parser.getgroup("pytest_hive", "Arguments related to pytest hive")
     pytest_hive_group.addoption(
         "--hive-simulator",
@@ -109,12 +115,14 @@ def get_hive_info(simulator: Simulation) -> HiveInfo | None:
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_report_header(config, start_path):
+def pytest_report_header(config: pytest.Config, start_path: Path) -> List[str] | None:
     """Add lines to pytest's console output header."""
+    del start_path
+
     if config.option.collectonly:
-        return
-    header_lines = [f"hive simulator: {config.hive_simulator_url}"]
-    if hive_info := get_hive_info(config.hive_simulator):
+        return None
+    header_lines = [f"hive simulator: {config.hive_simulator_url}"]  # type: ignore[attr-defined]
+    if hive_info := get_hive_info(config.hive_simulator):  # type: ignore[attr-defined]
         hive_command = " ".join(hive_info.command)
         header_lines += [
             f"hive command: {hive_command}",
@@ -129,10 +137,12 @@ def pytest_report_header(config, start_path):
 
 
 @pytest.hookimpl(tryfirst=True, hookwrapper=True)
-def pytest_runtest_makereport(item, call):
+def pytest_runtest_makereport(
+    item: pytest.Item, call: pytest.CallInfo[None]
+) -> Generator[None, Any, None]:
     """
-    Make the setup, call, and teardown results available in the teardown phase of
-    a test fixture (i.e., after yield has been called).
+    Make the setup, call, and teardown results available in the teardown phase
+    of a test fixture (i.e., after yield has been called).
 
     This is used to get the test result and pass it to the hive test suite.
 
@@ -141,19 +151,21 @@ def pytest_runtest_makereport(item, call):
     - result_call - test result
     - result_teardown - teardown result
     """
+    del call
+
     outcome = yield
     report = outcome.get_result()
     setattr(item, f"result_{report.when}", report)
 
 
 @pytest.fixture(scope="session")
-def simulator(request) -> Simulation:
+def simulator(request: pytest.FixtureRequest) -> Simulation:
     """Return the Hive simulator instance."""
-    return request.config.hive_simulator
+    return request.config.hive_simulator  # type: ignore[attr-defined]
 
 
 @pytest.fixture(scope="session")
-def hive_info(simulator: Simulation):
+def hive_info(simulator: Simulation) -> HiveInfo | None:
     """Fetch and return the Hive instance information."""
     return get_hive_info(simulator)
 
@@ -166,24 +178,26 @@ def client_file(hive_info: HiveInfo | None) -> ClientFile:
     return hive_info.client_file
 
 
-def get_test_suite_scope(fixture_name, config: pytest.Config):
+def get_test_suite_scope(fixture_name: str, config: pytest.Config) -> str:
     """
     Return the appropriate scope of the test suite.
 
     See: https://docs.pytest.org/en/stable/how-to/fixtures.html#dynamic-scope
     """
+    del fixture_name
+
     if hasattr(config, "test_suite_scope"):
         return config.test_suite_scope
     return "module"
 
 
-@pytest.fixture(scope=get_test_suite_scope)
+@pytest.fixture(scope=get_test_suite_scope)  # type: ignore[arg-type]
 def test_suite(
     simulator: Simulation,
     session_temp_folder: Path,
     test_suite_name: str,
     test_suite_description: str,
-):
+) -> Generator[HiveTestSuite, None, None]:
     """Defines a Hive test suite and cleans up after all tests have run."""
     suite_file_name = f"test_suite_{test_suite_name}"
     suite_file = session_temp_folder / suite_file_name
@@ -228,14 +242,17 @@ def test_suite(
 
 
 @pytest.fixture(scope="function")
-def hive_test(request, test_suite: HiveTestSuite):
+def hive_test(
+    request: pytest.FixtureRequest, test_suite: HiveTestSuite
+) -> Generator[HiveTest, None, None]:
     """
     Propagate the pytest test case and its result to the hive server.
 
-    This fixture handles both starting the test and ending it with all logs, including
-    those generated during teardown of other fixtures. The approach of processing teardown
-    logs directly in the teardown phase of this fixture ensures that the test gets properly
-    finalized before the test suite is torn down.
+    This fixture handles both starting the test and ending it with all logs,
+    including those generated during teardown of other fixtures. The approach
+    of processing teardown logs directly in the teardown phase of this fixture
+    ensures that the test gets properly finalized before the test suite is torn
+    down.
     """
     try:
         test_case_description = request.getfixturevalue("test_case_description")

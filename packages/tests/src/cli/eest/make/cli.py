@@ -1,11 +1,14 @@
 """
-The `make` CLI streamlines the process of scaffolding tasks, such as generating new test files,
-enabling developers to concentrate on the core aspects of specification testing.
+The `make` CLI streamlines the process of scaffolding tasks, such as generating
+new test files, enabling developers to concentrate on the core aspects of
+specification testing.
 
 
-The module calls the appropriate function for the subcommand. If an invalid subcommand
-is chosen, it throws an error and shows a list of valid subcommands. If no subcommand
-is present, it shows a list of valid subcommands to choose from.
+
+The module calls the appropriate function for the subcommand. If an invalid
+subcommand is chosen, it throws an error and shows a list of valid subcommands.
+If no subcommand is present, it shows a list of valid subcommands to choose
+from.
 """
 
 import click
@@ -14,7 +17,7 @@ from .commands import create_default_env, test
 
 
 @click.group(short_help="Generate project files.")
-def make():
+def make() -> None:
     """Generate project files."""
     pass
 

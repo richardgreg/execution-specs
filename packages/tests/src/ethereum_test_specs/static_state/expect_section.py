@@ -103,10 +103,15 @@ class AccountInExpectSection(BaseModel, TagDependentData):
     nonce: ValueInFiller | None = None
     storage: StorageInExpectSection | None = None
 
-    @model_validator(mode="wrap")
+    @model_validator(mode="wrap")  # type: ignore[misc]
     @classmethod
-    def validate_should_not_exist(cls, v: Any, handler: ValidatorFunctionWrapHandler):
-        """Validate the "shouldnotexist" field, which makes this validator return `None`."""
+    def validate_should_not_exist(
+        cls, v: Any, handler: ValidatorFunctionWrapHandler
+    ) -> "AccountInExpectSection | None":
+        """
+        Validate the "shouldnotexist" field, which makes this validator return
+        `None`.
+        """
         if isinstance(v, dict):
             if "shouldnotexist" in v:
                 return None
@@ -153,7 +158,7 @@ class ForkConstraint(BaseModel):
 
     @field_validator("fork", mode="before")
     @classmethod
-    def parse_fork_synonyms(cls, value: Any):
+    def parse_fork_synonyms(cls, value: Any) -> Any:
         """Resolve fork synonyms."""
         if value == "EIP158":
             value = "Byzantium"
@@ -251,8 +256,8 @@ class ResultInFiller(EthereumTestRootModel, TagDependentData):
     """
     Post section in state test filler.
 
-    A value of `None` for an address means that the account should not be in the state trie
-    at the end of the test.
+    A value of `None` for an address means that the account should not be in
+    the state trie at the end of the test.
     """
 
     root: Dict[AddressOrCreateTagInFiller, AccountInExpectSection | None]
@@ -332,11 +337,11 @@ class ExpectSectionInStateTestFiller(CamelModel):
     result: ResultInFiller
     expect_exception: ExpectException | None = None
 
-    def model_post_init(self, __context):
+    def model_post_init(self, __context: Any) -> None:
         """Validate that the expectation is coherent."""
         if self.expect_exception is None:
             return
-        all_forks: Set[Fork] = set()  # type: ignore[annotation-unchecked]
+        all_forks: Set[Fork] = set()
         for current_fork_set in self.expect_exception:
             for fork in current_fork_set:
                 assert fork not in all_forks

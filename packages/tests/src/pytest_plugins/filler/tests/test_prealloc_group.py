@@ -2,13 +2,13 @@
 
 import textwrap
 from pathlib import Path
-from typing import ClassVar, Dict, List
+from typing import Any, ClassVar, Dict, List
 from unittest.mock import Mock
 
 import pytest
 
 from ethereum_clis import TransitionTool
-from ethereum_test_fixtures import PreAllocGroups
+from ethereum_test_fixtures import BaseFixture, PreAllocGroups
 from ethereum_test_forks import Fork, Prague
 from ethereum_test_specs.base import BaseTest
 from ethereum_test_types import Alloc, Environment
@@ -22,7 +22,9 @@ class MockTest(BaseTest):
     pre: Alloc
     genesis_environment: Environment
 
-    def __init__(self, pre: Alloc, genesis_environment: Environment, request=None):
+    def __init__(
+        self, pre: Alloc, genesis_environment: Environment, request: Mock | None = None
+    ) -> None:
         """Initialize mock test."""
         super().__init__(  # type: ignore
             pre=pre,
@@ -30,16 +32,16 @@ class MockTest(BaseTest):
         )
         self._request = request
 
-    def generate(self, *args, **kwargs):
+    def generate(self, *args: Any, **kwargs: Any) -> BaseFixture:
         """Mock generate method."""
-        pass
+        raise NotImplementedError("This is a mock test class")
 
     def get_genesis_environment(self, fork: Fork) -> Environment:
         """Return the genesis environment."""
         return self.genesis_environment.set_fork_requirements(fork)
 
 
-def test_pre_alloc_group_separate():
+def test_pre_alloc_group_separate() -> None:
     """Test that pre_alloc_group("separate") forces unique grouping."""
     # Create mock environment and pre-allocation
     env = Environment()
@@ -71,7 +73,7 @@ def test_pre_alloc_group_separate():
     assert hash1 == hash3
 
 
-def test_pre_alloc_group_custom_salt():
+def test_pre_alloc_group_custom_salt() -> None:
     """Test that custom group names create consistent grouping."""
     env = Environment()
     pre = Alloc()
@@ -118,7 +120,7 @@ def test_pre_alloc_group_custom_salt():
     assert hash2 != hash3
 
 
-def test_pre_alloc_group_separate_different_nodeids():
+def test_pre_alloc_group_separate_different_nodeids() -> None:
     """Test that different tests with "separate" get different hashes."""
     env = Environment()
     pre = Alloc()
@@ -150,7 +152,7 @@ def test_pre_alloc_group_separate_different_nodeids():
     assert hash1 != hash2
 
 
-def test_no_pre_alloc_group_marker():
+def test_no_pre_alloc_group_marker() -> None:
     """Test normal grouping without pre_alloc_group marker."""
     env = Environment()
     pre = Alloc()
@@ -173,7 +175,7 @@ def test_no_pre_alloc_group_marker():
     assert hash1 == hash2
 
 
-def test_pre_alloc_group_with_reason():
+def test_pre_alloc_group_with_reason() -> None:
     """Test that reason kwarg is accepted but doesn't affect grouping."""
     env = Environment()
     pre = Alloc()
@@ -213,7 +215,7 @@ class FormattedTest:
     kwargs: Dict[str, str]
     template: ClassVar[str]
 
-    def __init__(self, **kwargs):  # noqa: D107
+    def __init__(self, **kwargs: str) -> None:  # noqa: D107
         self.kwargs = kwargs
 
     def format(self) -> str:  # noqa: D102
@@ -232,10 +234,10 @@ class StateTest(FormattedTest):  # noqa: D101
             StateTestFiller,
             Transaction
         )
-        from ethereum_test_tools.vm.opcode import Opcodes as Op
+        from ethereum_test_vm import Opcodes as Op
 
         @pytest.mark.valid_from("Istanbul")
-        def test_chainid(state_test: StateTestFiller, pre: Alloc):
+        def test_chainid(state_test: StateTestFiller, pre: Alloc) -> None:
             contract_address = pre.deploy_contract(Op.SSTORE(1, Op.CHAINID) + Op.STOP)
             sender = pre.fund_eoa()
 
@@ -269,10 +271,10 @@ class BlockchainTest(FormattedTest):  # noqa: D101
             Environment,
             Transaction
         )
-        from ethereum_test_tools.vm.opcode import Opcodes as Op
+        from ethereum_test_vm import Opcodes as Op
 
         @pytest.mark.valid_from("Istanbul")
-        def test_chainid_blockchain(blockchain_test: BlockchainTestFiller, pre: Alloc):
+        def test_chainid_blockchain(blockchain_test: BlockchainTestFiller, pre: Alloc) -> None:
             contract_address = pre.deploy_contract(Op.SSTORE(1, Op.CHAINID) + Op.STOP)
             sender = pre.fund_eoa()
 
@@ -411,8 +413,11 @@ def test_pre_alloc_grouping_by_test_type(
     default_t8n: TransitionTool,
     test_definitions: List[FormattedTest],
     expected_different_pre_alloc_groups: int,
-):
-    """Test pre-alloc grouping when filling state tests, and the effect of the `state_test.env`."""
+) -> None:
+    """
+    Test pre-alloc grouping when filling state tests, and the effect of the
+    `state_test.env`.
+    """
     tests_dir = Path(pytester.mkdir("tests"))
     for i, test in enumerate(test_definitions):
         test_module = tests_dir / f"test_{i}.py"

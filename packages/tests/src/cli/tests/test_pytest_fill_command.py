@@ -2,10 +2,11 @@
 
 from pathlib import Path
 from tempfile import TemporaryDirectory
-from typing import Generator
+from typing import Any, Generator
 
 import pytest
 from click.testing import CliRunner
+from pytest import MonkeyPatch
 
 import pytest_plugins.filler.filler
 
@@ -13,12 +14,12 @@ from ..pytest_commands.fill import fill
 
 
 @pytest.fixture
-def runner():
+def runner() -> CliRunner:
     """Provide a Click CliRunner for invoking command-line interfaces."""
     return CliRunner()
 
 
-def test_fill_help(runner):
+def test_fill_help(runner: CliRunner) -> None:
     """Test the `--help` option of the `fill` command."""
     result = runner.invoke(fill, ["--help"])
     assert result.exit_code == pytest.ExitCode.OK
@@ -29,7 +30,7 @@ def test_fill_help(runner):
     assert "Arguments defining evm executable behavior:" in result.output
 
 
-def test_fill_pytest_help(runner):
+def test_fill_pytest_help(runner: CliRunner) -> None:
     """Test the `--pytest-help` option of the `fill` command."""
     result = runner.invoke(fill, ["--pytest-help"])
     assert result.exit_code == pytest.ExitCode.OK
@@ -37,7 +38,7 @@ def test_fill_pytest_help(runner):
     assert "-k EXPRESSION" in result.output
 
 
-def test_fill_with_invalid_option(runner):
+def test_fill_with_invalid_option(runner: CliRunner) -> None:
     """Test invoking `fill` with an invalid option."""
     result = runner.invoke(fill, ["--invalid-option"])
     assert result.exit_code != 0
@@ -48,13 +49,14 @@ class TestHtmlReportFlags:
     """Test html report generation and output options."""
 
     @pytest.fixture
-    def fill_args(self, default_t8n):
+    def fill_args(self, default_t8n: Any) -> list[str]:
         """
-        Provide default arguments for the `fill` command when testing html report
-        generation.
+        Provide default arguments for the `fill` command when testing html
+        report generation.
 
-        Specifies a single existing example test case for faster fill execution,
-        and to allow for tests to check for the fixture generation location.
+        Specifies a single existing example test case for faster fill
+        execution, and to allow for tests to check for the fixture generation
+        location.
         """
         return [
             "-k",
@@ -65,7 +67,7 @@ class TestHtmlReportFlags:
         ]
 
     @pytest.fixture()
-    def default_html_report_file_path(self):
+    def default_html_report_file_path(self) -> str:
         """File path for fill's pytest html report."""
         return pytest_plugins.filler.filler.default_html_report_file_path()
 
@@ -77,15 +79,17 @@ class TestHtmlReportFlags:
         temp_dir.cleanup()
 
     @pytest.fixture(scope="function", autouse=True)
-    def monkeypatch_default_output_directory(self, monkeypatch, temp_dir):
+    def monkeypatch_default_output_directory(
+        self, monkeypatch: MonkeyPatch, temp_dir: Path
+    ) -> None:
         """
         Monkeypatch default output directory for the pytest commands.
 
-        This avoids using the local directory in user space for the output of pytest
-        commands and uses the a temporary directory instead.
+        This avoids using the local directory in user space for the output of
+        pytest commands and uses the a temporary directory instead.
         """
 
-        def mock_default_output_directory():
+        def mock_default_output_directory() -> Path:
             return temp_dir
 
         monkeypatch.setattr(
@@ -96,12 +100,15 @@ class TestHtmlReportFlags:
 
     def test_fill_default_output_options(
         self,
-        runner,
-        temp_dir,
-        fill_args,
-        default_html_report_file_path,
-    ):
-        """Test default pytest html behavior: Neither `--html` or `--output` is specified."""
+        runner: CliRunner,
+        temp_dir: Path,
+        fill_args: list[str],
+        default_html_report_file_path: str,
+    ) -> None:
+        """
+        Test default pytest html behavior: Neither `--html` or `--output` is
+        specified.
+        """
         default_html_path = temp_dir / default_html_report_file_path
         result = runner.invoke(fill, fill_args)
         assert result.exit_code == pytest.ExitCode.OK
@@ -109,11 +116,11 @@ class TestHtmlReportFlags:
 
     def test_fill_no_html_option(
         self,
-        runner,
-        temp_dir,
-        fill_args,
-        default_html_report_file_path,
-    ):
+        runner: CliRunner,
+        temp_dir: Path,
+        fill_args: list[str],
+        default_html_report_file_path: str,
+    ) -> None:
         """Test pytest html report is disabled with the `--no-html` flag."""
         default_html_path = temp_dir / default_html_report_file_path
         fill_args += ["--no-html"]
@@ -123,10 +130,10 @@ class TestHtmlReportFlags:
 
     def test_fill_html_option(
         self,
-        runner,
-        temp_dir,
-        fill_args,
-    ):
+        runner: CliRunner,
+        temp_dir: Path,
+        fill_args: list[str],
+    ) -> None:
         """Tests pytest html report generation with only the `--html` flag."""
         non_default_html_path = temp_dir / "non_default_output_dir" / "report.html"
         fill_args += ["--html", str(non_default_html_path)]
@@ -136,12 +143,14 @@ class TestHtmlReportFlags:
 
     def test_fill_output_option(
         self,
-        runner,
-        temp_dir,
-        fill_args,
-        default_html_report_file_path,
-    ):
-        """Tests pytest html report generation with only the `--output` flag."""
+        runner: CliRunner,
+        temp_dir: Path,
+        fill_args: list[str],
+        default_html_report_file_path: str,
+    ) -> None:
+        """
+        Tests pytest html report generation with only the `--output` flag.
+        """
         output_dir = temp_dir / "non_default_output_dir"
         non_default_html_path = output_dir / default_html_report_file_path
         fill_args += ["--output", str(output_dir)]
@@ -152,11 +161,14 @@ class TestHtmlReportFlags:
 
     def test_fill_html_and_output_options(
         self,
-        runner,
-        temp_dir,
-        fill_args,
-    ):
-        """Tests pytest html report generation with both `--output` and `--html` flags."""
+        runner: CliRunner,
+        temp_dir: Path,
+        fill_args: list[str],
+    ) -> None:
+        """
+        Tests pytest html report generation with both `--output` and `--html`
+        flags.
+        """
         output_dir = temp_dir / "non_default_output_dir_fixtures"
         html_path = temp_dir / "non_default_output_dir_html" / "non_default.html"
         fill_args += ["--output", str(output_dir), "--html", str(html_path)]

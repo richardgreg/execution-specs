@@ -22,17 +22,17 @@ from ethereum_test_vm import Opcodes as Op
 from ethereum_test_vm import UndefinedOpcodes
 from pytest_plugins.solc.solc import SOLC_EXPECTED_MIN_VERSION
 
-from ..code import CalldataCase, Case, Conditional, Initcode, Switch
+from ..tools_code import CalldataCase, Case, Conditional, Initcode, Switch
 
 
 @pytest.fixture(params=get_deployed_forks())
-def fork(request: pytest.FixtureRequest):
+def fork(request: pytest.FixtureRequest) -> Fork:
     """Return the target evm-version (fork) for solc compilation."""
     return request.param
 
 
 @pytest.fixture()
-def expected_bytes(request: pytest.FixtureRequest, solc_version: Version, fork: Fork):
+def expected_bytes(request: pytest.FixtureRequest, solc_version: Version, fork: Fork) -> bytes:
     """Return the expected bytes for the test."""
     expected_bytes = request.param
     if isinstance(expected_bytes, Template):
@@ -167,7 +167,7 @@ def expected_bytes(request: pytest.FixtureRequest, solc_version: Version, fork: 
         ),
     ],
 )
-def test_initcode(initcode: Initcode, bytecode: bytes):  # noqa: D103
+def test_initcode(initcode: Initcode, bytecode: bytes) -> None:  # noqa: D103
     assert bytes(initcode) == bytecode
 
 
@@ -184,8 +184,10 @@ def test_initcode(initcode: Initcode, bytecode: bytes):  # noqa: D103
         ),
     ],
 )
-def test_opcodes_if(conditional_bytecode: bytes, expected: bytes):
-    """Test that the if opcode macro is transformed into bytecode as expected."""
+def test_opcodes_if(conditional_bytecode: bytes, expected: bytes) -> None:
+    """
+    Test that the if opcode macro is transformed into bytecode as expected.
+    """
     assert bytes(conditional_bytecode) == expected
 
 
@@ -513,8 +515,10 @@ def test_opcodes_if(conditional_bytecode: bytes, expected: bytes):
 )
 def test_switch(
     tx_data: bytes, switch_bytecode: bytes, expected_storage: Mapping, default_t8n: TransitionTool
-):
-    """Test that the switch opcode macro gets executed as using the t8n tool."""
+) -> None:
+    """
+    Test that the switch opcode macro gets executed as using the t8n tool.
+    """
     code_address = Address(0x1000)
     pre = Alloc(
         {
@@ -537,7 +541,7 @@ def test_switch(
     )
 
 
-def test_full_opcode_range():
+def test_full_opcode_range() -> None:
     """
     Test that the full opcode range is covered by the opcode set defined by
     Opcodes and UndefineOpcodes.

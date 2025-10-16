@@ -5,7 +5,7 @@ from enum import IntEnum
 from functools import cache
 from hashlib import sha256
 from itertools import count
-from typing import Iterator, List, Literal
+from typing import Any, Iterator, List, Literal
 
 import pytest
 from pydantic import PrivateAttr
@@ -37,7 +37,7 @@ CONTRACT_START_ADDRESS_DEFAULT = 0x1000000000000000000000000000000000001000
 CONTRACT_ADDRESS_INCREMENTS_DEFAULT = 0x100
 
 
-def pytest_addoption(parser: pytest.Parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command-line options to pytest."""
     pre_alloc_group = parser.getgroup(
         "pre_alloc", "Arguments defining pre-allocation behavior during test filling."
@@ -96,24 +96,31 @@ class Alloc(BaseAlloc):
     _contract_address_iterator: Iterator[Address] = PrivateAttr()
     _eoa_iterator: Iterator[EOA] = PrivateAttr()
     _evm_code_type: EVMCodeType | None = PrivateAttr(None)
+    _fork: Fork = PrivateAttr()
 
     def __init__(
         self,
-        *args,
+        *args: Any,
         alloc_mode: AllocMode,
         contract_address_iterator: Iterator[Address],
         eoa_iterator: Iterator[EOA],
+        fork: Fork,
         evm_code_type: EVMCodeType | None = None,
-        **kwargs,
-    ):
+        **kwargs: Any,
+    ) -> None:
         """Initialize allocation with the given properties."""
         super().__init__(*args, **kwargs)
         self._alloc_mode = alloc_mode
         self._contract_address_iterator = contract_address_iterator
         self._eoa_iterator = eoa_iterator
         self._evm_code_type = evm_code_type
+        self._fork = fork
 
-    def __setitem__(self, address: Address | FixedSizeBytesConvertible, account: Account | None):
+    def __setitem__(
+        self,
+        address: Address | FixedSizeBytesConvertible,
+        account: Account | None,
+    ) -> None:
         """Set account associated with an address."""
         if self._alloc_mode == AllocMode.STRICT:
             raise ValueError("Cannot set items in strict mode")
@@ -147,9 +154,12 @@ class Alloc(BaseAlloc):
         """
         Deploy a contract to the allocation.
 
-        Warning: `address` parameter is a temporary solution to allow tests to hard-code the
-        contract address. Do NOT use in new tests as it will be removed in the future!
+        Warning: `address` parameter is a temporary solution to allow tests to
+        hard-code the contract address. Do NOT use in new tests as it will be
+        removed in the future!
         """
+        del stub
+
         if storage is None:
             storage = {}
         if address is not None:
@@ -162,12 +172,19 @@ class Alloc(BaseAlloc):
         if self._alloc_mode == AllocMode.STRICT:
             assert Number(nonce) >= 1, "impossible to deploy contract with nonce lower than one"
 
+        code = self.code_pre_processor(code, evm_code_type=evm_code_type)
+        code_bytes = bytes(code) if not isinstance(code, (bytes, str)) else code
+        max_code_size = self._fork.max_code_size()
+        assert len(code_bytes) <= max_code_size, (
+            f"code too large: {len(code_bytes)} > {max_code_size}"
+        )
+
         super().__setitem__(
             contract_address,
             Account(
                 nonce=nonce,
                 balance=balance,
-                code=self.code_pre_processor(code, evm_code_type=evm_code_type),
+                code=code,
                 storage=storage,
             ),
         )
@@ -195,11 +212,14 @@ class Alloc(BaseAlloc):
         nonce: NumberConvertible | None = None,
     ) -> EOA:
         """
-        Add a previously unused EOA to the pre-alloc with the balance specified by `amount`.
+        Add a previously unused EOA to the pre-alloc with the balance specified
+        by `amount`.
 
-        If amount is 0, nothing will be added to the pre-alloc but a new and unique EOA will be
-        returned.
+        If amount is 0, nothing will be added to the pre-alloc but a new and
+        unique EOA will be returned.
         """
+        del label
+
         eoa = next(self._eoa_iterator)
         if amount is None:
             amount = self._eoa_fund_amount_default
@@ -218,20 +238,21 @@ class Alloc(BaseAlloc):
                 if nonce > 0:
                     eoa.nonce = nonce
             else:
-                # Type-4 transaction is sent to the EOA to set the storage, so the nonce must be 1
+                # Type-4 transaction is sent to the EOA to set the storage, so
+                # the nonce must be 1
                 if not isinstance(delegation, Address) and delegation == "Self":
                     delegation = eoa
-                # If delegation is None but storage is not, realistically the nonce should be 2
-                # because the account must have delegated to set the storage and then again to
-                # reset the delegation (but can be overridden by the test for a non-realistic
-                # scenario)
+                # If delegation is None but storage is not, realistically the
+                # nonce should be 2 because the account must have delegated to
+                # set the storage and then again to reset the delegation (but
+                # can be overridden by the test for a non-realistic scenario)
                 real_nonce = 2 if delegation is None else 1
                 nonce = Number(real_nonce if nonce is None else nonce)
                 account = Account(
                     nonce=nonce,
                     balance=amount,
                     storage=storage if storage is not None else {},
-                    code=DELEGATION_DESIGNATION + bytes(delegation)  # type: ignore
+                    code=DELEGATION_DESIGNATION + bytes(delegation)
                     if delegation is not None
                     else b"",
                 )
@@ -240,7 +261,7 @@ class Alloc(BaseAlloc):
             super().__setitem__(eoa, account)
         return eoa
 
-    def fund_address(self, address: Address, amount: NumberConvertible):
+    def fund_address(self, address: Address, amount: NumberConvertible) -> None:
         """
         Fund an address with a given amount.
 
@@ -257,7 +278,8 @@ class Alloc(BaseAlloc):
 
     def empty_account(self) -> Address:
         """
-        Add a previously unused account guaranteed to be empty to the pre-alloc.
+        Add a previously unused account guaranteed to be empty to the
+        pre-alloc.
 
         This ensures the account has:
         - Zero balance
@@ -265,8 +287,9 @@ class Alloc(BaseAlloc):
         - No code
         - No storage
 
-        This is different from precompiles or system contracts. The function does not
-        send any transactions, ensuring that the account remains "empty."
+        This is different from precompiles or system contracts. The function
+        does not send any transactions, ensuring that the account remains
+        "empty."
 
         Returns:
             Address: The address of the created empty account.
@@ -314,8 +337,8 @@ for spec in BaseTest.spec_types.values():
         if name not in ALL_FIXTURE_FORMAT_NAMES:
             ALL_FIXTURE_FORMAT_NAMES.append(name)
 
-# Sort by length, from longest to shortest, since some fixture format names contain others
-# so we are always sure to catch the longest one first.
+# Sort by length, from longest to shortest, since some fixture format names
+# contain others so we are always sure to catch the longest one first.
 ALL_FIXTURE_FORMAT_NAMES.sort(key=len, reverse=True)
 
 
@@ -324,17 +347,18 @@ def node_id_for_entropy(request: pytest.FixtureRequest, fork: Fork | None) -> st
     """
     Return the node id with the fixture format name and fork name stripped.
 
-    Used in cases where we are filling for pre-alloc groups, and we take the name of the
-    test as source of entropy to get a deterministic address when generating the pre-alloc
-    grouping.
+    Used in cases where we are filling for pre-alloc groups, and we take the
+    name of the test as source of entropy to get a deterministic address when
+    generating the pre-alloc grouping.
 
-    Removing the fixture format and the fork name from the node id before hashing results in the
-    contracts and senders addresses being the same across fixture types and forks for the same
-    test.
+    Removing the fixture format and the fork name from the node id before
+    hashing results in the contracts and senders addresses being the same
+    across fixture types and forks for the same test.
     """
     node_id: str = request.node.nodeid
     if fork is None:
-        # FIXME: Static tests don't have a fork, so we need to get it from the node.
+        # FIXME: Static tests don't have a fork, so we need to get it from the
+        # node.
         assert hasattr(request.node, "fork")
         fork = request.node.fork
     for fixture_format_name in ALL_FIXTURE_FORMAT_NAMES:
@@ -358,7 +382,8 @@ def contract_address_iterator(
 ) -> Iterator[Address]:
     """Return iterator over contract addresses with dynamic scoping."""
     if request.config.getoption(
-        # TODO: Ideally, we should check the fixture format instead of checking parameters.
+        # TODO: Ideally, we should check the fixture format instead of checking
+        # parameters.
         "generate_pre_alloc_groups",
         default=False,
     ) or request.config.getoption("use_pre_alloc_groups", default=False):
@@ -383,7 +408,8 @@ def eoa_iterator(
 ) -> Iterator[EOA]:
     """Return iterator over EOAs copies with dynamic scoping."""
     if request.config.getoption(
-        # TODO: Ideally, we should check the fixture format instead of checking parameters.
+        # TODO: Ideally, we should check the fixture format instead of checking
+        # parameters.
         "generate_pre_alloc_groups",
         default=False,
     ) or request.config.getoption("use_pre_alloc_groups", default=False):
@@ -416,11 +442,20 @@ def pre(
     contract_address_iterator: Iterator[Address],
     eoa_iterator: Iterator[EOA],
     evm_code_type: EVMCodeType,
+    fork: Fork | None,
+    request: pytest.FixtureRequest,
 ) -> Alloc:
     """Return default pre allocation for all tests (Empty alloc)."""
+    # FIXME: Static tests dont have a fork so we need to get it from the node.
+    actual_fork = fork
+    if actual_fork is None:
+        assert hasattr(request.node, "fork")
+        actual_fork = request.node.fork
+
     return Alloc(
         alloc_mode=alloc_mode,
         contract_address_iterator=contract_address_iterator,
         eoa_iterator=eoa_iterator,
+        fork=actual_fork,
         evm_code_type=evm_code_type,
     )

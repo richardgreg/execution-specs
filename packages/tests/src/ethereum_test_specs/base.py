@@ -1,4 +1,6 @@
-"""Base test class and helper functions for Ethereum state and blockchain tests."""
+"""
+Base test class and helper functions for Ethereum state and blockchain tests.
+"""
 
 import hashlib
 from abc import abstractmethod
@@ -6,13 +8,14 @@ from enum import StrEnum, unique
 from functools import reduce
 from os import path
 from pathlib import Path
-from typing import Callable, ClassVar, Dict, Generator, List, Sequence, Type
+from typing import Any, Callable, ClassVar, Dict, Generator, List, Sequence, Type
 
 import pytest
 from pydantic import BaseModel, ConfigDict, Field, PrivateAttr
 from typing_extensions import Self
 
 from ethereum_clis import Result, TransitionTool
+from ethereum_clis.cli_types import OpcodeCount
 from ethereum_test_base_types import to_hex
 from ethereum_test_execution import BaseExecute, ExecuteFormat, LabeledExecuteFormat
 from ethereum_test_fixtures import (
@@ -29,22 +32,24 @@ from ethereum_test_types import Alloc, Environment, Withdrawal
 class HashMismatchExceptionError(Exception):
     """Exception raised when the expected and actual hashes don't match."""
 
-    def __init__(self, expected_hash, actual_hash, message="Hashes do not match"):
+    def __init__(
+        self, expected_hash: str, actual_hash: str, message: str = "Hashes do not match"
+    ) -> None:
         """Initialize the exception with the expected and actual hashes."""
         self.expected_hash = expected_hash
         self.actual_hash = actual_hash
         self.message = message
         super().__init__(self.message)
 
-    def __str__(self):
+    def __str__(self) -> str:
         """Return the error message."""
         return f"{self.message}: Expected {self.expected_hash}, got {self.actual_hash}"
 
 
-def verify_result(result: Result, env: Environment):
+def verify_result(result: Result, env: Environment) -> None:
     """
-    Verify that values in the t8n result match the expected values.
-    Raises exception on unexpected values.
+    Verify that values in the t8n result match the expected values. Raises
+    exception on unexpected values.
     """
     if env.withdrawals is not None:
         assert result.withdrawals_root == to_hex(Withdrawal.list_root(env.withdrawals))
@@ -61,7 +66,9 @@ class OpMode(StrEnum):
 
 
 class BaseTest(BaseModel):
-    """Represents a base Ethereum test which must return a single test fixture."""
+    """
+    Represents a base Ethereum test which must return a single test fixture.
+    """
 
     model_config = ConfigDict(extra="forbid")
 
@@ -71,8 +78,10 @@ class BaseTest(BaseModel):
     _operation_mode: OpMode | None = PrivateAttr(None)
     _gas_optimization: int | None = PrivateAttr(None)
     _gas_optimization_max_gas_limit: int | None = PrivateAttr(None)
+    _opcode_count: OpcodeCount | None = PrivateAttr(None)
 
     expected_benchmark_gas_used: int | None = None
+    skip_gas_used_validation: bool = False
 
     spec_types: ClassVar[Dict[str, Type["BaseTest"]]] = {}
 
@@ -92,11 +101,15 @@ class BaseTest(BaseModel):
         fork: Fork,
         markers: List[pytest.Mark],
     ) -> bool:
-        """Discard a fixture format from filling if the appropriate marker is used."""
+        """
+        Discard a fixture format from filling if the appropriate marker is
+        used.
+        """
+        del fork, fixture_format, markers
         return False
 
     @classmethod
-    def __pydantic_init_subclass__(cls, **kwargs):
+    def __pydantic_init_subclass__(cls, **kwargs: Any) -> None:
         """
         Register all subclasses of BaseFixture with a fixture format name set
         as possible fixture formats.
@@ -110,17 +123,19 @@ class BaseTest(BaseModel):
         cls: Type[Self],
         *,
         base_test: "BaseTest",
-        **kwargs,
+        **kwargs: Any,
     ) -> Self:
         """Create a test in a different format from a base test."""
         new_instance = cls(
             tag=base_test.tag,
             t8n_dump_dir=base_test.t8n_dump_dir,
             expected_benchmark_gas_used=base_test.expected_benchmark_gas_used,
+            skip_gas_used_validation=base_test.skip_gas_used_validation,
             **kwargs,
         )
         new_instance._request = base_test._request
         new_instance._operation_mode = base_test._operation_mode
+        new_instance._opcode_count = base_test._opcode_count
         return new_instance
 
     @classmethod
@@ -130,7 +145,11 @@ class BaseTest(BaseModel):
         fork: Fork,
         markers: List[pytest.Mark],
     ) -> bool:
-        """Discard an execute format from executing if the appropriate marker is used."""
+        """
+        Discard an execute format from executing if the appropriate marker is
+        used.
+        """
+        del execute_format, fork, markers
         return False
 
     @abstractmethod
@@ -151,6 +170,7 @@ class BaseTest(BaseModel):
         execute_format: ExecuteFormat,
     ) -> BaseExecute:
         """Generate the list of test fixtures."""
+        del fork
         raise Exception(f"Unsupported execute format: {execute_format}")
 
     @classmethod
@@ -187,10 +207,11 @@ class BaseTest(BaseModel):
 
     def is_exception_test(self) -> bool | None:
         """
-        Check if the test is an exception test (invalid block, invalid transaction).
+        Check if the test is an exception test (invalid block, invalid
+        transaction).
 
-        `None` is returned if it's not possible to determine if the test is negative or not.
-        This is the case when the test is not run in pytest.
+        `None` is returned if it's not possible to determine if the test is
+        negative or not. This is the case when the test is not run in pytest.
         """
         if self._request is not None and hasattr(self._request, "node"):
             return self._request.node.get_closest_marker("exception_test") is not None
@@ -206,7 +227,7 @@ class BaseTest(BaseModel):
         self,
         *,
         exception: bool,
-    ):
+    ) -> None:
         """Compare the test marker against the outcome of the test."""
         negative_test_marker = self.is_exception_test()
         if negative_test_marker is None:
@@ -229,7 +250,8 @@ class BaseTest(BaseModel):
         """
         Get the genesis environment for pre-allocation groups.
 
-        Must be implemented by subclasses to provide the appropriate environment.
+        Must be implemented by subclasses to provide the appropriate
+        environment.
         """
         raise NotImplementedError(
             f"{self.__class__.__name__} must implement genesis environment access for use with "
@@ -239,7 +261,10 @@ class BaseTest(BaseModel):
     def update_pre_alloc_groups(
         self, pre_alloc_groups: PreAllocGroups, fork: Fork, test_id: str
     ) -> PreAllocGroups:
-        """Create or update the pre-allocation group with the pre from the current spec."""
+        """
+        Create or update the pre-allocation group with the pre from the current
+        spec.
+        """
         if not hasattr(self, "pre"):
             raise AttributeError(
                 f"{self.__class__.__name__} does not have a 'pre' field. Pre-allocation groups "
@@ -259,7 +284,8 @@ class BaseTest(BaseModel):
             group.test_ids.append(str(test_id))
             pre_alloc_groups[pre_alloc_hash] = group
         else:
-            # Create new group - use Environment instead of expensive genesis generation
+            # Create new group - use Environment instead of expensive genesis
+            # generation
             genesis_env = self.get_genesis_environment(fork)
             pre_alloc = Alloc.merge(
                 Alloc.model_validate(fork.pre_allocation_blockchain()),

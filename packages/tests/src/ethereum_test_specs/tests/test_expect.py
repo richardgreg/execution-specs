@@ -31,7 +31,7 @@ def tx() -> Transaction:
 
 
 @pytest.fixture
-def pre(request) -> Alloc:
+def pre(request: Any) -> Alloc:
     """Fixture set from the test's indirectly parametrized `pre` parameter."""
     extra_accounts = {}
     if hasattr(request, "param"):
@@ -40,7 +40,7 @@ def pre(request) -> Alloc:
 
 
 @pytest.fixture
-def post(request) -> Alloc:  # noqa: D103
+def post(request: Any) -> Alloc:  # noqa: D103
     """Fixture set from the test's indirectly parametrized `post` parameter."""
     extra_accounts = {}
     if hasattr(request, "param"):
@@ -117,8 +117,16 @@ def state_test(  # noqa: D103
     ],
     indirect=["pre", "post"],
 )
-def test_post_storage_value_mismatch(expected_exception, state_test, default_t8n, fork):
-    """Test post state `Account.storage` exceptions during state test fixture generation."""
+def test_post_storage_value_mismatch(
+    expected_exception: Storage.KeyValueMismatchError,
+    state_test: StateTest,
+    default_t8n: TransitionTool,
+    fork: Fork,
+) -> None:
+    """
+    Test post state `Account.storage` exceptions during state test fixture
+    generation.
+    """
     with pytest.raises(Storage.KeyValueMismatchError) as e_info:
         state_test.generate(t8n=default_t8n, fork=fork, fixture_format=StateFixture)
     assert e_info.value == expected_exception
@@ -134,10 +142,12 @@ def test_post_storage_value_mismatch(expected_exception, state_test, default_t8n
     ],
     indirect=["pre", "post"],
 )
-def test_post_nonce_value_mismatch(pre: Alloc, post: Alloc, state_test, default_t8n, fork):
+def test_post_nonce_value_mismatch(
+    pre: Alloc, post: Alloc, state_test: StateTest, default_t8n: TransitionTool, fork: Fork
+) -> None:
     """
-    Test post state `Account.nonce` verification and exceptions during state test
-    fixture generation.
+    Test post state `Account.nonce` verification and exceptions during state
+    test fixture generation.
     """
     pre_account = pre[ADDRESS_UNDER_TEST]
     post_account = post[ADDRESS_UNDER_TEST]
@@ -165,10 +175,12 @@ def test_post_nonce_value_mismatch(pre: Alloc, post: Alloc, state_test, default_
     ],
     indirect=["pre", "post"],
 )
-def test_post_code_value_mismatch(pre: Alloc, post: Alloc, state_test, default_t8n, fork):
+def test_post_code_value_mismatch(
+    pre: Alloc, post: Alloc, state_test: StateTest, default_t8n: TransitionTool, fork: Fork
+) -> None:
     """
-    Test post state `Account.code` verification and exceptions during state test
-    fixture generation.
+    Test post state `Account.code` verification and exceptions during state
+    test fixture generation.
     """
     pre_account = pre[ADDRESS_UNDER_TEST]
     post_account = post[ADDRESS_UNDER_TEST]
@@ -196,10 +208,12 @@ def test_post_code_value_mismatch(pre: Alloc, post: Alloc, state_test, default_t
     ],
     indirect=["pre", "post"],
 )
-def test_post_balance_value_mismatch(pre: Alloc, post: Alloc, state_test, default_t8n, fork):
+def test_post_balance_value_mismatch(
+    pre: Alloc, post: Alloc, state_test: StateTest, default_t8n: TransitionTool, fork: Fork
+) -> None:
     """
-    Test post state `Account.balance` verification and exceptions during state test
-    fixture generation.
+    Test post state `Account.balance` verification and exceptions during state
+    test fixture generation.
     """
     pre_account = pre[ADDRESS_UNDER_TEST]
     post_account = post[ADDRESS_UNDER_TEST]
@@ -245,8 +259,11 @@ def test_post_balance_value_mismatch(pre: Alloc, post: Alloc, state_test, defaul
     indirect=["pre", "post"],
 )
 def test_post_account_mismatch(
-    state_test, default_t8n, fork, exception_type: Type[Exception] | None
-):
+    state_test: StateTest,
+    default_t8n: TransitionTool,
+    fork: Fork,
+    exception_type: Type[Exception] | None,
+) -> None:
     """
     Test post state `Account` verification and exceptions during state test
     fixture generation.
@@ -325,15 +342,15 @@ def test_post_account_mismatch(
     ],
 )
 def test_transaction_expectation(
-    state_test,
+    state_test: StateTest,
     default_t8n: TransitionTool,
     fork: Fork,
     exception_type: Type[Exception] | None,
     fixture_format: FixtureFormat,
-):
+) -> None:
     """
-    Test a transaction that has an unexpected error, expected error, or expected a specific
-    value in its receipt.
+    Test a transaction that has an unexpected error, expected error, or
+    expected a specific value in its receipt.
     """
     if (
         exception_type == ExecutionExceptionMismatchError
@@ -387,8 +404,13 @@ def test_transaction_expectation(
     ],
 )
 def test_block_intermediate_state(
-    pre, default_t8n, fork, fixture_format: FixtureFormat, intermediate_state, expected_exception
-):
+    pre: Alloc,
+    default_t8n: TransitionTool,
+    fork: Fork,
+    fixture_format: FixtureFormat,
+    intermediate_state: Mapping[Any, Any],
+    expected_exception: Type[Exception] | None,
+) -> None:
     """Validate the state when building blockchain."""
     env = Environment()
 

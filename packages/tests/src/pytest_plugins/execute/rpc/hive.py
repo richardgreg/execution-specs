@@ -31,7 +31,7 @@ from ...consume.simulators.helpers.ruleset import ruleset
 from .chain_builder_eth_rpc import ChainBuilderEthRPC
 
 
-def pytest_addoption(parser):
+def pytest_addoption(parser: pytest.Parser) -> None:
     """Add command-line options to pytest."""
     hive_rpc_group = parser.getgroup(
         "hive_rpc", "Arguments defining the hive RPC client properties for the test."
@@ -58,9 +58,9 @@ def pytest_addoption(parser):
 
 
 @pytest.hookimpl(trylast=True)
-def pytest_configure(config):  # noqa: D103
-    config.test_suite_scope = "session"
-    config.engine_rpc_supported = True
+def pytest_configure(config: pytest.Config) -> None:  # noqa: D103
+    config.test_suite_scope = "session"  # type: ignore
+    config.engine_rpc_supported = True  # type: ignore
 
 
 @pytest.fixture(scope="session")
@@ -83,7 +83,11 @@ def seed_sender(session_temp_folder: Path) -> EOA:
 
 
 @pytest.fixture(scope="session")
-def base_pre(request, seed_sender: EOA, worker_count: int) -> Alloc:
+def base_pre(
+    request: pytest.FixtureRequest,
+    seed_sender: EOA,
+    worker_count: int,
+) -> Alloc:
     """Pre-allocation for the client's genesis."""
     sender_key_initial_balance = request.config.getoption("sender_key_initial_balance")
     return Alloc(
@@ -147,7 +151,10 @@ def base_pre_genesis(
 
 @pytest.fixture(scope="session")
 def client_genesis(base_pre_genesis: Tuple[Alloc, FixtureHeader]) -> dict:
-    """Convert the fixture's genesis block header and pre-state to a client genesis state."""
+    """
+    Convert the fixture's genesis block header and pre-state to a client
+    genesis state.
+    """
     genesis = to_json(base_pre_genesis[1])  # NOTE: to_json() excludes None values
     alloc = to_json(base_pre_genesis[0])
     # NOTE: nethermind requires account keys without '0x' prefix
@@ -211,7 +218,9 @@ def test_suite_description() -> str:
 def base_hive_test(
     request: pytest.FixtureRequest, test_suite: HiveTestSuite, session_temp_folder: Path
 ) -> Generator[HiveTest, None, None]:
-    """Test (base) used to deploy the main client to be used throughout all tests."""
+    """
+    Test (base) used to deploy the main client to be used throughout all tests.
+    """
     base_name = "base_hive_test"
     base_file = session_temp_folder / base_name
     base_lock_file = session_temp_folder / f"{base_name}.lock"
@@ -276,7 +285,9 @@ def client(
     client_type: ClientType,
     session_temp_folder: Path,
 ) -> Generator[Client, None, None]:
-    """Initialize the client with the appropriate files and environment variables."""
+    """
+    Initialize the client with the appropriate files and environment variables.
+    """
     base_name = "hive_client"
     base_file = session_temp_folder / base_name
     base_error_file = session_temp_folder / f"{base_name}.err"

@@ -31,8 +31,8 @@ from ethereum_test_tools import (
     Withdrawal,
     add_kzg_version,
 )
-from ethereum_test_tools.vm.opcode import Opcodes as Op
 from ethereum_test_types import Alloc
+from ethereum_test_vm import Opcodes as Op
 
 BLOB_COMMITMENT_VERSION_KZG = 1
 
@@ -43,8 +43,10 @@ fork_set.add(Prague)
 def test_ci_multi_t8n_support(
     installed_transition_tool_instances: Dict[str, TransitionTool | Exception],
     running_in_ci: bool,
-):
-    """Check that the instances of t8n we expect in CI environment were found."""
+) -> None:
+    """
+    Check that the instances of t8n we expect in CI environment were found.
+    """
     names = set(installed_transition_tool_instances.keys())
     expected_names = {"ExecutionSpecsTransitionTool"}
     if running_in_ci:
@@ -55,8 +57,11 @@ def test_ci_multi_t8n_support(
     )
 
 
-@pytest.mark.parametrize("fork", sorted(fork_set, key=lambda f: f.__name__))  # type: ignore
-def test_t8n_support(fork: Fork, installed_t8n: TransitionTool):
+@pytest.mark.parametrize(
+    "fork",
+    sorted(fork_set, key=lambda f: f.__name__),  # type: ignore
+)
+def test_t8n_support(fork: Fork, installed_t8n: TransitionTool) -> None:
     """Stress test that sends all possible t8n interactions."""
     if fork in [MuirGlacier, ArrowGlacier, GrayGlacier]:
         return

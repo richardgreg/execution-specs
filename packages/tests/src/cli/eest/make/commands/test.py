@@ -1,9 +1,10 @@
 """
 Provides a CLI command to scaffold a test file.
 
-The `test` command guides the user through a series of prompts to generate a test file
-based on the selected test type, fork, EIP number, and EIP name. The generated test file
-is saved in the appropriate directory with a rendered template using Jinja2.
+The `test` command guides the user through a series of prompts to generate a
+test file based on the selected test type, fork, EIP number, and EIP name. The
+generated test file is saved in the appropriate directory with a rendered
+template using Jinja2.
 """
 
 import os
@@ -24,7 +25,7 @@ template_env = jinja2.Environment(
 )
 
 
-def exit_now():
+def exit_now() -> None:
     """Interrupt execution instantly via ctrl+C."""
     print("Ctrl+C detected, exiting..")
     exit(0)
@@ -34,14 +35,15 @@ def exit_now():
     short_help="Generate a new test file for an EIP.",
     epilog=f"Further help: {DocsConfig().DOCS_URL__WRITING_TESTS}",
 )
-def test():
+def test() -> None:
     """
     Generate a new test file for an EIP.
 
-    This function guides the user through a series of prompts to generate a test file
-    for Ethereum execution specifications. The user is prompted to select the type of test,
-    the fork to use, and to provide the EIP number and name. Based on the inputs, a test file
-    is created in the appropriate directory with a rendered template.
+    This function guides the user through a series of prompts to generate a
+    test file for Ethereum execution specifications. The user is prompted to
+    select the type of test, the fork to use, and to provide the EIP number and
+    name. Based on the inputs, a test file is created in the appropriate
+    directory with a rendered template.
 
     Example:
         uv run eest make test
