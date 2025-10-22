@@ -7,8 +7,14 @@ RETURNDATALOAD instruction tests
 from typing import cast
 
 import pytest
-
-from ethereum_test_tools import Account, Alloc, Environment, StateTestFiller, Storage, Transaction
+from ethereum_test_tools import (
+    Account,
+    Alloc,
+    Environment,
+    StateTestFiller,
+    Storage,
+    Transaction,
+)
 from ethereum_test_types.eof.v1 import Container, Section
 from ethereum_test_vm import Opcodes as Op
 
@@ -24,7 +30,12 @@ from .helpers import (
     value_code_worked,
     value_exceptional_abort_canary,
 )
-from .spec import EXTCALL_FAILURE, EXTCALL_SUCCESS, LEGACY_CALL_FAILURE, LEGACY_CALL_SUCCESS
+from .spec import (
+    EXTCALL_FAILURE,
+    EXTCALL_SUCCESS,
+    LEGACY_CALL_FAILURE,
+    LEGACY_CALL_SUCCESS,
+)
 
 REFERENCE_SPEC_GIT_PATH = REFERENCE_SPEC_GIT_PATH
 REFERENCE_SPEC_VERSION = REFERENCE_SPEC_VERSION
@@ -104,7 +115,8 @@ def test_returndatacopy_handling(
         Container(
             sections=[
                 Section.Code(
-                    code=Op.DATACOPY(0, 0, Op.DATASIZE) + Op.RETURN(0, Op.DATASIZE),
+                    code=Op.DATACOPY(0, 0, Op.DATASIZE)
+                    + Op.RETURN(0, Op.DATASIZE),
                 ),
                 Section.Data(data=return_data),
             ]
@@ -172,7 +184,9 @@ def test_returndatacopy_handling(
             }
         )
 
-    tx = Transaction(to=address_entry_point, gas_limit=2_000_000, sender=sender)
+    tx = Transaction(
+        to=address_entry_point, gas_limit=2_000_000, sender=sender
+    )
 
     state_test(
         env=env,
@@ -232,7 +246,8 @@ def test_returndataload_handling(
         Container(
             sections=[
                 Section.Code(
-                    code=Op.DATACOPY(0, 0, Op.DATASIZE) + Op.RETURN(0, Op.DATASIZE),
+                    code=Op.DATACOPY(0, 0, Op.DATASIZE)
+                    + Op.RETURN(0, Op.DATASIZE),
                 ),
                 Section.Data(data=return_data),
             ]
@@ -264,7 +279,9 @@ def test_returndataload_handling(
         )
     }
 
-    tx = Transaction(to=address_entry_point, gas_limit=2_000_000, sender=sender)
+    tx = Transaction(
+        to=address_entry_point, gas_limit=2_000_000, sender=sender
+    )
 
     state_test(
         env=env,
@@ -308,13 +325,20 @@ def test_returndatacopy_oob(
             ]
         )
     )
-    address_callee_legacy = pre.deploy_contract(Op.RETURNDATACOPY(0, 0, 1) + Op.RETURN(0, 1))
+    address_callee_legacy = pre.deploy_contract(
+        Op.RETURNDATACOPY(0, 0, 1) + Op.RETURN(0, 1)
+    )
 
     # Caller code is selected to either be Legacy or EOF using params.
     code_entry_point = (
-        Op.SSTORE(slot_eof_target_call_status, opcode(address=address_callee_eof))
+        Op.SSTORE(
+            slot_eof_target_call_status, opcode(address=address_callee_eof)
+        )
         + Op.SSTORE(slot_eof_target_returndatasize, Op.RETURNDATASIZE)
-        + Op.SSTORE(slot_eof_target_returndata, Op.RETURNDATACOPY(0, 0, 1) + Op.MLOAD(0))
+        + Op.SSTORE(
+            slot_eof_target_returndata,
+            Op.RETURNDATACOPY(0, 0, 1) + Op.MLOAD(0),
+        )
         + Op.SSTORE(
             slot_legacy_target_call_status,
             opcode(address=address_callee_legacy),
@@ -331,7 +355,9 @@ def test_returndatacopy_oob(
                 slot_eof_target_returndata: value_exceptional_abort_canary,
                 slot_eof_target_returndatasize: value_exceptional_abort_canary,
                 slot_legacy_target_call_status: value_exceptional_abort_canary,
-                slot_legacy_target_returndatasize: value_exceptional_abort_canary,
+                slot_legacy_target_returndatasize: (
+                    value_exceptional_abort_canary
+                ),
             },
         )
     )
@@ -352,7 +378,9 @@ def test_returndatacopy_oob(
         )
     )
 
-    tx = Transaction(to=address_entry_point, gas_limit=2_000_000, sender=sender)
+    tx = Transaction(
+        to=address_entry_point, gas_limit=2_000_000, sender=sender
+    )
 
     post = {
         address_entry_point: Account(

@@ -1,9 +1,15 @@
 """Test DUP Test the DUP opcodes."""
 
 import pytest
-
 from ethereum_test_forks import Frontier, Homestead
-from ethereum_test_tools import Account, Alloc, Environment, StateTestFiller, Storage, Transaction
+from ethereum_test_tools import (
+    Account,
+    Alloc,
+    Environment,
+    StateTestFiller,
+    Storage,
+    Transaction,
+)
 from ethereum_test_tools import Opcodes as Op
 
 
@@ -96,7 +102,9 @@ def test_dup(
     DUP1 copies the first element of the stack (0x10).
     DUP16 copies the 16th element of the stack (0x01).
     """
-    s: Storage.StorageDictType = dict(zip(range(1, 17), range(16, 0, -1), strict=False))
+    s: Storage.StorageDictType = dict(
+        zip(range(1, 17), range(16, 0, -1), strict=False)
+    )
     s[0] = 16 - (dup_opcode.int() - 0x80)
 
     post[account] = Account(storage=s)

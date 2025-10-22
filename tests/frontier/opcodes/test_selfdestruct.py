@@ -1,14 +1,22 @@
 """Test the SELFDESTRUCT opcode."""
 
 import pytest
-
-from ethereum_test_tools import Account, Alloc, Block, BlockchainTestFiller, Initcode, Transaction
+from ethereum_test_tools import (
+    Account,
+    Alloc,
+    Block,
+    BlockchainTestFiller,
+    Initcode,
+    Transaction,
+)
 from ethereum_test_tools import Opcodes as Op
 
 
 @pytest.mark.valid_from("Frontier")
 @pytest.mark.valid_until("Homestead")
-def test_double_kill(blockchain_test: BlockchainTestFiller, pre: Alloc) -> None:
+def test_double_kill(
+    blockchain_test: BlockchainTestFiller, pre: Alloc
+) -> None:
     """
     Test that when two transactions attempt to destruct a contract, the second
     transaction actually resurrects the contract as an empty account (prior to

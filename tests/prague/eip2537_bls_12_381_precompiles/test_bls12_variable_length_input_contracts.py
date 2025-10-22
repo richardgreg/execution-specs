@@ -10,13 +10,26 @@ for BLS12-381 curve operations]
 from typing import Callable, List, SupportsBytes
 
 import pytest
-
 from ethereum_test_forks import Fork
-from ethereum_test_tools import Alloc, Bytecode, Environment, StateTestFiller, Storage, Transaction
+from ethereum_test_tools import (
+    Alloc,
+    Bytecode,
+    Environment,
+    StateTestFiller,
+    Storage,
+    Transaction,
+)
 from ethereum_test_tools import Opcodes as Op
 from ethereum_test_tools.utility.pytest import ParameterSet
 
-from .spec import GAS_CALCULATION_FUNCTION_MAP, PointG1, PointG2, Scalar, Spec, ref_spec_2537
+from .spec import (
+    GAS_CALCULATION_FUNCTION_MAP,
+    PointG1,
+    PointG2,
+    Scalar,
+    Spec,
+    ref_spec_2537,
+)
 
 REFERENCE_SPEC_GIT_PATH = ref_spec_2537.git_path
 REFERENCE_SPEC_VERSION = ref_spec_2537.version
@@ -61,7 +74,8 @@ def env(fork: Fork, tx: Transaction) -> Environment:
     tx_gas_limit_cap = fork.transaction_gas_limit_cap()
     if tx_gas_limit_cap is not None:
         assert tx.gas_limit <= tx_gas_limit_cap, (
-            f"tx exceeds gas limit cap: {int(tx.gas_limit)} > {tx_gas_limit_cap}"
+            "tx exceeds gas limit cap: "
+            f"{int(tx.gas_limit)} > {tx_gas_limit_cap}"
         )
     if tx.gas_limit > env.gas_limit:
         env = Environment(gas_limit=tx.gas_limit)
@@ -114,7 +128,12 @@ def call_contract_code(
 
     assert len(precompile_gas_list) == len(precompile_data_length_list)
 
-    assert call_opcode in [Op.CALL, Op.CALLCODE, Op.DELEGATECALL, Op.STATICCALL]
+    assert call_opcode in [
+        Op.CALL,
+        Op.CALLCODE,
+        Op.DELEGATECALL,
+        Op.STATICCALL,
+    ]
     value = [0] if call_opcode in [Op.CALL, Op.CALLCODE] else []
 
     code = Bytecode()
@@ -141,19 +160,25 @@ def call_contract_code(
 
 
 def tx_gas_limit_calculator(
-    fork: Fork, precompile_gas_list: List[int], max_precompile_input_length: int
+    fork: Fork,
+    precompile_gas_list: List[int],
+    max_precompile_input_length: int,
 ) -> int:
     """
     Calculate the gas used to execute the transaction with the given precompile
     gas list.
     """
-    intrinsic_gas_cost_calculator = fork.transaction_intrinsic_cost_calculator()
+    intrinsic_gas_cost_calculator = (
+        fork.transaction_intrinsic_cost_calculator()
+    )
     memory_expansion_gas_calculator = fork.memory_expansion_gas_calculator()
     extra_gas = 22_500 * len(precompile_gas_list)
     return (
         extra_gas
         + intrinsic_gas_cost_calculator()
-        + memory_expansion_gas_calculator(new_bytes=max_precompile_input_length)
+        + memory_expansion_gas_calculator(
+            new_bytes=max_precompile_input_length
+        )
         + sum(precompile_gas_list)
     )
 
@@ -169,7 +194,9 @@ def tx_gas_limit(
     Transaction gas limit used for the test (Can be overridden in the test).
     """
     assert len(input_data) == 0, "Expected empty data in the transaction."
-    return tx_gas_limit_calculator(fork, precompile_gas_list, max(precompile_data_length_list))
+    return tx_gas_limit_calculator(
+        fork, precompile_gas_list, max(precompile_data_length_list)
+    )
 
 
 def get_split_discount_table_by_fork(
@@ -190,15 +217,26 @@ def get_split_discount_table_by_fork(
         if tx_gas_limit_cap is None:
             return [
                 pytest.param(
-                    [gas_fn(i * element_length) for i in range(1, discount_table_length + 1)],
-                    [i * element_length for i in range(1, discount_table_length + 1)],
+                    [
+                        gas_fn(i * element_length)
+                        for i in range(1, discount_table_length + 1)
+                    ],
+                    [
+                        i * element_length
+                        for i in range(1, discount_table_length + 1)
+                    ],
                     id="full_discount_table",
                 )
             ]
         else:
 
-            def gas_list_from_range(min_index: int, max_index: int) -> List[int]:
-                return [gas_fn(i * element_length) for i in range(min_index, max_index)]
+            def gas_list_from_range(
+                min_index: int, max_index: int
+            ) -> List[int]:
+                return [
+                    gas_fn(i * element_length)
+                    for i in range(min_index, max_index)
+                ]
 
             def get_range_cost(min_index: int, max_index: int) -> int:
                 return tx_gas_limit_calculator(
@@ -237,7 +275,8 @@ def get_split_discount_table_by_fork(
             return [
                 pytest.param(
                     *split,
-                    id=f"discount_table_{idx + 1}_of_{len(g1_msm_discount_table_splits)}",
+                    id=f"discount_table_{idx + 1}_of_"
+                    f"{len(g1_msm_discount_table_splits)}",
                 )
                 for idx, split in enumerate(g1_msm_discount_table_splits)
             ]
@@ -311,7 +350,9 @@ def test_invalid_zero_gas_g1msm(
         G1_GAS, len(Spec.G1MSM_DISCOUNT_TABLE), G1_MSM_K_INPUT_LENGTH
     ),
 )
-@pytest.mark.parametrize("gas_modifier", [pytest.param(-1, id="insufficient_gas")])
+@pytest.mark.parametrize(
+    "gas_modifier", [pytest.param(-1, id="insufficient_gas")]
+)
 @pytest.mark.parametrize("expected_output", [Spec.INVALID], ids=[""])
 @pytest.mark.parametrize("precompile_address", [Spec.G1MSM])
 def test_invalid_gas_g1msm(
@@ -467,7 +508,9 @@ def test_invalid_zero_gas_g2msm(
         G2_GAS, len(Spec.G2MSM_DISCOUNT_TABLE), G2_MSM_K_INPUT_LENGTH
     ),
 )
-@pytest.mark.parametrize("gas_modifier", [pytest.param(-1, id="insufficient_gas")])
+@pytest.mark.parametrize(
+    "gas_modifier", [pytest.param(-1, id="insufficient_gas")]
+)
 @pytest.mark.parametrize("expected_output", [Spec.INVALID], ids=[""])
 @pytest.mark.parametrize("precompile_address", [Spec.G2MSM])
 def test_invalid_gas_g2msm(
@@ -559,7 +602,9 @@ def test_invalid_length_g2msm(
 
 @pytest.mark.parametrize_by_fork(
     "precompile_gas_list,precompile_data_length_list",
-    get_split_discount_table_by_fork(PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR),
+    get_split_discount_table_by_fork(
+        PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR
+    ),
 )
 @pytest.mark.parametrize("gas_modifier", [pytest.param(0, id="exact_gas")])
 @pytest.mark.parametrize("expected_output", [Spec.PAIRING_TRUE], ids=[""])
@@ -616,9 +661,13 @@ def test_invalid_zero_gas_pairing(
 
 @pytest.mark.parametrize_by_fork(
     "precompile_gas_list,precompile_data_length_list",
-    get_split_discount_table_by_fork(PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR),
+    get_split_discount_table_by_fork(
+        PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR
+    ),
 )
-@pytest.mark.parametrize("gas_modifier", [pytest.param(-1, id="insufficient_gas")])
+@pytest.mark.parametrize(
+    "gas_modifier", [pytest.param(-1, id="insufficient_gas")]
+)
 @pytest.mark.parametrize("expected_output", [Spec.INVALID], ids=[""])
 @pytest.mark.parametrize("precompile_address", [Spec.PAIRING])
 def test_invalid_gas_pairing(
@@ -675,7 +724,9 @@ def test_invalid_zero_length_pairing(
 
 @pytest.mark.parametrize_by_fork(
     "precompile_gas_list,precompile_data_length_list",
-    get_split_discount_table_by_fork(PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR),
+    get_split_discount_table_by_fork(
+        PAIRING_GAS, PAIRINGS_TO_TEST, Spec.LEN_PER_PAIR
+    ),
 )
 @pytest.mark.parametrize(
     "input_length_modifier",

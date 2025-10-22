@@ -4,7 +4,6 @@ only has a non-zero storage slot set.
 """
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Alloc,
@@ -48,10 +47,13 @@ pytestmark = [
                 id="correct-initcode",
             ),
             pytest.param(Op.REVERT(0, 0), id="revert-initcode"),
-            pytest.param(Op.MSTORE(0xFFFFFFFFFFFFFFFFFFFFFFFFFFF, 1), id="oog-initcode"),
+            pytest.param(
+                Op.MSTORE(0xFFFFFFFFFFFFFFFFFFFFFFFFFFF, 1), id="oog-initcode"
+            ),
         ],
     ),
-    pytest.mark.pre_alloc_modify,  # We need to modify the pre-alloc to include the collision
+    # We need to modify the pre-alloc to include the collision
+    pytest.mark.pre_alloc_modify,
 ]
 
 

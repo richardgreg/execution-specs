@@ -6,7 +6,6 @@ operations after being called for self destruct in a call.
 from enum import IntEnum
 
 import pytest
-
 from ethereum_test_forks import Byzantium, Fork
 from ethereum_test_tools import (
     Account,
@@ -35,9 +34,10 @@ class Operation(IntEnum):
         "https://github.com/ethereum/tests/blob/v13.3/src/GeneralStateTestsFiller/stCreateTest/CREATE_AcreateB_BSuicide_BStoreFiller.json",
     ],
     pr=["https://github.com/ethereum/execution-spec-tests/pull/1867"],
-    coverage_missed_reason="Converting solidity code result in following opcode not being used:"
-    "PUSH29, DUP4, DUP8, SWAP2, ISZERO, AND, MUL, DIV, CALLVALUE, EXTCODESIZE."
-    "Changed 0x11 address to new address (no check for precompile).",
+    coverage_missed_reason="Converting solidity code result in following "
+    "opcode not being used: PUSH29, DUP4, DUP8, SWAP2, ISZERO, AND, MUL, DIV, "
+    "CALLVALUE, EXTCODESIZE. Changed 0x11 address to new address (no check "
+    "for precompile).",
 )
 @pytest.mark.valid_from("Frontier")
 @pytest.mark.with_all_create_opcodes
@@ -129,7 +129,10 @@ def test_create_suicide_store(
     )
 
     expected_create_address = compute_create_address(
-        address=create_contract, nonce=1, initcode=suicide_initcode, opcode=create_opcode
+        address=create_contract,
+        nonce=1,
+        initcode=suicide_initcode,
+        opcode=create_opcode,
     )
     expect_post[slot_create_result] = expected_create_address
     expect_post[slot_after_suicide_sstore_return] = (

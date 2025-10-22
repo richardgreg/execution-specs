@@ -8,7 +8,6 @@ Tests gas usage on point evaluation precompile for
 from typing import Dict, Literal
 
 import pytest
-
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
     Account,
@@ -138,7 +137,9 @@ def precompile_caller_code(
 
 
 @pytest.fixture
-def precompile_caller_address(pre: Alloc, precompile_caller_code: Bytecode) -> Address:
+def precompile_caller_address(
+    pre: Alloc, precompile_caller_code: Bytecode
+) -> Address:
     """Address of the precompile caller account."""
     return pre.deploy_contract(precompile_caller_code)
 

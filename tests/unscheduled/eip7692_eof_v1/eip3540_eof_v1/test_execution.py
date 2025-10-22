@@ -1,9 +1,14 @@
 """Execution of basic EOF containers."""
 
 import pytest
-
 from ethereum_test_base_types import Storage
-from ethereum_test_tools import Account, Alloc, Environment, StateTestFiller, Transaction
+from ethereum_test_tools import (
+    Account,
+    Alloc,
+    Environment,
+    StateTestFiller,
+    Transaction,
+)
 from ethereum_test_types.eof.v1 import Container, Section
 from ethereum_test_vm import Opcodes as Op
 
@@ -28,9 +33,12 @@ EXPECTED_STORAGE = (bytes.fromhex("EF"), bytes.fromhex("BADDCAFE"))
         Container(
             name="store_with_data",
             sections=[
-                Section.Code(Op.SSTORE(Op.DATALOADN[0], Op.DATALOADN[32]) + Op.STOP),
+                Section.Code(
+                    Op.SSTORE(Op.DATALOADN[0], Op.DATALOADN[32]) + Op.STOP
+                ),
                 Section.Data(
-                    EXPECTED_STORAGE[0].rjust(32, b"\x00") + EXPECTED_STORAGE[1].rjust(32, b"\x00")
+                    EXPECTED_STORAGE[0].rjust(32, b"\x00")
+                    + EXPECTED_STORAGE[1].rjust(32, b"\x00")
                 ),
             ],
         ),
@@ -49,7 +57,8 @@ def test_eof_execution(
     sender = pre.fund_eoa()
     container_address = pre.deploy_contract(container)
     caller_contract = Op.SSTORE(
-        storage.store_next(1), Op.CALL(Op.GAS, container_address, 0, 0, 0, 0, 0)
+        storage.store_next(1),
+        Op.CALL(Op.GAS, container_address, 0, 0, 0, 0, 0),
     )
     caller_address = pre.deploy_contract(caller_contract)
 

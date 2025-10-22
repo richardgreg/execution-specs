@@ -9,7 +9,6 @@ from enum import Enum, auto
 from typing import List, Type
 
 import pytest
-
 from ethereum_test_base_types import Bytes, FixedSizeBytes, HexNumber
 from ethereum_test_tools import (
     Address,
@@ -91,7 +90,9 @@ def test_empty_authorization_list(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -144,7 +145,9 @@ def test_invalid_auth_signature(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -187,7 +190,9 @@ def test_invalid_tx_invalid_auth_chain_id(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -237,7 +242,9 @@ def test_invalid_tx_invalid_auth_chain_id_encoding(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -285,7 +292,9 @@ def test_invalid_tx_invalid_nonce(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -328,7 +337,9 @@ def test_invalid_tx_invalid_nonce_as_list(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -429,7 +440,9 @@ def test_invalid_tx_invalid_address(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -492,7 +505,9 @@ def test_invalid_tx_invalid_authorization_tuple_extra_element(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -544,7 +559,9 @@ def test_invalid_tx_invalid_authorization_tuple_missing_element(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )
@@ -594,7 +611,9 @@ def test_invalid_tx_invalid_authorization_tuple_encoded_as_bytes(
 @pytest.mark.parametrize(
     "delegate_address",
     [
-        pytest.param(Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"),
+        pytest.param(
+            Spec.RESET_DELEGATION_ADDRESS, id="reset_delegation_address"
+        ),
         pytest.param(Address(1), id="non_zero_address"),
     ],
 )

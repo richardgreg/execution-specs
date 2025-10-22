@@ -5,7 +5,6 @@ Test [EIP-7823: Set upper bounds for MODEXP](https://eips.ethereum.org/EIPS/eip-
 from typing import Dict
 
 import pytest
-
 from ethereum_test_checklists import EIPChecklist
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
@@ -332,7 +331,9 @@ def test_modexp_upper_bounds_fork_transition(
                 )
             ],
         )
-        for ts, contract, sender in zip(timestamps, contracts, senders, strict=False)
+        for ts, contract, sender in zip(
+            timestamps, contracts, senders, strict=False
+        )
     ]
 
     post = {
@@ -344,7 +345,9 @@ def test_modexp_upper_bounds_fork_transition(
                 else keccak256(Spec.modexp_error),
             }
         )
-        for contract, ts, expected in zip(contracts, timestamps, expected_results, strict=False)
+        for contract, ts, expected in zip(
+            contracts, timestamps, expected_results, strict=False
+        )
     }
 
     blockchain_test(

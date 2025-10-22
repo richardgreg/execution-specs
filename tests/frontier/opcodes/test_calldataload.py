@@ -1,7 +1,6 @@
 """test `CALLDATALOAD` opcode."""
 
 import pytest
-
 from ethereum_test_forks import Byzantium, Fork
 from ethereum_test_tools import Account, Alloc, StateTestFiller, Transaction
 from ethereum_test_tools import Macros as Om
@@ -28,7 +27,9 @@ from ethereum_test_vm import Opcodes as Op
             0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF23,
         ),
         (
-            bytes.fromhex("123456789ABCDEF00000000000000000000000000000000000000000000000000024"),
+            bytes.fromhex(
+                "123456789ABCDEF00000000000000000000000000000000000000000000000000024"
+            ),
             0x5,
             0xBCDEF00000000000000000000000000000000000000000000000000024000000,
         ),

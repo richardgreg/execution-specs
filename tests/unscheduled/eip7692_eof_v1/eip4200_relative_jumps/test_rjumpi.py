@@ -1,7 +1,6 @@
 """EOF JUMPF tests covering stack and code validation rules."""
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Alloc,
@@ -153,7 +152,11 @@ def test_rjumpi_condition_zero(
         data=calldata,
         sender=sender,
     )
-    post = {contract_address: Account(storage={slot_code_worked: value_code_worked})}
+    post = {
+        contract_address: Account(
+            storage={slot_code_worked: value_code_worked}
+        )
+    }
     state_test(env=env, tx=tx, pre=pre, post=post)
 
 
@@ -263,7 +266,9 @@ def test_rjumpi_max_backward(
                     )
                 ],
             ),
-            container_post=Account(storage={slot_code_worked: value_code_worked}),
+            container_post=Account(
+                storage={slot_code_worked: value_code_worked}
+            ),
         ),
     )
 
@@ -279,17 +284,23 @@ def test_rjumpi_max_backward(
                     max_stack_increase=1,
                 ),
             ],
-            expected_bytecode="ef00010100040200010006ff000000008000016001e1000000",
+            expected_bytecode="ef000101000402"
+            "00010006ff000000008000016001e1000000",
         ),
         Container(
             name="forwards_rjumpi_1",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPI[1] + Op.NOT + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[1]
+                    + Op.NOT
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef00010100040200010008ff000000008000025f6000e100011900",
+            expected_bytecode="ef000101000402"
+            "00010008ff000000008000025f6000e100011900",
         ),
         Container(
             name="forwards_rjumpi_10",
@@ -305,27 +316,39 @@ def test_rjumpi_max_backward(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000cff000000008000025f6000e1000450e000011900",
+            expected_bytecode="ef000101000402"
+            "0001000cff000000008000025f6000e1000450e000011900",
         ),
         Container(
             name="forwards_rjumpi_11",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPI[3] + Op.RJUMP[0] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[3]
+                    + Op.RJUMP[0]
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000aff000000008000025f6000e10003e0000000",
+            expected_bytecode="ef000101000402"
+            "0001000aff000000008000025f6000e10003e0000000",
         ),
         Container(
             name="forwards_rjumpi_12",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPI[4] + Op.PUSH0 + Op.RJUMP[0] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[4]
+                    + Op.PUSH0
+                    + Op.RJUMP[0]
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000bff000000008000025f6000e100045fe0000000",
+            expected_bytecode="ef000101000402"
+            "0001000bff000000008000025f6000e100045fe0000000",
         ),
         Container(
             name="forwards_rjumpi_2",
@@ -341,17 +364,23 @@ def test_rjumpi_max_backward(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000dff000000008000025f6000e100066000e100011900",
+            expected_bytecode="ef000101000402"
+            "0001000dff000000008000025f6000e100066000e100011900",
         ),
         Container(
             name="forwards_rjumpi_3",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPI[1] + Op.PUSH0 + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[1]
+                    + Op.PUSH0
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef00010100040200010008ff000000008000025f6000e100015f00",
+            expected_bytecode="ef000101000402"
+            "00010008ff000000008000025f6000e100015f00",
         ),
         Container(
             name="forwards_rjumpi_4",
@@ -368,7 +397,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=3,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000eff000000008000035f6000e100075f6000e100011900",
+            expected_bytecode="ef000101000402"
+            "0001000eff000000008000035f6000e100075f6000e100011900",
         ),
         Container(
             name="forwards_rjumpi_5",
@@ -387,7 +417,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=3,
                 ),
             ],
-            expected_bytecode="ef00010100040200010010ff000000008000035f60010180600a11e1000480e1fff200",
+            expected_bytecode="ef000101000402"
+            "00010010ff000000008000035f60010180600a11e1000480e1fff200",
         ),
         Container(
             name="forwards_rjumpi_6",
@@ -407,7 +438,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=3,
                 ),
             ],
-            expected_bytecode="ef00010100040200010011ff000000008000035f60010180600a11e100055f80e1fff300",
+            expected_bytecode="ef000101000402"
+            "00010011ff000000008000035f60010180600a11e100055f80e1fff300",
         ),
         Container(
             name="forwards_rjumpi_7",
@@ -423,7 +455,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000cff000000008000025f6000e100045fe000015f00",
+            expected_bytecode="ef000101000402"
+            "0001000cff000000008000025f6000e100045fe000015f00",
         ),
         Container(
             name="forwards_rjumpi_8",
@@ -439,7 +472,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000cff000000008000025f6000e100045fe000011900",
+            expected_bytecode="ef000101000402"
+            "0001000cff000000008000025f6000e100045fe000011900",
         ),
         Container(
             name="forwards_rjumpi_9",
@@ -455,7 +489,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000cff000000008000025f6000e1000450e000015000",
+            expected_bytecode="ef000101000402"
+            "0001000cff000000008000025f6000e1000450e000015000",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_0",
@@ -472,7 +507,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=4,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000eff000000008000045f6000e100025f5f6001e1000000",
+            expected_bytecode="ef000101000402"
+            "0001000eff000000008000045f6000e100025f5f6001e1000000",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_1",
@@ -491,7 +527,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010010ff000000008000055f6000e100025f5f5f6000e100011900",
+            expected_bytecode="ef000101000402"
+            "00010010ff000000008000055f6000e100025f5f5f6000e100011900",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_10",
@@ -512,7 +549,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010014ff000000008000055f6000e100025f5f5f6000e1000450e000011900",
+            expected_bytecode="ef000101000402"
+            "00010014ff000000008000055f6000e100025f5f5f6000e1000450e000011900",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_11",
@@ -531,7 +569,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010012ff000000008000055f6000e100025f5f5f6000e10003e0000000",
+            expected_bytecode="ef000101000402"
+            "00010012ff000000008000055f6000e100025f5f5f6000e10003e0000000",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_12",
@@ -551,7 +590,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010013ff000000008000055f6000e100025f5f5f6000e100045fe0000000",
+            expected_bytecode="ef000101000402"
+            "00010013ff000000008000055f6000e100025f5f5f6000e100045fe0000000",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_2",
@@ -572,7 +612,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010015ff000000008000055f6000e100025f5f5f6000e100066000e100011900",
+            expected_bytecode="ef000101000402"
+            "00010015ff000000008000055f6000e1"
+            "00025f5f5f6000e100066000e100011900",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_3",
@@ -591,7 +633,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010010ff000000008000055f6000e100025f5f5f6000e100015f00",
+            expected_bytecode="ef000101000402"
+            "00010010ff000000008000055f6000e100025f5f5f6000e100015f00",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_4",
@@ -613,7 +656,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=6,
                 ),
             ],
-            expected_bytecode="ef00010100040200010016ff000000008000065f6000e100025f5f5f6000e100075f6000e100011900",
+            expected_bytecode="ef000101000402"
+            "00010016ff000000008000065f6000e1"
+            "00025f5f5f6000e100075f6000e100011900",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_5",
@@ -637,7 +682,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=6,
                 ),
             ],
-            expected_bytecode="ef00010100040200010018ff000000008000065f6000e100025f5f5f60010180600a11e1000480e1fff200",
+            expected_bytecode="ef000101000402"
+            "00010018ff000000008000065f6000e1"
+            "00025f5f5f60010180600a11e1000480e1fff200",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_6",
@@ -662,7 +709,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=6,
                 ),
             ],
-            expected_bytecode="ef00010100040200010019ff000000008000065f6000e100025f5f5f60010180600a11e100055f80e1fff300",
+            expected_bytecode="ef000101000402"
+            "00010019ff000000008000065f6000e1"
+            "00025f5f5f60010180600a11e100055f80e1fff300",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_7",
@@ -683,7 +732,8 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010014ff000000008000055f6000e100025f5f5f6000e100045fe000015f00",
+            expected_bytecode="ef000101000402"
+            "00010014ff000000008000055f6000e100025f5f5f6000e100045fe000015f00",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_8",
@@ -704,7 +754,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010014ff000000008000055f6000e100025f5f5f6000e100045fe000011900",
+            expected_bytecode="ef000101000402"
+            "00010014ff000000008000055f6000e1"
+            "00025f5f5f6000e100045fe000011900",
         ),
         Container(
             name="forwards_rjumpi_variable_stack_9",
@@ -725,7 +777,9 @@ def test_rjumpi_max_backward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010014ff000000008000055f6000e100025f5f5f6000e1000450e000015000",
+            expected_bytecode="ef000101000402"
+            "00010014ff000000008000055f6000e1"
+            "00025f5f5f6000e1000450e000015000",
         ),
     ],
     ids=lambda x: x.name,
@@ -752,17 +806,23 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=1,
                 ),
             ],
-            expected_bytecode="ef00010100040200010006ff000000008000016000e1fffb00",
+            expected_bytecode="ef000101000402"
+            "00010006ff000000008000016000e1fffb00",
         ),
         Container(
             name="backwards_rjumpi_1",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.POP + Op.PUSH1[0] + Op.RJUMPI[-7] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.POP
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[-7]
+                    + Op.STOP,
                     max_stack_increase=1,
                 ),
             ],
-            expected_bytecode="ef00010100040200010008ff000000008000015f506000e1fff900",
+            expected_bytecode="ef000101000402"
+            "00010008ff000000008000015f506000e1fff900",
         ),
         Container(
             name="backwards_rjumpi_2",
@@ -778,27 +838,39 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=1,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000dff000000008000015f506000e1fff96000e1fff400",
+            expected_bytecode="ef000101000402"
+            "0001000dff000000008000015f506000e1fff96000e1fff400",
         ),
         Container(
             name="backwards_rjumpi_4",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[1] + Op.ADD + Op.DUP1 + Op.RJUMPI[-7] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[1]
+                    + Op.ADD
+                    + Op.DUP1
+                    + Op.RJUMPI[-7]
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef00010100040200010009ff00000000800002 5f60010180e1fff900",
+            expected_bytecode="ef000101000402"
+            "00010009ff00000000800002 5f60010180e1fff900",
         ),
         Container(
             name="backwards_rjumpi_7",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.POP + Op.PUSH1[0] + Op.RJUMPI[-7] + Op.RJUMP[-10],
+                    code=Op.PUSH0
+                    + Op.POP
+                    + Op.PUSH1[0]
+                    + Op.RJUMPI[-7]
+                    + Op.RJUMP[-10],
                     max_stack_increase=1,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000aff000000008000015f506000e1fff9e0fff6",
+            expected_bytecode="ef000101000402"
+            "0001000aff000000008000015f506000e1fff9e0fff6",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_0",
@@ -815,7 +887,8 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=4,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000eff000000008000045f6000e100025f5f6000e1fffb00",
+            expected_bytecode="ef000101000402"
+            "0001000eff000000008000045f6000e100025f5f6000e1fffb00",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_1",
@@ -834,7 +907,8 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=4,
                 ),
             ],
-            expected_bytecode="ef00010100040200010010ff000000008000045f6000e100025f5f5f506000e1fff900",
+            expected_bytecode="ef000101000402"
+            "00010010ff000000008000045f6000e100025f5f5f506000e1fff900",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_2",
@@ -855,7 +929,9 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=4,
                 ),
             ],
-            expected_bytecode="ef00010100040200010015ff000000008000045f6000e100025f5f5f506000e1fff96000e1fff400",
+            expected_bytecode="ef000101000402"
+            "00010015ff000000008000045f6000e1"
+            "00025f5f5f506000e1fff96000e1fff400",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_4",
@@ -875,7 +951,9 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010011ff000000008000055f6000e100025f5f5f60010180e1fff900",
+            expected_bytecode="ef000101000402"
+            "00010011ff000000008000055f6000e1"
+            "00025f5f5f60010180e1fff900",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_7",
@@ -894,7 +972,9 @@ def test_rjumpi_valid_forward(
                     max_stack_increase=4,
                 ),
             ],
-            expected_bytecode="ef00010100040200010012ff000000008000045f6000e100025f5f5f506000e1fff9e0fff6",
+            expected_bytecode="ef000101000402"
+            "00010012ff000000008000045f6000e1"
+            "00025f5f5f506000e1fff9e0fff6",
         ),
     ],
     ids=lambda x: x.name,
@@ -918,7 +998,11 @@ def test_rjumpi_max_bytecode_size(
     exceed the maximum bytecode size.
     """
     noop_count = MAX_BYTECODE_SIZE - 24
-    code = Op.RJUMPI[len(Op.NOOP) * noop_count](Op.ORIGIN) + (Op.NOOP * noop_count) + Op.STOP
+    code = (
+        Op.RJUMPI[len(Op.NOOP) * noop_count](Op.ORIGIN)
+        + (Op.NOOP * noop_count)
+        + Op.STOP
+    )
     container = Container.Code(code=code)
     assert len(container) == MAX_BYTECODE_SIZE
     eof_test(container=container)
@@ -1087,13 +1171,17 @@ def test_rjumpi_into_self(
     # Create variadic stack height by the parametrized spread.
     stack_spread_code = Bytecode()
     if stack_height_spread >= 0:
-        stack_spread_code = Op.RJUMPI[stack_height_spread](0) + Op.PUSH0 * stack_height_spread
+        stack_spread_code = (
+            Op.RJUMPI[stack_height_spread](0) + Op.PUSH0 * stack_height_spread
+        )
 
     eof_test(
         container=Container(
             sections=[
                 Section.Code(
-                    code=stack_spread_code + Op.RJUMPI[-len(Op.RJUMPI[0])](0) + Op.STOP,
+                    code=stack_spread_code
+                    + Op.RJUMPI[-len(Op.RJUMPI[0])](0)
+                    + Op.STOP,
                 )
             ],
         ),
@@ -1114,7 +1202,13 @@ def test_rjumpi_into_stack_height_diff(
                 Section.Code(
                     code=Op.PUSH1(0)
                     + Op.PUSH1(0)
-                    + Op.RJUMPI[-(len(Op.RJUMPI[0]) + len(Op.PUSH1(0)) + len(Op.PUSH1(0)))]
+                    + Op.RJUMPI[
+                        -(
+                            len(Op.RJUMPI[0])
+                            + len(Op.PUSH1(0))
+                            + len(Op.PUSH1(0))
+                        )
+                    ]
                     + Op.STOP,
                 ),
             ],
@@ -1134,7 +1228,11 @@ def test_rjumpi_into_stack_underflow(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.ORIGIN + Op.RJUMPI[len(Op.STOP)] + Op.STOP + Op.POP + Op.STOP
+                    code=Op.ORIGIN
+                    + Op.RJUMPI[len(Op.STOP)]
+                    + Op.STOP
+                    + Op.POP
+                    + Op.STOP
                 ),
             ],
         ),
@@ -1152,7 +1250,9 @@ def test_rjumpi_skips_stack_underflow(
     eof_test(
         container=Container(
             sections=[
-                Section.Code(code=Op.ORIGIN + Op.RJUMPI[len(Op.POP)] + Op.POP + Op.STOP),
+                Section.Code(
+                    code=Op.ORIGIN + Op.RJUMPI[len(Op.POP)] + Op.POP + Op.STOP
+                ),
             ],
         ),
         expect_exception=EOFException.STACK_UNDERFLOW,
@@ -1202,7 +1302,9 @@ def test_rjumpi_into_rjumpi(
     )
 
 
-@pytest.mark.parametrize("jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD])
+@pytest.mark.parametrize(
+    "jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD]
+)
 def test_rjumpi_into_push_1(
     eof_test: EOFTestFiller,
     jump: JumpDirection,
@@ -1262,7 +1364,9 @@ def test_rjumpi_into_push_1(
         Op.PUSH32,
     ],
 )
-@pytest.mark.parametrize("jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD])
+@pytest.mark.parametrize(
+    "jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD]
+)
 @pytest.mark.parametrize(
     "data_portion_end",
     [True, False],
@@ -1310,7 +1414,9 @@ def test_rjumpi_into_rjumpv(
     EOF1I4200_0025 (Invalid) EOF code containing RJUMPI with target RJUMPV
     immediate.
     """
-    invalid_destination = 4 + (2 * target_rjumpv_table_size) if data_portion_end else 4
+    invalid_destination = (
+        4 + (2 * target_rjumpv_table_size) if data_portion_end else 4
+    )
     target_jump_table = [0 for _ in range(target_rjumpv_table_size)]
     eof_test(
         container=Container(
@@ -1347,7 +1453,10 @@ def test_rjumpi_into_callf(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH1(1) + Op.RJUMPI[invalid_destination] + Op.CALLF[1] + Op.STOP,
+                    code=Op.PUSH1(1)
+                    + Op.RJUMPI[invalid_destination]
+                    + Op.CALLF[1]
+                    + Op.STOP,
                 ),
                 Section.Code(
                     code=Op.SSTORE(1, 1) + Op.RETF,
@@ -1434,7 +1543,10 @@ def test_rjumpi_into_eofcreate(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 * 5 + Op.RJUMPI[1] + Op.EOFCREATE[0] + Op.STOP,
+                    code=Op.PUSH0 * 5
+                    + Op.RJUMPI[1]
+                    + Op.EOFCREATE[0]
+                    + Op.STOP,
                 ),
                 Section.Container(
                     container=Container(
@@ -1468,7 +1580,9 @@ def test_rjumpi_into_returncode(
                     container=Container(
                         sections=[
                             Section.Code(
-                                code=Op.PUSH0 * 3 + Op.RJUMPI[1] + Op.RETURNCODE[0],
+                                code=Op.PUSH0 * 3
+                                + Op.RJUMPI[1]
+                                + Op.RETURNCODE[0],
                             ),
                             Section.Container(
                                 container=Container.Code(code=Op.STOP),
@@ -1509,7 +1623,9 @@ def test_rjumpi_stack_validation(
     Spec now allows this: 4.b in
     https://github.com/ipsilon/eof/blob/main/spec/eof.md#stack-validation.
     """
-    container = Container.Code(code=Op.RJUMPI[1](1) + Op.ADDRESS + Op.NOOP + Op.STOP)
+    container = Container.Code(
+        code=Op.RJUMPI[1](1) + Op.ADDRESS + Op.NOOP + Op.STOP
+    )
     eof_test(
         container=container,
         expect_exception=None,
@@ -1529,7 +1645,11 @@ def test_rjumpi_at_the_end(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH0 + Op.RJUMPI[1] + Op.STOP + Op.RJUMPI[-4],
+                    code=Op.PUSH0
+                    + Op.PUSH0
+                    + Op.RJUMPI[1]
+                    + Op.STOP
+                    + Op.RJUMPI[-4],
                 )
             ],
         ),
@@ -1655,7 +1775,9 @@ def test_double_rjumpi_stack_height_mismatch(
                     + Op.PUSH0  # (1, 1)
                     + Op.RJUMPI[3]  # (2, 2) to LAST
                     + Op.RJUMPI[0]  # (1, 1) to LAST
-                    + Op.RJUMP[-11],  # LAST: (0, 1) to BEGIN; stack height mismatch
+                    + Op.RJUMP[
+                        -11
+                    ],  # LAST: (0, 1) to BEGIN; stack height mismatch
                     max_stack_increase=2,
                 ),
             ],
@@ -1707,7 +1829,8 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=3,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000eff0000000080000360be6000e10001506000e1fff500",
+            expected_bytecode="ef000101000402"
+            "0001000eff0000000080000360be6000e10001506000e1fff500",
         ),
         Container(
             name="backwards_rjumpi_3",
@@ -1724,7 +1847,8 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000eff000000008000025f506000e1fff95f6000e1fff300",
+            expected_bytecode="ef000101000402"
+            "0001000eff000000008000025f506000e1fff95f6000e1fff300",
         ),
         Container(
             name="backwards_rjumpi_5",
@@ -1740,7 +1864,8 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=2,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000aff000000008000025f6001018080e1fff800",
+            expected_bytecode="ef000101000402"
+            "0001000aff000000008000025f6001018080e1fff800",
         ),
         Container(
             name="backwards_rjumpi_8",
@@ -1770,7 +1895,8 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=3,
                 ),
             ],
-            expected_bytecode="ef0001010004020001000dff000000008000035f6000e100015f6000e1fff500",
+            expected_bytecode="ef000101000402"
+            "0001000dff000000008000035f6000e100015f6000e1fff500",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_3",
@@ -1792,7 +1918,9 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010016ff000000008000055f6000e100025f5f5f506000e1fff95f6000e1fff300",
+            expected_bytecode="ef000101000402"
+            "00010016ff000000008000055f6000e1"
+            "00025f5f5f506000e1fff95f6000e1fff300",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_5",
@@ -1813,7 +1941,9 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010012ff000000008000055f6000e100025f5f5f6001018080e1fff800",
+            expected_bytecode="ef000101000402"
+            "00010012ff000000008000055f6000e1"
+            "00025f5f5f6001018080e1fff800",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_6",
@@ -1833,7 +1963,9 @@ def test_double_rjumpi_invalid_max_stack_height(
                     max_stack_increase=5,
                 ),
             ],
-            expected_bytecode="ef00010100040200010010ff000000008000055f6000e100025f5f5f5f5f50e1fffc00",
+            expected_bytecode="ef000101000402"
+            "00010010ff000000008000055f6000e1"
+            "00025f5f5f5f5f50e1fffc00",
         ),
         Container(
             name="backwards_rjumpi_variable_stack_6a",
@@ -1884,4 +2016,7 @@ def test_rjumpi_backward_invalid_max_stack_height(
     Validate a code section containing at least one backward RJUMPI invalid
     because of the incorrect max stack height.
     """
-    eof_test(container=container, expect_exception=EOFException.STACK_HEIGHT_MISMATCH)
+    eof_test(
+        container=container,
+        expect_exception=EOFException.STACK_HEIGHT_MISMATCH,
+    )

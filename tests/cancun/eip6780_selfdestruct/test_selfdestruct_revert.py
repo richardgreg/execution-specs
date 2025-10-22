@@ -3,7 +3,6 @@
 from typing import Dict
 
 import pytest
-
 from ethereum_test_forks import Cancun
 from ethereum_test_tools import (
     EOA,
@@ -255,7 +254,9 @@ def selfdestruct_with_transfer_contract_address(
 
 
 @pytest.fixture
-def selfdestruct_with_transfer_contract_code(selfdestruct_recipient_address: Address) -> Bytecode:
+def selfdestruct_with_transfer_contract_code(
+    selfdestruct_recipient_address: Address,
+) -> Bytecode:
     """Contract that can selfdestruct and receive value."""
     code: Bytecode = (
         Op.PUSH0

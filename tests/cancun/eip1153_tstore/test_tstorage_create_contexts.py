@@ -5,7 +5,6 @@ Test transient storage in contract creation contexts.
 from enum import unique
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Address,
@@ -37,7 +36,8 @@ class InitcodeTestCases(PytestParameterEnum):
 
     ONLY_CONSTRUCTOR_CODE = {
         "description": (
-            "Test TLOAD and TSTORE behavior in contract constructor without deployed code"
+            "Test TLOAD and TSTORE behavior in contract constructor without"
+            " deployed code"
         ),
         "constructor_code": (
             # test creator's transient storage inaccessible from constructor
@@ -52,7 +52,8 @@ class InitcodeTestCases(PytestParameterEnum):
         "expected_storage": {0: 0x0000, 1: 0x0001},
     }
     IN_CONSTRUCTOR_AND_DEPLOYED_CODE = {
-        "description": "Test TLOAD and TSTORE behavior in contract constructor and deployed code",
+        "description": "Test TLOAD and TSTORE behavior in contract "
+        "constructor and deployed code",
         "constructor_code": (
             # test creator's transient storage inaccessible from constructor
             # code
@@ -69,7 +70,10 @@ class InitcodeTestCases(PytestParameterEnum):
         "expected_storage": {0: 0x0000, 1: 0x0000, 2: 0x0001},
     }
     ACROSS_CONSTRUCTOR_AND_DEPLOYED_CODE_V0 = {
-        "description": ("Test TSTORE behavior across contract constructor and deploy code. "),
+        "description": (
+            "Test TSTORE behavior across contract constructor "
+            "and deploy code. "
+        ),
         "constructor_code": (
             # constructor code should be able to store its own transient
             # storage
@@ -90,7 +94,8 @@ class InitcodeTestCases(PytestParameterEnum):
     }
     ACROSS_CONSTRUCTOR_AND_DEPLOYED_CODE_V1 = {
         "description": (
-            "Test TSTORE and TLOAD behavior across contract constructor and deploy code",
+            "Test TSTORE and TLOAD behavior across contract constructor "
+            "and deploy code",
         ),
         "constructor_code": (
             # test creator's transient storage inaccessible from constructor
@@ -111,11 +116,18 @@ class InitcodeTestCases(PytestParameterEnum):
             + Op.TSTORE(2, 1)
             + Op.SSTORE(4, Op.TLOAD(2))
         ),
-        "expected_storage": {0: 0x0000, 1: 0x0001, 2: 0x0000, 3: 0x0001, 4: 0x0001},
+        "expected_storage": {
+            0: 0x0000,
+            1: 0x0001,
+            2: 0x0000,
+            3: 0x0001,
+            4: 0x0001,
+        },
     }
     NO_CONSTRUCTOR_CODE = {
         "description": (
-            "Test TLOAD and TSTORE behavior in contract deployed code with no constructor code"
+            "Test TLOAD and TSTORE behavior in contract deployed code with "
+            "no constructor code"
         ),
         "constructor_code": Bytecode(),
         "deploy_code": (
@@ -153,7 +165,9 @@ class TestTransientStorageInContractCreation:
         deploy_code: Bytecode,
         constructor_code: Bytecode,
     ) -> Initcode:
-        return Initcode(deploy_code=deploy_code, initcode_prefix=constructor_code)
+        return Initcode(
+            deploy_code=deploy_code, initcode_prefix=constructor_code
+        )
 
     @pytest.fixture()
     def creator_contract_code(  # noqa: D102
@@ -184,7 +198,9 @@ class TestTransientStorageInContractCreation:
         )
 
     @pytest.fixture()
-    def creator_address(self, pre: Alloc, creator_contract_code: Bytecode) -> Address:
+    def creator_address(
+        self, pre: Alloc, creator_contract_code: Bytecode
+    ) -> Address:
         """Address that creates the contract with create/create2."""
         return pre.deploy_contract(creator_contract_code)
 
@@ -194,7 +210,11 @@ class TestTransientStorageInContractCreation:
 
     @pytest.fixture()
     def created_contract_address(  # noqa: D102
-        self, creator_address: Address, opcode: Op, create2_salt: int, initcode: Initcode
+        self,
+        creator_address: Address,
+        opcode: Op,
+        create2_salt: int,
+        initcode: Initcode,
     ) -> Address:
         return compute_create_address(
             address=creator_address,

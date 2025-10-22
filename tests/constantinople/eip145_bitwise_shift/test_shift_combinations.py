@@ -4,7 +4,6 @@ import itertools
 from typing import Callable
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Alloc,
@@ -68,7 +67,10 @@ def test_combinations(
     address_to = pre.deploy_contract(
         code=sum(
             Op.SSTORE(
-                result.store_next(operation(shift=a, value=b), f"{str(opcode).lower()}({a}, {b})"),
+                result.store_next(
+                    operation(shift=a, value=b),
+                    f"{str(opcode).lower()}({a}, {b})",
+                ),
                 opcode(a, b),
             )
             for a, b in combinations

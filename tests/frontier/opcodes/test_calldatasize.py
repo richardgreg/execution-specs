@@ -1,7 +1,6 @@
 """test `CALLDATASIZE` opcode."""
 
 import pytest
-
 from ethereum_test_forks import Byzantium, Fork
 from ethereum_test_tools import Account, Alloc, StateTestFiller, Transaction
 from ethereum_test_tools import Macros as Om
@@ -41,7 +40,9 @@ def test_calldatasize(
     81862e4848585a438d64f911a19b3825f0f4cd95/src/
     GeneralStateTestsFiller/VMTests/vmTests/calldatasizeFiller.yml
     """
-    contract_address = pre.deploy_contract(Op.SSTORE(key=0x0, value=Op.CALLDATASIZE))
+    contract_address = pre.deploy_contract(
+        Op.SSTORE(key=0x0, value=Op.CALLDATASIZE)
+    )
     calldata = b"\x01" * args_size
 
     if calldata_source == "contract":

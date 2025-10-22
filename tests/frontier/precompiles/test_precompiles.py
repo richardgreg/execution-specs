@@ -3,7 +3,6 @@
 from typing import Iterator, Tuple
 
 import pytest
-
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
     Account,
@@ -47,16 +46,22 @@ def precompile_addresses(fork: Fork) -> Iterator[Tuple[Address, bool]]:
     ],
     pr=["https://github.com/ethereum/execution-spec-tests/pull/1120"],
     coverage_missed_reason=(
-        "Original test saves variables to memory, loads from storage, uses calldataload to get "
-        "the precompile address to call, uses lt and gt to compare the gas differences, "
-        "sends non-zero data and value with the transaction, uses conditional jumps to save "
-        "different values to storage."
+        "Original test saves variables to memory, loads from storage, uses "
+        "calldataload to get the precompile address to call, uses lt and gt "
+        "to compare the gas differences, sends non-zero data and value with "
+        "the transaction, uses conditional jumps to save different values to "
+        "storage."
     ),
 )
 @pytest.mark.valid_from("Berlin")
-@pytest.mark.parametrize_by_fork("address,precompile_exists", precompile_addresses)
+@pytest.mark.parametrize_by_fork(
+    "address,precompile_exists", precompile_addresses
+)
 def test_precompiles(
-    state_test: StateTestFiller, address: Address, precompile_exists: bool, pre: Alloc
+    state_test: StateTestFiller,
+    address: Address,
+    precompile_exists: bool,
+    pre: Alloc,
 ) -> None:
     """
     Tests the behavior of precompiled contracts in the Ethereum state test.
@@ -88,7 +93,9 @@ def test_precompiles(
     length = 32
 
     account = pre.deploy_contract(
-        Op.MSTORE(args_offset, 0xFF)  # Pre-expand the memory and setup inputs for pre-compiles
+        Op.MSTORE(
+            args_offset, 0xFF
+        )  # Pre-expand the memory and setup inputs for pre-compiles
         + Op.MSTORE(ret_offset, 0xFF)
         + Op.MSTORE8(args_offset, 0xFF)
         + Op.MSTORE8(ret_offset, 0xFF)

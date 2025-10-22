@@ -6,8 +6,14 @@ https://eips.ethereum.org/EIPS/eip-1153.
 from typing import Dict, Union
 
 import pytest
-
-from ethereum_test_tools import Account, Address, Alloc, Environment, StateTestFiller, Transaction
+from ethereum_test_tools import (
+    Account,
+    Address,
+    Alloc,
+    Environment,
+    StateTestFiller,
+    Transaction,
+)
 from ethereum_test_vm import Opcodes as Op
 
 from .spec import Spec, ref_spec_1153
@@ -217,22 +223,33 @@ def test_basic_tload_gasprice(
         code=Op.JUMPDEST()
         # 16 test
         + Op.TSTORE(16, 2)
-        + Op.MSTORE(0, Op.GAS())  # hot load the memory to make the extra_opcode_gas be 11
+        + Op.MSTORE(
+            0, Op.GAS()
+        )  # hot load the memory to make the extra_opcode_gas be 11
         + Op.MSTORE(0, Op.GAS())
         + Op.TLOAD(16)
         + Op.MSTORE(32, Op.GAS())
-        + Op.SSTORE(slot_tload_nonzero_gas_price_result, Op.SUB(Op.MLOAD(0), Op.MLOAD(32)))
         + Op.SSTORE(
             slot_tload_nonzero_gas_price_result,
-            Op.SUB(Op.SLOAD(slot_tload_nonzero_gas_price_result), extra_opcode_gas),
+            Op.SUB(Op.MLOAD(0), Op.MLOAD(32)),
+        )
+        + Op.SSTORE(
+            slot_tload_nonzero_gas_price_result,
+            Op.SUB(
+                Op.SLOAD(slot_tload_nonzero_gas_price_result), extra_opcode_gas
+            ),
         )
         + Op.MSTORE(0, Op.GAS())
         + Op.TLOAD(5)  # tload slot at 5 is 0
         + Op.MSTORE(32, Op.GAS())
-        + Op.SSTORE(slot_tload_zero_gas_price_result, Op.SUB(Op.MLOAD(0), Op.MLOAD(32)))
+        + Op.SSTORE(
+            slot_tload_zero_gas_price_result, Op.SUB(Op.MLOAD(0), Op.MLOAD(32))
+        )
         + Op.SSTORE(
             slot_tload_zero_gas_price_result,
-            Op.SUB(Op.SLOAD(slot_tload_zero_gas_price_result), extra_opcode_gas),
+            Op.SUB(
+                Op.SLOAD(slot_tload_zero_gas_price_result), extra_opcode_gas
+            ),
         )
         + Op.SSTORE(slot_code_worked, 1),
         storage={
@@ -287,7 +304,10 @@ def test_basic_tload_after_store(
         code=Op.JUMPDEST()
         # 18 test
         + Op.SSTORE(slot_tload_from_sstore_result, 22)
-        + Op.SSTORE(slot_tload_from_sstore_result, Op.TLOAD(slot_tload_from_sstore_result))
+        + Op.SSTORE(
+            slot_tload_from_sstore_result,
+            Op.TLOAD(slot_tload_from_sstore_result),
+        )
         + Op.SSTORE(slot_code_worked, 1),
         storage={
             slot_tload_from_sstore_result: 0xFF,

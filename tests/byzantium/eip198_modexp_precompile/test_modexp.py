@@ -6,7 +6,6 @@ from the EIP are labelled with `EIP-198-caseX` in the test id.
 """
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Alloc,
@@ -264,13 +263,16 @@ REFERENCE_SPEC_VERSION = "5c8f066acb210c704ef80c1033a941aa5374aac5"
             marks=pytest.mark.skip(
                 reason=(
                     "EELS bug: U256 overflow in modexp pointer arithmetic "
-                    "before Osaka - see github.com/ethereum/execution-specs/issues/1465"
+                    "before Osaka - see "
+                    "github.com/ethereum/execution-specs/issues/1465"
                 )
             ),
             id="max-base-length-overflow-out-of-gas",
         ),
         pytest.param(
-            Bytes("ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0"),
+            Bytes(
+                "ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffa0"
+            ),
             ModExpOutput(
                 call_success=False,
                 returned_data="0000000000000000000000000000000000000000000000000000000000000000",
@@ -279,7 +281,8 @@ REFERENCE_SPEC_VERSION = "5c8f066acb210c704ef80c1033a941aa5374aac5"
             marks=pytest.mark.skip(
                 reason=(
                     "EELS bug: U256 overflow in modexp pointer arithmetic "
-                    "before Osaka - see github.com/ethereum/execution-specs/issues/1465"
+                    "before Osaka - see "
+                    "github.com/ethereum/execution-specs/issues/1465"
                 )
             ),
             id="immunefi-38958-by-omik-overflow",

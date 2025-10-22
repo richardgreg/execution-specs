@@ -6,7 +6,6 @@ from enum import Enum, Flag, auto
 from typing import Dict, List
 
 import pytest
-
 from ethereum_test_forks import Fork, Prague
 from ethereum_test_tools import (
     Address,
@@ -66,7 +65,9 @@ def data_test_type() -> DataTestType:
 
 
 @pytest.fixture
-def authorization_list(pre: Alloc, refund_type: RefundType) -> List[AuthorizationTuple] | None:
+def authorization_list(
+    pre: Alloc, refund_type: RefundType
+) -> List[AuthorizationTuple] | None:
     """
     Modify fixture from conftest to automatically read the refund_type
     information.
@@ -91,7 +92,11 @@ def ty(refund_type: RefundType) -> int:
 def max_refund(fork: Fork, refund_type: RefundType) -> int:
     """Return the max refund gas of the transaction."""
     gas_costs = fork.gas_costs()
-    max_refund = gas_costs.R_STORAGE_CLEAR if RefundType.STORAGE_CLEAR in refund_type else 0
+    max_refund = (
+        gas_costs.R_STORAGE_CLEAR
+        if RefundType.STORAGE_CLEAR in refund_type
+        else 0
+    )
     max_refund += (
         gas_costs.R_AUTHORIZATION_EXISTING_AUTHORITY
         if RefundType.AUTHORIZATION_EXISTING_AUTHORITY in refund_type
@@ -106,7 +111,11 @@ def prefix_code_gas(fork: Fork, refund_type: RefundType) -> int:
     if RefundType.STORAGE_CLEAR in refund_type:
         # Minimum code to generate a storage clear is Op.SSTORE(0, 0).
         gas_costs = fork.gas_costs()
-        return gas_costs.G_COLD_SLOAD + gas_costs.G_STORAGE_RESET + (gas_costs.G_VERY_LOW * 2)
+        return (
+            gas_costs.G_COLD_SLOAD
+            + gas_costs.G_STORAGE_RESET
+            + (gas_costs.G_VERY_LOW * 2)
+        )
     return 0
 
 
@@ -182,19 +191,29 @@ def execution_gas_used(
     execution_gas = prefix_code_gas
 
     assert execution_gas_cost(execution_gas) < tx_floor_data_cost, (
-        "tx_floor_data_cost is too low, there might have been a gas cost change that caused this "
-        "test to fail. Try increasing the intrinsic_gas_data_floor_minimum_delta fixture."
+        "tx_floor_data_cost is too low, there might have been a gas cost "
+        "change that caused this test to fail. Try increasing the "
+        "intrinsic_gas_data_floor_minimum_delta fixture."
     )
 
     # Dumb for-loop to find the execution gas cost that will result in the
     # expected refund.
     while execution_gas_cost(execution_gas) < tx_floor_data_cost:
         execution_gas += 1
-    if refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_EQUAL_TO_DATA_FLOOR:
+    if (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_EQUAL_TO_DATA_FLOOR
+    ):
         return execution_gas
-    elif refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_GREATER_THAN_DATA_FLOOR:
+    elif (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_GREATER_THAN_DATA_FLOOR
+    ):
         return execution_gas + 1
-    elif refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_LESS_THAN_DATA_FLOOR:
+    elif (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_LESS_THAN_DATA_FLOOR
+    ):
         return execution_gas - 1
 
     raise ValueError("Invalid refund test type")
@@ -207,7 +226,9 @@ def refund(
     max_refund: int,
 ) -> int:
     """Return the refund gas of the transaction."""
-    total_gas_used = tx_intrinsic_gas_cost_before_execution + execution_gas_used
+    total_gas_used = (
+        tx_intrinsic_gas_cost_before_execution + execution_gas_used
+    )
     return min(max_refund, total_gas_used // 5)
 
 
@@ -281,12 +302,23 @@ def test_gas_refunds_from_data_floor(
     Test gas refunds deducted from the execution gas cost and not the data
     floor.
     """
-    gas_used = tx_intrinsic_gas_cost_before_execution + execution_gas_used - refund
-    if refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_LESS_THAN_DATA_FLOOR:
+    gas_used = (
+        tx_intrinsic_gas_cost_before_execution + execution_gas_used - refund
+    )
+    if (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_LESS_THAN_DATA_FLOOR
+    ):
         assert gas_used < tx_floor_data_cost
-    elif refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_GREATER_THAN_DATA_FLOOR:
+    elif (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_GREATER_THAN_DATA_FLOOR
+    ):
         assert gas_used > tx_floor_data_cost
-    elif refund_test_type == RefundTestType.EXECUTION_GAS_MINUS_REFUND_EQUAL_TO_DATA_FLOOR:
+    elif (
+        refund_test_type
+        == RefundTestType.EXECUTION_GAS_MINUS_REFUND_EQUAL_TO_DATA_FLOOR
+    ):
         assert gas_used == tx_floor_data_cost
     else:
         raise ValueError("Invalid refund test type")

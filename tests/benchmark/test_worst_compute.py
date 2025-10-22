@@ -10,8 +10,6 @@ from typing import Any, Dict, cast
 
 import pytest
 from _pytest.mark import ParameterSet
-from py_ecc.bn128 import G1, G2, multiply
-
 from ethereum_test_base_types.base_types import Bytes
 from ethereum_test_benchmark import ExtCallGenerator, JumpLoopGenerator
 from ethereum_test_forks import Fork
@@ -27,6 +25,7 @@ from ethereum_test_tools import (
 from ethereum_test_types import TransactionType
 from ethereum_test_vm import Opcode
 from ethereum_test_vm import Opcodes as Op
+from py_ecc.bn128 import G1, G2, multiply
 
 from ..byzantium.eip198_modexp_precompile.test_modexp import ModExpInput
 from ..cancun.eip4844_blobs.spec import Spec as BlobsSpec
@@ -55,7 +54,9 @@ def make_dup(index: int) -> Opcode:
     element from the top of the stack. E.g. make_dup(0) → DUP1.
     """
     assert 0 <= index < 16
-    return Opcode(0x80 + index, pushed_stack_items=1, min_stack_height=index + 1)
+    return Opcode(
+        0x80 + index, pushed_stack_items=1, min_stack_height=index + 1
+    )
 
 
 @pytest.mark.parametrize(
@@ -121,9 +122,9 @@ def test_worst_callvalue(
     value. The `from_origin` parameter controls whether the call frame is the
     immediate from the transaction or a previous CALL.
     """
-    code_address = JumpLoopGenerator(attack_block=Op.POP(Op.CALLVALUE)).deploy_contracts(
-        pre=pre, fork=fork
-    )
+    code_address = JumpLoopGenerator(
+        attack_block=Op.POP(Op.CALLVALUE)
+    ).deploy_contracts(pre=pre, fork=fork)
 
     if from_origin:
         tx_to = code_address
@@ -191,11 +192,15 @@ def test_worst_returndatasize_nonzero(
         )
 
     benchmark_test(
-        code_generator=JumpLoopGenerator(setup=setup, attack_block=Op.POP(Op.RETURNDATASIZE)),
+        code_generator=JumpLoopGenerator(
+            setup=setup, attack_block=Op.POP(Op.RETURNDATASIZE)
+        ),
     )
 
 
-def test_worst_returndatasize_zero(benchmark_test: BenchmarkTestFiller) -> None:
+def test_worst_returndatasize_zero(
+    benchmark_test: BenchmarkTestFiller,
+) -> None:
     """
     Test running a block with as many RETURNDATASIZE opcodes as possible with
     a zero buffer.
@@ -253,7 +258,9 @@ def test_worst_keccak(
         )
         # From the available gas, we subtract the mem expansion costs
         # considering we know the current input size length i.
-        available_gas_after_expansion = max(0, available_gas - mem_exp_gas_calculator(new_bytes=i))
+        available_gas_after_expansion = max(
+            0, available_gas - mem_exp_gas_calculator(new_bytes=i)
+        )
         # Calculate how many calls we can do.
         num_keccak_calls = available_gas_after_expansion // iteration_gas_cost
         # KECCAK does 1 permutation every 136 bytes.
@@ -340,7 +347,9 @@ def test_worst_precompile_only_data_input(
         )
         # Calculate how many calls we can do.
         num_calls = available_gas_after_expansion // iteration_gas_cost
-        total_work = num_calls * math.ceil(input_length / bytes_per_unit_of_work)
+        total_work = num_calls * math.ceil(
+            input_length / bytes_per_unit_of_work
+        )
 
         # If we found an input size that is better (reg permutations/gas), then
         # save it.
@@ -348,11 +357,14 @@ def test_worst_precompile_only_data_input(
             max_work = total_work
             optimal_input_length = input_length
 
-    attack_block = Op.POP(Op.STATICCALL(Op.GAS, address, 0, optimal_input_length, 0, 0))
+    attack_block = Op.POP(
+        Op.STATICCALL(Op.GAS, address, 0, optimal_input_length, 0, 0)
+    )
 
     benchmark_test(
         code_generator=JumpLoopGenerator(
-            setup=Op.CODECOPY(0, 0, optimal_input_length), attack_block=attack_block
+            setup=Op.CODECOPY(0, 0, optimal_input_length),
+            attack_block=attack_block,
         ),
     )
 
@@ -371,15 +383,30 @@ def create_modexp_test_cases() -> list[ParameterSet]:
         (128 * "ff", 128 * "ff", 127 * "ff" + "00", "mod_even_128b_exp_1024"),
         (256 * "ff", 128 * "ff", 255 * "ff" + "00", "mod_even_256b_exp_1024"),
         (512 * "ff", 128 * "ff", 511 * "ff" + "00", "mod_even_512b_exp_1024"),
-        (1024 * "ff", 128 * "ff", 1023 * "ff" + "00", "mod_even_1024b_exp_1024"),
+        (
+            1024 * "ff",
+            128 * "ff",
+            1023 * "ff" + "00",
+            "mod_even_1024b_exp_1024",
+        ),
         (32 * "ff", 12 * "ff", 31 * "ff" + "01", "mod_odd_32b_exp_96"),
         (32 * "ff", 32 * "ff", 31 * "ff" + "01", "mod_odd_32b_exp_256"),
         (64 * "ff", 64 * "ff", 63 * "ff" + "01", "mod_odd_64b_exp_512"),
         (128 * "ff", 128 * "ff", 127 * "ff" + "01", "mod_odd_128b_exp_1024"),
         (256 * "ff", 128 * "ff", 255 * "ff" + "01", "mod_odd_256b_exp_1024"),
         (512 * "ff", 128 * "ff", 511 * "ff" + "01", "mod_odd_512b_exp_1024"),
-        (1024 * "ff", 128 * "ff", 1023 * "ff" + "01", "mod_odd_1024b_exp_1024"),
-        (32 * "ff", 8 * "12345670", 31 * "ff" + "01", "mod_odd_32b_exp_cover_windows"),
+        (
+            1024 * "ff",
+            128 * "ff",
+            1023 * "ff" + "01",
+            "mod_odd_1024b_exp_1024",
+        ),
+        (
+            32 * "ff",
+            8 * "12345670",
+            31 * "ff" + "01",
+            "mod_odd_32b_exp_cover_windows",
+        ),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L38
         (192 * "FF", "03", 6 * ("00" + 31 * "FF"), "mod_min_gas_base_heavy"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L40
@@ -399,19 +426,34 @@ def create_modexp_test_cases() -> list[ParameterSet]:
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L54
         (32 * "FF", 12 * "FF", "00" + 31 * "FF", "mod_pawel_4"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L56
-        (280 * "FF", "03", 8 * ("00" + 31 * "FF") + 23 * "FF", "mod_408_gas_base_heavy"),
+        (
+            280 * "FF",
+            "03",
+            8 * ("00" + 31 * "FF") + 23 * "FF",
+            "mod_408_gas_base_heavy",
+        ),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L58
         (16 * "FF", "15" + 37 * "FF", 15 * "FF", "mod_400_gas_exp_heavy"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L60
         (48 * "FF", "07" + 4 * "FF", "00" + 46 * "FF", "mod_408_gas_balanced"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L62
-        (344 * "FF", "03", 10 * ("00" + 31 * "FF") + 23 * "FF", "mod_616_gas_base_heavy"),
+        (
+            344 * "FF",
+            "03",
+            10 * ("00" + 31 * "FF") + 23 * "FF",
+            "mod_616_gas_base_heavy",
+        ),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L64
         (16 * "FF", "07" + 56 * "FF", 15 * "FF", "mod_600_gas_exp_heavy"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L66
         (48 * "FF", "07" + 6 * "FF", "00" + 46 * "FF", "mod_600_gas_balanced"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L68
-        (392 * "FF", "03", 12 * ("00" + 31 * "FF") + 7 * "FF", "mod_800_gas_base_heavy"),
+        (
+            392 * "FF",
+            "03",
+            12 * ("00" + 31 * "FF") + 7 * "FF",
+            "mod_800_gas_base_heavy",
+        ),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L70
         (16 * "FF", "01" + 75 * "FF", 15 * "FF", "mod_800_gas_exp_heavy"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L72
@@ -419,7 +461,12 @@ def create_modexp_test_cases() -> list[ParameterSet]:
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L74
         (16 * "FF", 80 * "FF", 15 * "FF", "mod_852_gas_exp_heavy"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L76
-        (408 * "FF", "03", 12 * ("00" + 31 * "FF") + 23 * "FF", "mod_867_gas_base_heavy"),
+        (
+            408 * "FF",
+            "03",
+            12 * ("00" + 31 * "FF") + 23 * "FF",
+            "mod_867_gas_base_heavy",
+        ),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L78
         (56 * "FF", "2b" + 7 * "FF", "00" + 54 * "FF", "mod_996_gas_balanced"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/Modexp.cs#L80
@@ -439,7 +486,12 @@ def create_modexp_test_cases() -> list[ParameterSet]:
         (32 * "FF", "01" + 8 * "FF", "00" + 31 * "FF", "mod_32_exp_65"),
         (32 * "FF", 16 * "FF", "00" + 31 * "FF", "mod_32_exp_128"),
         (256 * "FF", "03" + 0 * "FF", 8 * ("00" + 31 * "FF"), "mod_256_exp_2"),
-        (264 * "FF", "03" + 0 * "FF", 8 * ("00" + 31 * "FF") + 7 * "FF", "mod_264_exp_2"),
+        (
+            264 * "FF",
+            "03" + 0 * "FF",
+            8 * ("00" + 31 * "FF") + 7 * "FF",
+            "mod_264_exp_2",
+        ),
         (1024 * "FF", "03", 32 * ("00" + 31 * "FF"), "mod_1024_exp_2"),
         # Ported from https://github.com/NethermindEth/nethermind/blob/ceb8d57b8530ce8181d7427c115ca593386909d6/tools/EngineRequestsGenerator/TestCases/ModexpVulnerability.cs#L122
         (
@@ -709,7 +761,9 @@ def test_worst_modexp(
     possible. All the calls have the same parametrized input.
     """
     attack_block = Op.POP(
-        Op.STATICCALL(Op.GAS, 0x5, Op.PUSH0, Op.CALLDATASIZE, Op.PUSH0, Op.PUSH0)
+        Op.STATICCALL(
+            Op.GAS, 0x5, Op.PUSH0, Op.CALLDATASIZE, Op.PUSH0, Op.PUSH0
+        )
     )
     benchmark_test(
         code_generator=JumpLoopGenerator(
@@ -1061,7 +1115,10 @@ def test_worst_modexp(
         pytest.param(
             bls12381_spec.Spec.G1MSM,
             [
-                (bls12381_spec.Spec.P1 + bls12381_spec.Scalar(bls12381_spec.Spec.Q))
+                (
+                    bls12381_spec.Spec.P1
+                    + bls12381_spec.Scalar(bls12381_spec.Spec.Q)
+                )
                 * (len(bls12381_spec.Spec.G1MSM_DISCOUNT_TABLE) - 1),
             ],
             id="bls12_g1msm",
@@ -1081,7 +1138,10 @@ def test_worst_modexp(
                 # contract size limit. In a further iteration we can insert the
                 # inputs as calldata or storage and avoid having to do PUSHes
                 # which has this limitation. This also applies to G1MSM.
-                (bls12381_spec.Spec.P2 + bls12381_spec.Scalar(bls12381_spec.Spec.Q))
+                (
+                    bls12381_spec.Spec.P2
+                    + bls12381_spec.Scalar(bls12381_spec.Spec.Q)
+                )
                 * (len(bls12381_spec.Spec.G2MSM_DISCOUNT_TABLE) // 2),
             ],
             id="bls12_g2msm",
@@ -1104,7 +1164,9 @@ def test_worst_modexp(
         pytest.param(
             bls12381_spec.Spec.MAP_FP2_TO_G2,
             [
-                bls12381_spec.FP2((bls12381_spec.Spec.P - 1, bls12381_spec.Spec.P - 1)),
+                bls12381_spec.FP2(
+                    (bls12381_spec.Spec.P - 1, bls12381_spec.Spec.P - 1)
+                ),
             ],
             id="bls12_fp_to_g2",
         ),
@@ -1118,7 +1180,11 @@ def test_worst_modexp(
                 p256verify_spec.Spec.Y0,
             ],
             id="p256verify",
-            marks=[pytest.mark.eip_checklist("precompile/test/excessive_gas_usage", eip=[7951])],
+            marks=[
+                pytest.mark.eip_checklist(
+                    "precompile/test/excessive_gas_usage", eip=[7951]
+                )
+            ],
         ),
         pytest.param(
             p256verify_spec.Spec.P256VERIFY,
@@ -1159,15 +1225,22 @@ def test_worst_precompile_fixed_cost(
         parameters_str = cast(list[str], parameters)
         concatenated_hex_string = "".join(parameters_str)
         concatenated_bytes = bytes.fromhex(concatenated_hex_string)
-    elif all(isinstance(p, (bytes, BytesConcatenation, FieldElement)) for p in parameters):
+    elif all(
+        isinstance(p, (bytes, BytesConcatenation, FieldElement))
+        for p in parameters
+    ):
         parameters_bytes_list = [
-            bytes(p) for p in cast(list[BytesConcatenation | bytes | FieldElement], parameters)
+            bytes(p)
+            for p in cast(
+                list[BytesConcatenation | bytes | FieldElement], parameters
+            )
         ]
         concatenated_bytes = b"".join(parameters_bytes_list)
     else:
         raise TypeError(
             "parameters must be a list of strings (hex) "
-            "or a list of byte-like objects (bytes, BytesConcatenation or FieldElement)."
+            "or a list of byte-like objects (bytes, BytesConcatenation or "
+            "FieldElement)."
         )
 
     padding_length = (32 - (len(concatenated_bytes) % 32)) % 32
@@ -1180,11 +1253,15 @@ def test_worst_precompile_fixed_cost(
         setup += Op.MSTORE(i, value_to_store)
 
     attack_block = Op.POP(
-        Op.STATICCALL(Op.GAS, precompile_address, 0, len(concatenated_bytes), 0, 0)
+        Op.STATICCALL(
+            Op.GAS, precompile_address, 0, len(concatenated_bytes), 0, 0
+        )
     )
 
     benchmark_test(
-        code_generator=JumpLoopGenerator(setup=setup, attack_block=attack_block),
+        code_generator=JumpLoopGenerator(
+            setup=setup, attack_block=attack_block
+        ),
     )
 
 
@@ -1206,7 +1283,9 @@ def test_worst_jumpi_fallthrough(
 ) -> None:
     """Test running a JUMPI-intensive contract with fallthrough."""
     benchmark_test(
-        code_generator=JumpLoopGenerator(attack_block=Op.JUMPI(Op.PUSH0, Op.PUSH0)),
+        code_generator=JumpLoopGenerator(
+            attack_block=Op.JUMPI(Op.PUSH0, Op.PUSH0)
+        ),
     )
 
 
@@ -1216,7 +1295,9 @@ def test_worst_jumpis(
 ) -> None:
     """Test running a JUMPI-intensive contract."""
     tx = Transaction(
-        to=pre.deploy_contract(code=(Op.JUMPDEST + Op.JUMPI(Op.PUSH0, Op.NUMBER))),
+        to=pre.deploy_contract(
+            code=(Op.JUMPDEST + Op.JUMPI(Op.PUSH0, Op.NUMBER))
+        ),
         sender=pre.fund_eoa(),
     )
 
@@ -1335,11 +1416,17 @@ DEFAULT_BINOP_ARGS = (
         ),
         (
             Op.SLT,  # Keeps getting result 1.
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, 1),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+                1,
+            ),
         ),
         (
             Op.SGT,  # Keeps getting result 0.
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF, 1),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+                1,
+            ),
         ),
         (
             # The worst case is if the arguments are equal (no early return),
@@ -1361,19 +1448,31 @@ DEFAULT_BINOP_ARGS = (
         ),
         (
             Op.BYTE,  # Keep extracting the last byte: 0x2F.
-            (31, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F),
+            (
+                31,
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
+            ),
         ),
         (
             Op.SHL,  # Shift by 1 until getting 0.
-            (1, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F),
+            (
+                1,
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
+            ),
         ),
         (
             Op.SHR,  # Shift by 1 until getting 0.
-            (1, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F),
+            (
+                1,
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
+            ),
         ),
         (
             Op.SAR,  # Shift by 1 until getting -1.
-            (1, 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F),
+            (
+                1,
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F,
+            ),
         ),
     ],
     ids=lambda param: "" if isinstance(param, tuple) else param,
@@ -1388,7 +1487,9 @@ def test_worst_binop_simple(
     produces one value) as possible. The execution starts with two initial
     values on the stack, and the stack is balanced by the DUP2 instruction.
     """
-    tx_data = b"".join(arg.to_bytes(32, byteorder="big") for arg in opcode_args)
+    tx_data = b"".join(
+        arg.to_bytes(32, byteorder="big") for arg in opcode_args
+    )
 
     setup = Op.CALLDATALOAD(0) + Op.CALLDATALOAD(32) + Op.DUP2 + Op.DUP2
     attack_block = Op.DUP2 + opcode
@@ -1441,7 +1542,9 @@ def test_worst_tload(
         attack_block = Op.POP(Op.TLOAD(Op.GAS))
     if not key_mut and val_mut:
         attack_block = Op.POP(Op.TLOAD(Op.CALLVALUE))
-        code_val_mut = Op.TSTORE(Op.CALLVALUE, Op.GAS)  # CALLVALUE configured in the tx
+        code_val_mut = Op.TSTORE(
+            Op.CALLVALUE, Op.GAS
+        )  # CALLVALUE configured in the tx
     if not key_mut and not val_mut:
         attack_block = Op.POP(Op.TLOAD(Op.CALLVALUE))
 
@@ -1481,7 +1584,9 @@ def test_worst_tstore(
     cleanup = Op.POP + Op.GAS if key_mut else Bytecode()
 
     benchmark_test(
-        code_generator=JumpLoopGenerator(setup=setup, attack_block=attack_block, cleanup=cleanup),
+        code_generator=JumpLoopGenerator(
+            setup=setup, attack_block=attack_block, cleanup=cleanup
+        ),
     )
 
 
@@ -1533,7 +1638,11 @@ def test_worst_shifts(
     # divisible by 8.
     shift_amounts = [x + (x >= 8) + (x >= 15) for x in range(1, 16)]
 
-    code_prefix = sum(Op.PUSH1[sh] for sh in shift_amounts) + Op.JUMPDEST + Op.CALLDATALOAD(0)
+    code_prefix = (
+        sum(Op.PUSH1[sh] for sh in shift_amounts)
+        + Op.JUMPDEST
+        + Op.CALLDATALOAD(0)
+    )
     code_suffix = Op.POP + Op.JUMP(len(shift_amounts) * 2)
     code_body_len = max_code_size - len(code_prefix) - len(code_suffix)
 
@@ -1674,7 +1783,10 @@ def test_worst_mod(
         rng = random.Random(seed)
 
         # Create the list of random numerators.
-        numerators = [rng.randint(numerator_min, numerator_max) for _ in range(num_numerators)]
+        numerators = [
+            rng.randint(numerator_min, numerator_max)
+            for _ in range(num_numerators)
+        ]
 
         # Create the random initial modulus.
         initial_mod = rng.randint(2 ** (mod_bits - 1), 2**mod_bits - 1)
@@ -1701,7 +1813,9 @@ def test_worst_mod(
     # push opcode.
     setup = sum((Op.PUSH32[n] for n in numerators), Bytecode())
     attack_block = (
-        Op.CALLDATALOAD(0) + sum(make_dup(len(numerators) - i) + op for i in indexes) + Op.POP
+        Op.CALLDATALOAD(0)
+        + sum(make_dup(len(numerators) - i) + op for i in indexes)
+        + Op.POP
     )
 
     input_value = initial_mod if not should_negate else neg(initial_mod)
@@ -1729,14 +1843,24 @@ def test_worst_memory_access(
     Test running a block with as many memory access instructions as
     possible.
     """
-    mem_exp_code = Op.MSTORE8(10 * 1024, 1) if big_memory_expansion else Bytecode()
-    offset_set_code = Op.MSTORE(offset, 43) if offset_initialized else Bytecode()
+    mem_exp_code = (
+        Op.MSTORE8(10 * 1024, 1) if big_memory_expansion else Bytecode()
+    )
+    offset_set_code = (
+        Op.MSTORE(offset, 43) if offset_initialized else Bytecode()
+    )
     setup = mem_exp_code + offset_set_code + Op.PUSH1(42) + Op.PUSH1(offset)
 
-    attack_block = Op.POP(Op.MLOAD(Op.DUP1)) if opcode == Op.MLOAD else opcode(Op.DUP2, Op.DUP2)
+    attack_block = (
+        Op.POP(Op.MLOAD(Op.DUP1))
+        if opcode == Op.MLOAD
+        else opcode(Op.DUP2, Op.DUP2)
+    )
 
     benchmark_test(
-        code_generator=JumpLoopGenerator(setup=setup, attack_block=attack_block),
+        code_generator=JumpLoopGenerator(
+            setup=setup, attack_block=attack_block
+        ),
     )
 
 
@@ -1827,12 +1951,20 @@ def test_worst_modarith(
     code_constant_pool = sum((Op.PUSH32[n] for n in args), Bytecode())
     code_segment = (
         Op.CALLDATALOAD(0)
-        + sum(make_dup(len(args) - i) + Op.PUSH32[fixed_arg] + op for i in indexes)
+        + sum(
+            make_dup(len(args) - i) + Op.PUSH32[fixed_arg] + op
+            for i in indexes
+        )
         + Op.POP
     )
     # Construct the final code. Because of the usage of PUSH32 the code segment
     # is very long, so don't try to include multiple of these.
-    code = code_constant_pool + Op.JUMPDEST + code_segment + Op.JUMP(len(code_constant_pool))
+    code = (
+        code_constant_pool
+        + Op.JUMPDEST
+        + code_segment
+        + Op.JUMP(len(code_constant_pool))
+    )
     assert (max_code_size - len(code_segment)) < len(code) <= max_code_size
 
     tx = Transaction(
@@ -1872,7 +2004,9 @@ def test_amortized_bn128_pairings(
     # This is a theoretical maximum number of pairings that can be done in a
     # block. It is only used for an upper bound for calculating the optimal
     # number of pairings below.
-    maximum_number_of_pairings = (gas_benchmark_value - base_cost) // pairing_cost
+    maximum_number_of_pairings = (
+        gas_benchmark_value - base_cost
+    ) // pairing_cost
 
     # Discover the optimal number of pairings balancing two dimensions:
     # 1. Amortize the precompile base cost as much as possible.
@@ -1881,20 +2015,30 @@ def test_amortized_bn128_pairings(
     optimal_per_call_num_pairings = 0
     for i in range(1, maximum_number_of_pairings + 1):
         # We'll pass all pairing arguments via calldata.
-        available_gas_after_intrinsic = gas_benchmark_value - intrinsic_gas_calculator(
-            calldata=[0xFF] * size_per_pairing * i  # 0xFF is to indicate non-
-            # zero bytes.
+        available_gas_after_intrinsic = (
+            gas_benchmark_value
+            - intrinsic_gas_calculator(
+                calldata=[0xFF]
+                * size_per_pairing
+                * i  # 0xFF is to indicate non-
+                # zero bytes.
+            )
         )
         available_gas_after_expansion = max(
             0,
-            available_gas_after_intrinsic - mem_exp_gas_calculator(new_bytes=i * size_per_pairing),
+            available_gas_after_intrinsic
+            - mem_exp_gas_calculator(new_bytes=i * size_per_pairing),
         )
 
         # This is ignoring "glue" opcodes, but helps to have a rough idea of
         # the right cutting point.
-        approx_gas_cost_per_call = gsc.G_WARM_ACCOUNT_ACCESS + base_cost + i * pairing_cost
+        approx_gas_cost_per_call = (
+            gsc.G_WARM_ACCOUNT_ACCESS + base_cost + i * pairing_cost
+        )
 
-        num_precompile_calls = available_gas_after_expansion // approx_gas_cost_per_call
+        num_precompile_calls = (
+            available_gas_after_expansion // approx_gas_cost_per_call
+        )
         num_pairings_done = num_precompile_calls * i  # Each precompile call
         # does i pairings.
 
@@ -1903,13 +2047,19 @@ def test_amortized_bn128_pairings(
             optimal_per_call_num_pairings = i
 
     setup = Op.CALLDATACOPY(size=Op.CALLDATASIZE)
-    attack_block = Op.POP(Op.STATICCALL(Op.GAS, 0x08, 0, Op.CALLDATASIZE, 0, 0))
+    attack_block = Op.POP(
+        Op.STATICCALL(Op.GAS, 0x08, 0, Op.CALLDATASIZE, 0, 0)
+    )
 
     benchmark_test(
         code_generator=JumpLoopGenerator(
             setup=setup,
             attack_block=attack_block,
-            tx_kwargs={"data": _generate_bn128_pairs(optimal_per_call_num_pairings, 42)},
+            tx_kwargs={
+                "data": _generate_bn128_pairs(
+                    optimal_per_call_num_pairings, 42
+                )
+            },
         ),
     )
 
@@ -1925,8 +2075,12 @@ def _generate_bn128_pairs(n: int, seed: int = 0) -> Bytes:
         point_x_affine = multiply(G1, priv_key_g1)
         point_y_affine = multiply(G2, priv_key_g2)
 
-        assert point_x_affine is not None, "G1 multiplication resulted in point at infinity"
-        assert point_y_affine is not None, "G2 multiplication resulted in point at infinity"
+        assert point_x_affine is not None, (
+            "G1 multiplication resulted in point at infinity"
+        )
+        assert point_y_affine is not None, (
+            "G2 multiplication resulted in point at infinity"
+        )
 
         g1_x_bytes = point_x_affine[0].n.to_bytes(32, "big")
         g1_y_bytes = point_x_affine[1].n.to_bytes(32, "big")
@@ -1936,7 +2090,9 @@ def _generate_bn128_pairs(n: int, seed: int = 0) -> Bytes:
         g2_x_c0_bytes = point_y_affine[0].coeffs[0].n.to_bytes(32, "big")  # type: ignore
         g2_y_c1_bytes = point_y_affine[1].coeffs[1].n.to_bytes(32, "big")  # type: ignore
         g2_y_c0_bytes = point_y_affine[1].coeffs[0].n.to_bytes(32, "big")  # type: ignore
-        g2_serialized = g2_x_c1_bytes + g2_x_c0_bytes + g2_y_c1_bytes + g2_y_c0_bytes
+        g2_serialized = (
+            g2_x_c1_bytes + g2_x_c0_bytes + g2_y_c1_bytes + g2_y_c0_bytes
+        )
 
         pair_calldata = g1_serialized + g2_serialized
         calldata = Bytes(calldata + pair_calldata)
@@ -2030,10 +2186,14 @@ def test_worst_dup(
     max_stack_height = fork.max_stack_height()
 
     min_stack_height = opcode.min_stack_height
-    code = Op.PUSH0 * min_stack_height + opcode * (max_stack_height - min_stack_height)
+    code = Op.PUSH0 * min_stack_height + opcode * (
+        max_stack_height - min_stack_height
+    )
     target_contract_address = pre.deploy_contract(code=code)
 
-    attack_block = Op.POP(Op.STATICCALL(Op.GAS, target_contract_address, 0, 0, 0, 0))
+    attack_block = Op.POP(
+        Op.STATICCALL(Op.GAS, target_contract_address, 0, 0, 0, 0)
+    )
 
     benchmark_test(
         code_generator=JumpLoopGenerator(attack_block=attack_block),
@@ -2126,7 +2286,9 @@ def test_worst_return_revert(
     # CODECOPY to return non-zero bytes if requested. Note that since this
     # is a pre-deploy this cost isn't
     # relevant for the benchmark.
-    mem_preparation = Op.CODECOPY(size=return_size) if return_non_zero_data else Bytecode()
+    mem_preparation = (
+        Op.CODECOPY(size=return_size) if return_non_zero_data else Bytecode()
+    )
     executable_code = mem_preparation + opcode(size=return_size)
     code = executable_code
     if return_non_zero_data:
@@ -2145,7 +2307,9 @@ def test_worst_clz_same_input(benchmark_test: BenchmarkTestFiller) -> None:
     """Test running a block with as many CLZ with same input as possible."""
     magic_value = 248  # CLZ(248) = 248
     benchmark_test(
-        code_generator=JumpLoopGenerator(setup=Op.PUSH1(magic_value), attack_block=Op.CLZ),
+        code_generator=JumpLoopGenerator(
+            setup=Op.PUSH1(magic_value), attack_block=Op.CLZ
+        ),
     )
 
 

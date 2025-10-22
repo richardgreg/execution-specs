@@ -7,7 +7,6 @@ from pathlib import Path
 from typing import Any, Dict, Generator
 
 import pytest
-
 from ethereum_test_forks import Prague
 from ethereum_test_tools import (
     Account,
@@ -27,7 +26,8 @@ REFERENCE_SPEC_VERSION = ref_spec_2935.version
 
 
 @pytest.mark.pre_alloc_group(
-    "separate", reason="Deploys history storage system contract at hardcoded predeploy address"
+    "separate",
+    reason="Deploys history storage system contract at hardcoded address",
 )
 @generate_system_contract_deploy_test(
     fork=Prague,

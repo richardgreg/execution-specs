@@ -3,7 +3,6 @@
 from typing import Tuple
 
 import pytest
-
 from ethereum_test_base_types.composite_types import Storage
 from ethereum_test_tools import (
     Account,
@@ -37,7 +36,7 @@ from .common import CallArgs, generate_identity_call_bytecode
         "https://github.com/ethereum/tests/blob/v17.1/src/GeneralStateTestsFiller/stPreCompiledContracts2/CallIdentity_4_gas18Filler.json",
     ],
     pr=["https://github.com/ethereum/execution-spec-tests/pull/1344"],
-    coverage_missed_reason="MPT related coverage lost, not relevant to this test",
+    coverage_missed_reason="MPT related coverage lost, not relevant to test",
 )
 @pytest.mark.valid_from("Byzantium")
 @pytest.mark.parametrize("call_type", [Op.CALL, Op.CALLCODE])
@@ -87,21 +86,27 @@ from .common import CallArgs, generate_identity_call_bytecode
         ),
         pytest.param(
             CallArgs(gas=0x64),
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+            ),
             0x0,
             True,
             id="identity_4",
         ),
         pytest.param(
             CallArgs(gas=0x11),
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+            ),
             0x0,
             False,
             id="identity_4_insufficient_gas",
         ),
         pytest.param(
             CallArgs(gas=0x12),
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+            ),
             0x0,
             True,
             id="identity_4_exact_gas",
@@ -156,7 +161,7 @@ def test_call_identity_precompile(
         "https://github.com/ethereum/tests/blob/v17.1/src/GeneralStateTestsFiller/stPreCompiledContracts2/CallIdentity_5Filler.json",
     ],
     pr=["https://github.com/ethereum/execution-spec-tests/pull/1344"],
-    coverage_missed_reason="MPT related coverage lost, not relevant to this test",
+    coverage_missed_reason="MPT related coverage lost, not relevant to test",
 )
 @pytest.mark.valid_from("Byzantium")
 @pytest.mark.parametrize("call_type", [Op.CALL, Op.CALLCODE])
@@ -169,7 +174,9 @@ def test_call_identity_precompile(
     [
         pytest.param(
             CallArgs(gas=0x258, args_size=0xF4240),
-            (0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,),
+            (
+                0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFF,
+            ),
             False,
             id="identity_5",
         ),

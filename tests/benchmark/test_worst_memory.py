@@ -5,7 +5,6 @@ Tests that benchmark EVMs in the worst-case memory opcodes.
 from enum import auto
 
 import pytest
-
 from ethereum_test_base_types.base_types import Bytes
 from ethereum_test_benchmark.benchmark_code_generator import JumpLoopGenerator
 from ethereum_test_forks import Fork
@@ -80,7 +79,10 @@ def test_worst_calldatacopy(
     intrinsic_gas_calculator = fork.transaction_intrinsic_cost_calculator()
     min_gas = intrinsic_gas_calculator(calldata=data)
     if min_gas > gas_benchmark_value:
-        pytest.skip("Minimum gas required for calldata ({min_gas}) is greater than the gas limit")
+        pytest.skip(
+            "Minimum gas required for calldata ({min_gas}) is greater "
+            "than the gas limit"
+        )
 
     # We create the contract that will be doing the CALLDATACOPY multiple
     # times.
@@ -92,12 +94,14 @@ def test_worst_calldatacopy(
     setup = Bytecode() if non_zero_data or size == 0 else Op.PUSH3(size)
     src_dst = 0 if fixed_src_dst else Op.MOD(Op.GAS, 7)
     attack_block = Op.CALLDATACOPY(
-        src_dst, src_dst, Op.CALLDATASIZE if non_zero_data or size == 0 else Op.DUP1
+        src_dst,
+        src_dst,
+        Op.CALLDATASIZE if non_zero_data or size == 0 else Op.DUP1,
     )
 
-    code_address = JumpLoopGenerator(setup=setup, attack_block=attack_block).deploy_contracts(
-        pre=pre, fork=fork
-    )
+    code_address = JumpLoopGenerator(
+        setup=setup, attack_block=attack_block
+    ).deploy_contracts(pre=pre, fork=fork)
 
     tx_target = code_address
 
@@ -107,16 +111,18 @@ def test_worst_calldatacopy(
         # If `non_zero_data` is False we leverage just using zeroed memory.
         # Otherwise, we copy the calldata received from the transaction.
         setup = (
-            Op.CALLDATACOPY(Op.PUSH0, Op.PUSH0, Op.CALLDATASIZE) if non_zero_data else Bytecode()
+            Op.CALLDATACOPY(Op.PUSH0, Op.PUSH0, Op.CALLDATASIZE)
+            if non_zero_data
+            else Bytecode()
         ) + Op.JUMPDEST
         arg_size = Op.CALLDATASIZE if non_zero_data else size
         attack_block = Op.STATICCALL(
             address=code_address, args_offset=Op.PUSH0, args_size=arg_size
         )
 
-        tx_target = JumpLoopGenerator(setup=setup, attack_block=attack_block).deploy_contracts(
-            pre=pre, fork=fork
-        )
+        tx_target = JumpLoopGenerator(
+            setup=setup, attack_block=attack_block
+        ).deploy_contracts(pre=pre, fork=fork)
 
     tx = Transaction(
         to=tx_target,
@@ -161,7 +167,9 @@ def test_worst_codecopy(
     src_dst = 0 if fixed_src_dst else Op.MOD(Op.GAS, 7)
     attack_block = Op.CODECOPY(src_dst, src_dst, Op.DUP1)  # DUP1 copies size.
 
-    code = JumpLoopGenerator(setup=setup, attack_block=attack_block).generate_repeated_code(
+    code = JumpLoopGenerator(
+        setup=setup, attack_block=attack_block
+    ).generate_repeated_code(
         repeated_code=attack_block, setup=setup, fork=fork
     )
 
@@ -219,12 +227,16 @@ def test_worst_returndatacopy(
     )
     helper_contract = pre.deploy_contract(code=code)
 
-    returndata_gen = Op.STATICCALL(address=helper_contract) if size > 0 else Bytecode()
+    returndata_gen = (
+        Op.STATICCALL(address=helper_contract) if size > 0 else Bytecode()
+    )
     dst = 0 if fixed_dst else Op.MOD(Op.GAS, 7)
 
     # We create the contract that will be doing the RETURNDATACOPY multiple
     # times.
-    returndata_gen = Op.STATICCALL(address=helper_contract) if size > 0 else Bytecode()
+    returndata_gen = (
+        Op.STATICCALL(address=helper_contract) if size > 0 else Bytecode()
+    )
     attack_block = Op.RETURNDATACOPY(dst, Op.PUSH0, Op.RETURNDATASIZE)
 
     # The attack loop is constructed as:
@@ -242,7 +254,9 @@ def test_worst_returndatacopy(
 
     benchmark_test(
         code_generator=JumpLoopGenerator(
-            setup=returndata_gen, attack_block=attack_block, cleanup=returndata_gen
+            setup=returndata_gen,
+            attack_block=attack_block,
+            cleanup=returndata_gen,
         ),
     )
 
@@ -273,7 +287,9 @@ def test_worst_mcopy(
     attack_block = Op.MCOPY(src_dst, src_dst, size)
 
     mem_touch = (
-        Op.MSTORE8(0, Op.GAS) + Op.MSTORE8(size // 2, Op.GAS) + Op.MSTORE8(size - 1, Op.GAS)
+        Op.MSTORE8(0, Op.GAS)
+        + Op.MSTORE8(size // 2, Op.GAS)
+        + Op.MSTORE8(size - 1, Op.GAS)
         if size > 0
         else Bytecode()
     )

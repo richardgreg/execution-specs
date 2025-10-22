@@ -6,7 +6,6 @@ Cap](https://eips.ethereum.org/EIPS/eip-7825).
 """
 
 import pytest
-
 from ethereum_test_checklists import EIPChecklist
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
@@ -50,12 +49,15 @@ def test_transaction_gas_limit_cap_at_transition(
     valid) At/after timestamp 15000: Gas limit cap of 2^24 is enforced
     """
     contract_address = pre.deploy_contract(
-        code=Op.SSTORE(Op.TIMESTAMP, Op.ADD(Op.SLOAD(Op.TIMESTAMP), 1)) + Op.STOP,
+        code=Op.SSTORE(Op.TIMESTAMP, Op.ADD(Op.SLOAD(Op.TIMESTAMP), 1))
+        + Op.STOP,
     )
 
     # Get the gas limit cap at fork activation
     tx_gas_cap = fork.transaction_gas_limit_cap(timestamp=15_000)
-    assert tx_gas_cap is not None, "Gas limit cap should not be None after fork activation"
+    assert tx_gas_cap is not None, (
+        "Gas limit cap should not be None after fork activation"
+    )
 
     # Test boundary: cap + 1 should fail after fork activation
     above_cap = tx_gas_cap + 1

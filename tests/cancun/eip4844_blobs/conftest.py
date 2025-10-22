@@ -3,9 +3,15 @@
 from typing import Iterable
 
 import pytest
-
 from ethereum_test_forks import Fork
-from ethereum_test_tools import Alloc, Block, Environment, Hash, Transaction, add_kzg_version
+from ethereum_test_tools import (
+    Alloc,
+    Block,
+    Environment,
+    Hash,
+    Transaction,
+    add_kzg_version,
+)
 
 from .spec import Spec
 
@@ -259,7 +265,9 @@ def tx_max_fee_per_blob_gas(  # noqa: D103
     if blob_gas_price is None:
         # When fork transitioning, the default blob gas price is 1.
         return 1
-    return (blob_gas_price * tx_max_fee_per_blob_gas_multiplier) + tx_max_fee_per_blob_gas_delta
+    return (
+        blob_gas_price * tx_max_fee_per_blob_gas_multiplier
+    ) + tx_max_fee_per_blob_gas_delta
 
 
 @pytest.fixture
@@ -292,7 +300,9 @@ def non_zero_blob_gas_used_genesis_block(
     if parent_blobs == 0:
         return None
 
-    excess_blob_gas_calculator = fork.excess_blob_gas_calculator(block_number=1)
+    excess_blob_gas_calculator = fork.excess_blob_gas_calculator(
+        block_number=1
+    )
     calculated_excess_blob_gas = excess_blob_gas_calculator(
         parent_excess_blob_gas=genesis_excess_blob_gas,
         parent_blob_count=0,

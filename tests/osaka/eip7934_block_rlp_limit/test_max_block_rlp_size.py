@@ -6,7 +6,6 @@ from functools import lru_cache
 from typing import List, Tuple
 
 import pytest
-
 from ethereum_test_base_types import Address, HexNumber, ZeroPaddedHexNumber
 from ethereum_test_checklists import EIPChecklist
 from ethereum_test_fixtures.blockchain import (
@@ -95,7 +94,9 @@ def create_test_header(gas_used: int) -> FixtureHeader:
 
 
 def get_block_rlp_size(
-    transactions: List[Transaction], gas_used: int, withdrawals: List[Withdrawal] | None = None
+    transactions: List[Transaction],
+    gas_used: int,
+    withdrawals: List[Withdrawal] | None = None,
 ) -> int:
     """
     Calculate the RLP size of a block with given transactions
@@ -126,7 +127,9 @@ def get_block_rlp_size(
             )
             for w in withdrawals
         ]
-    test_block = FixtureBlockBase(blockHeader=header, withdrawals=block_withdrawals)
+    test_block = FixtureBlockBase(
+        blockHeader=header, withdrawals=block_withdrawals
+    )
     return len(test_block.with_rlp(txs=transactions).rlp)
 
 
@@ -258,7 +261,8 @@ def _exact_size_transactions_impl(
     # transaction if tx_type is specified, otherwise just add 16 generic
     # transactions
     not_all_generic_txs = any(
-        kwarg is not None for kwarg in [specific_transaction_to_include, emit_logs_contract]
+        kwarg is not None
+        for kwarg in [specific_transaction_to_include, emit_logs_contract]
     )
 
     generic_tx_num = 15 if not_all_generic_txs else 16
@@ -278,13 +282,17 @@ def _exact_size_transactions_impl(
     # append a typed transaction to fill the block
     if not_all_generic_txs:
         if specific_transaction_to_include is not None:
-            tx_dict = specific_transaction_to_include.model_dump(exclude_unset=True)
+            tx_dict = specific_transaction_to_include.model_dump(
+                exclude_unset=True
+            )
             data = Bytes(b"\x00" * 200_000)
             gas_limit = HexNumber(
                 calculator(
                     calldata=data,
                     access_list=specific_transaction_to_include.access_list,
-                    authorization_list_or_count=len(tx_dict.get("authorization_list", [])),
+                    authorization_list_or_count=len(
+                        tx_dict.get("authorization_list", [])
+                    ),
                 )
             )
             tx_dict["sender"] = sender
@@ -303,7 +311,8 @@ def _exact_size_transactions_impl(
             )
         else:
             raise ValueError(
-                "Either specific_transaction_to_include or emit_logs_contract must be provided."
+                "Either specific_transaction_to_include or "
+                "emit_logs_contract must be provided."
             )
 
         transactions.append(last_tx)
@@ -395,18 +404,23 @@ def _exact_size_transactions_impl(
                             transactions.append(adjusted_tx)
                             break
 
-                        adjusted_diff = abs(block_size_limit - adjusted_test_size)
+                        adjusted_diff = abs(
+                            block_size_limit - adjusted_test_size
+                        )
                         if adjusted_diff < best_diff:
                             best_diff = adjusted_diff
                 else:
                     raise RuntimeError(
-                        "Failed to find a transaction that matches the target size."
+                        "Failed to find a transaction that matches "
+                        "the target size."
                     )
         else:
             transactions.append(empty_tx)
 
     final_size = get_block_rlp_size(
-        transactions, gas_used=sum(tx.gas_limit for tx in transactions), withdrawals=withdrawals
+        transactions,
+        gas_used=sum(tx.gas_limit for tx in transactions),
+        withdrawals=withdrawals,
     )
     final_gas = sum(tx.gas_limit for tx in transactions)
 
@@ -424,9 +438,13 @@ def _exact_size_transactions_impl(
 @pytest.mark.parametrize(
     "delta",
     [
-        pytest.param(-1, id="max_rlp_size_minus_1_byte", marks=pytest.mark.verify_sync),
+        pytest.param(
+            -1, id="max_rlp_size_minus_1_byte", marks=pytest.mark.verify_sync
+        ),
         pytest.param(0, id="max_rlp_size", marks=pytest.mark.verify_sync),
-        pytest.param(1, id="max_rlp_size_plus_1_byte", marks=pytest.mark.exception_test),
+        pytest.param(
+            1, id="max_rlp_size_plus_1_byte", marks=pytest.mark.exception_test
+        ),
     ],
 )
 @pytest.mark.valid_from("Osaka")
@@ -456,13 +474,16 @@ def test_block_at_rlp_size_limit_boundary(
     )
     block_rlp_size = get_block_rlp_size(transactions, gas_used=gas_used)
     assert block_rlp_size == block_size_limit, (
-        f"Block RLP size {block_rlp_size} does not exactly match limit {block_size_limit}, "
-        f"difference: {block_rlp_size - block_size_limit} bytes"
+        f"Block RLP size {block_rlp_size} does not exactly match "
+        f"limit {block_size_limit}, difference: "
+        f"{block_rlp_size - block_size_limit} bytes"
     )
 
     block = Block(
         txs=transactions,
-        exception=BlockException.RLP_BLOCK_LIMIT_EXCEEDED if delta > 0 else None,
+        exception=BlockException.RLP_BLOCK_LIMIT_EXCEEDED
+        if delta > 0
+        else None,
     )
 
     if delta < 0:
@@ -506,8 +527,9 @@ def test_block_rlp_size_at_limit_with_all_typed_transactions(
     )
     block_rlp_size = get_block_rlp_size(transactions, gas_used=gas_used)
     assert block_rlp_size == block_size_limit, (
-        f"Block RLP size {block_rlp_size} does not exactly match limit {block_size_limit}, "
-        f"difference: {block_rlp_size - block_size_limit} bytes"
+        f"Block RLP size {block_rlp_size} does not exactly match limit "
+        f"{block_size_limit}, difference: {block_rlp_size - block_size_limit} "
+        "bytes"
     )
 
     block = Block(txs=transactions)
@@ -549,8 +571,9 @@ def test_block_at_rlp_limit_with_logs(
 
     block_rlp_size = get_block_rlp_size(transactions, gas_used=gas_used)
     assert block_rlp_size == block_size_limit, (
-        f"Block RLP size {block_rlp_size} does not exactly match limit {block_size_limit}, "
-        f"difference: {block_rlp_size - block_size_limit} bytes"
+        f"Block RLP size {block_rlp_size} does not exactly match limit "
+        f"{block_size_limit}, difference: {block_rlp_size - block_size_limit} "
+        "bytes"
     )
 
     block = Block(txs=transactions)
@@ -605,10 +628,13 @@ def test_block_at_rlp_limit_with_withdrawals(
         withdrawals=withdrawals,
     )
 
-    block_rlp_size = get_block_rlp_size(transactions, gas_used=gas_used, withdrawals=withdrawals)
+    block_rlp_size = get_block_rlp_size(
+        transactions, gas_used=gas_used, withdrawals=withdrawals
+    )
     assert block_rlp_size == block_size_limit, (
-        f"Block RLP size {block_rlp_size} does not exactly match limit {block_size_limit}, "
-        f"difference: {block_rlp_size - block_size_limit} bytes"
+        f"Block RLP size {block_rlp_size} does not exactly match limit "
+        f"{block_size_limit}, difference: {block_rlp_size - block_size_limit} "
+        "bytes"
     )
 
     block = Block(
@@ -633,7 +659,9 @@ def test_block_at_rlp_limit_with_withdrawals(
     "exceeds_limit_at_fork",
     [
         pytest.param(False, id="at_fork_within_limit"),
-        pytest.param(True, marks=pytest.mark.exception_test, id="at_fork_exceeds_limit"),
+        pytest.param(
+            True, marks=pytest.mark.exception_test, id="at_fork_exceeds_limit"
+        ),
     ],
 )
 @pytest.mark.valid_at_transition_to("Osaka")
@@ -685,7 +713,9 @@ def test_fork_transition_block_rlp_limit(
     # encoding. Transition timestamps (14_999 and 15_000) take 2 bytes
     # Re-define `_extradata_at_limit` accounting for this difference
     timestamp_byte_savings = 2
-    _extradata_at_limit = EXTRA_DATA_AT_LIMIT + (b"\x00" * timestamp_byte_savings)
+    _extradata_at_limit = EXTRA_DATA_AT_LIMIT + (
+        b"\x00" * timestamp_byte_savings
+    )
 
     blocks = [
         # before fork, block at limit +1 should be accepted

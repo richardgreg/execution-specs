@@ -5,7 +5,6 @@ Tests [EIP-7251: Increase the MAX_EFFECTIVE_BALANCE](https://eips.ethereum.org/E
 from typing import List
 
 import pytest
-
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
     Address,
@@ -197,7 +196,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK
+                            )
                         ],
                     )
                 ],
@@ -302,7 +303,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ]
                     )
                 ],
@@ -335,7 +338,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ],
                     ),
                 ],
@@ -352,7 +357,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ],
                         call_depth=3,
                     ),
@@ -371,7 +378,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 fee=Spec.get_fee(0),
                                 gas_limit=6_000_000,
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ],
                         call_depth=100,
                     ),
@@ -396,7 +405,10 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(1, Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                1,
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5,
+                            )
                         ],
                     ),
                 ],
@@ -413,7 +425,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 target_pubkey=i * 2 + 1,
                                 fee=Spec.get_fee(0),
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ]
                         + [
                             ConsolidationRequest(
@@ -448,7 +462,10 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 fee=Spec.get_fee(0),
                                 valid=True,
                             )
-                            for i in range(1, Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                1,
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5,
+                            )
                         ],
                     ),
                 ],
@@ -467,7 +484,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 gas_limit=1_000_000,
                                 valid=True,
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ]
                         + [
                             ConsolidationRequest(
@@ -494,7 +513,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 fee=Spec.get_fee(0),
                                 valid=False,
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ],
                         extra_code=Op.REVERT(0, 0),
                     ),
@@ -513,7 +534,9 @@ pytestmark = pytest.mark.valid_from("Prague")
                                 fee=Spec.get_fee(0),
                                 valid=False,
                             )
-                            for i in range(Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5)
+                            for i in range(
+                                Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK * 5
+                            )
                         ],
                         extra_code=Macros.OOG(),
                     ),
@@ -655,7 +678,8 @@ pytestmark = pytest.mark.valid_from("Prague")
     ],
 )
 @pytest.mark.pre_alloc_group(
-    "consolidation_requests", reason="Tests standard consolidation request functionality"
+    "consolidation_requests",
+    reason="Tests standard consolidation request functionality",
 )
 def test_consolidation_requests(
     blockchain_test: BlockchainTestFiller,
@@ -853,7 +877,8 @@ def test_consolidation_requests(
 )
 @pytest.mark.exception_test
 @pytest.mark.pre_alloc_group(
-    "consolidation_requests", reason="Tests standard consolidation request functionality"
+    "consolidation_requests",
+    reason="Tests standard consolidation request functionality",
 )
 def test_consolidation_requests_negative(
     pre: Alloc,
@@ -875,7 +900,9 @@ def test_consolidation_requests_negative(
     current_block_requests = []
     for w in requests:
         current_block_requests += w.valid_requests(fee)
-    included_requests = current_block_requests[: Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK]
+    included_requests = current_block_requests[
+        : Spec.MAX_CONSOLIDATION_REQUESTS_PER_BLOCK
+    ]
 
     blockchain_test(
         genesis_environment=Environment(),

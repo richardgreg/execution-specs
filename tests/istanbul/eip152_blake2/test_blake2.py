@@ -5,7 +5,6 @@ Tests [EIP-152: BLAKE2b compression precompile](https://eips.ethereum.org/EIPS/e
 from typing import List
 
 import pytest
-
 from ethereum_test_forks import Fork
 from ethereum_test_tools import (
     Account,
@@ -35,9 +34,10 @@ pytestmark = pytest.mark.ported_from(
         "https://github.com/ethereum/execution-spec-tests/pull/1067",
     ],
     coverage_missed_reason=(
-        "No longer used opcodes, SUB, GT, ISZERO, AND, CODESIZE, JUMP, some PUSH opcodes."
-        "Original test calls Blake2b in ConstantinopleFix (activation test), "
-        "which results in empty account code being triggered."
+        "No longer used opcodes, SUB, GT, ISZERO, AND, CODESIZE, JUMP, some "
+        "PUSH opcodes. Original test calls Blake2b in ConstantinopleFix "
+        "(activation test), which results in empty account code being "
+        "triggered."
     ),
 )
 
@@ -401,7 +401,9 @@ def test_blake2b(
     """Test BLAKE2b precompile."""
     env = Environment()
 
-    account = pre.deploy_contract(blake2b_contract_bytecode, storage={0: 0xDEADBEEF})
+    account = pre.deploy_contract(
+        blake2b_contract_bytecode, storage={0: 0xDEADBEEF}
+    )
     sender = pre.fund_eoa()
 
     if isinstance(data, Blake2bInput):
@@ -518,7 +520,9 @@ def test_blake2b_invalid_gas(
     """Test BLAKE2b precompile invalid calls using different gas limits."""
     env = Environment()
 
-    account = pre.deploy_contract(blake2b_contract_bytecode, storage={0: 0xDEADBEEF})
+    account = pre.deploy_contract(
+        blake2b_contract_bytecode, storage={0: 0xDEADBEEF}
+    )
     sender = pre.fund_eoa()
 
     if isinstance(data, Blake2bInput):
@@ -638,7 +642,9 @@ def test_blake2b_gas_limit(
     output: ExpectedOutput,
 ) -> None:
     """Test BLAKE2b precompile with different gas limits."""
-    account = pre.deploy_contract(blake2b_contract_bytecode, storage={0: 0xDEADBEEF})
+    account = pre.deploy_contract(
+        blake2b_contract_bytecode, storage={0: 0xDEADBEEF}
+    )
     sender = pre.fund_eoa()
 
     if isinstance(data, Blake2bInput):
@@ -674,7 +680,9 @@ def test_blake2b_gas_limit(
 
 @pytest.mark.valid_from("Istanbul")
 @pytest.mark.parametrize("call_opcode", [Op.CALL, Op.CALLCODE])
-@pytest.mark.parametrize_by_fork("gas_limit", lambda fork: [max_tx_gas_limit(fork)])
+@pytest.mark.parametrize_by_fork(
+    "gas_limit", lambda fork: [max_tx_gas_limit(fork)]
+)
 @pytest.mark.parametrize(
     ["data", "output"],
     [
@@ -765,7 +773,9 @@ def test_blake2b_large_gas_limit(
     output: ExpectedOutput,
 ) -> None:
     """Test BLAKE2b precompile with large gas limit."""
-    account = pre.deploy_contract(blake2b_contract_bytecode, storage={0: 0xDEADBEEF})
+    account = pre.deploy_contract(
+        blake2b_contract_bytecode, storage={0: 0xDEADBEEF}
+    )
     sender = pre.fund_eoa()
 
     if isinstance(data, Blake2bInput):

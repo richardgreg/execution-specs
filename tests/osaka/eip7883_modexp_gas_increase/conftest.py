@@ -3,7 +3,6 @@
 from typing import Dict
 
 import pytest
-
 from ethereum_test_forks import Fork, Osaka
 from ethereum_test_tools import (
     Account,
@@ -50,10 +49,15 @@ def call_contract_post_storage() -> Storage:
 
 @pytest.fixture
 def total_tx_gas_needed(
-    fork: Fork, modexp_expected: bytes, modexp_input: ModExpInput, precompile_gas: int
+    fork: Fork,
+    modexp_expected: bytes,
+    modexp_input: ModExpInput,
+    precompile_gas: int,
 ) -> int:
     """Calculate total tx gas needed for the transaction."""
-    intrinsic_gas_cost_calculator = fork.transaction_intrinsic_cost_calculator()
+    intrinsic_gas_cost_calculator = (
+        fork.transaction_intrinsic_cost_calculator()
+    )
     memory_expansion_gas_calculator = fork.memory_expansion_gas_calculator()
     sstore_gas = fork.gas_costs().G_STORAGE_SET * (len(modexp_expected) // 32)
     extra_gas = 100_000
@@ -68,7 +72,9 @@ def total_tx_gas_needed(
 
 
 @pytest.fixture
-def exceeds_tx_gas_cap(total_tx_gas_needed: int, fork: Fork, env: Environment) -> bool:
+def exceeds_tx_gas_cap(
+    total_tx_gas_needed: int, fork: Fork, env: Environment
+) -> bool:
     """Determine if total gas requirements exceed transaction gas cap."""
     tx_gas_limit_cap = fork.transaction_gas_limit_cap() or env.gas_limit
     return total_tx_gas_needed > tx_gas_limit_cap
@@ -81,7 +87,9 @@ def expected_tx_cap_fail() -> bool:
 
 
 @pytest.fixture
-def call_succeeds(exceeds_tx_gas_cap: bool, expected_tx_cap_fail: bool) -> bool:
+def call_succeeds(
+    exceeds_tx_gas_cap: bool, expected_tx_cap_fail: bool
+) -> bool:
     """
     Determine whether the ModExp precompile call should succeed or fail. By
     default, depending on the expected output, we assume it succeeds. Under
@@ -119,7 +127,12 @@ def gas_measure_contract(
       storage[2]: gas consumed by precompile
       storage[3]: hash of return data from precompile
     """
-    assert call_opcode in [Op.CALL, Op.CALLCODE, Op.DELEGATECALL, Op.STATICCALL]
+    assert call_opcode in [
+        Op.CALL,
+        Op.CALLCODE,
+        Op.DELEGATECALL,
+        Op.STATICCALL,
+    ]
     value = [0] if call_opcode in [Op.CALL, Op.CALLCODE] else []
 
     gas_used = (
@@ -165,18 +178,30 @@ def gas_measure_contract(
 
     code = (
         Op.CALLDATACOPY(dest_offset=0, offset=0, size=Op.CALLDATASIZE)
-        + Op.SSTORE(call_contract_post_storage.store_next(call_succeeds), call_result_measurement)
         + Op.SSTORE(
-            call_contract_post_storage.store_next(len(modexp_expected) if call_succeeds else 0),
+            call_contract_post_storage.store_next(call_succeeds),
+            call_result_measurement,
+        )
+        + Op.SSTORE(
+            call_contract_post_storage.store_next(
+                len(modexp_expected) if call_succeeds else 0
+            ),
             Op.RETURNDATASIZE(),
         )
     )
 
     if call_succeeds:
-        code += Op.SSTORE(call_contract_post_storage.store_next(precompile_gas), gas_calculation)
-        code += Op.RETURNDATACOPY(dest_offset=0, offset=0, size=Op.RETURNDATASIZE())
         code += Op.SSTORE(
-            call_contract_post_storage.store_next(keccak256(Bytes(modexp_expected))),
+            call_contract_post_storage.store_next(precompile_gas),
+            gas_calculation,
+        )
+        code += Op.RETURNDATACOPY(
+            dest_offset=0, offset=0, size=Op.RETURNDATASIZE()
+        )
+        code += Op.SSTORE(
+            call_contract_post_storage.store_next(
+                keccak256(Bytes(modexp_expected))
+            ),
             Op.SHA3(0, Op.RETURNDATASIZE()),
         )
     return pre.deploy_contract(code)
@@ -184,7 +209,10 @@ def gas_measure_contract(
 
 @pytest.fixture
 def precompile_gas(
-    fork: Fork, modexp_input: ModExpInput, gas_old: int | None, gas_new: int | None
+    fork: Fork,
+    modexp_input: ModExpInput,
+    gas_old: int | None,
+    gas_new: int | None,
 ) -> int:
     """
     Calculate gas cost for the ModExp precompile and verify it matches expected
@@ -195,14 +223,19 @@ def precompile_gas(
         calculated_gas = spec.calculate_gas_cost(modexp_input)
         if gas_old is not None and gas_new is not None:
             expected_gas = gas_old if fork < Osaka else gas_new
-            assert calculated_gas == expected_gas, (
-                f"Calculated gas {calculated_gas} != Vector gas {expected_gas}\n"
-                f"Lengths: base: {hex(len(modexp_input.base))} ({len(modexp_input.base)}), "
-                f"exponent: {hex(len(modexp_input.exponent))} ({len(modexp_input.exponent)}), "
-                f"modulus: {hex(len(modexp_input.modulus))} ({len(modexp_input.modulus)})\n"
-                f"Exponent: {modexp_input.exponent} "
-                f"({int.from_bytes(modexp_input.exponent, byteorder='big')})"
+            base_len = len(modexp_input.base)
+            exp_len = len(modexp_input.exponent)
+            mod_len = len(modexp_input.modulus)
+            exp_int = int.from_bytes(modexp_input.exponent, byteorder="big")
+            error_msg = (
+                f"Calculated gas {calculated_gas} != "
+                f"Vector gas {expected_gas}\n"
+                f"Lengths: base: {hex(base_len)} ({base_len}), "
+                f"exponent: {hex(exp_len)} ({exp_len}), "
+                f"modulus: {hex(mod_len)} ({mod_len})\n"
+                f"Exponent: {modexp_input.exponent} ({exp_int})"
             )
+            assert calculated_gas == expected_gas, error_msg
         return calculated_gas
     except Exception:
         # Used for `test_modexp_invalid_inputs` we expect the call to not
@@ -233,7 +266,9 @@ def tx(
 
 
 @pytest.fixture
-def tx_gas_limit(total_tx_gas_needed: int, fork: Fork, env: Environment) -> int:
+def tx_gas_limit(
+    total_tx_gas_needed: int, fork: Fork, env: Environment
+) -> int:
     """
     Transaction gas limit used for the test (Can be overridden in the test).
     """

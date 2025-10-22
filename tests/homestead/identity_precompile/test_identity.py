@@ -1,7 +1,6 @@
 """abstract: EIP-2: Homestead Identity Precompile Test Cases."""
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Alloc,
@@ -24,7 +23,9 @@ def test_identity_return_overwrite(
     Test the return data of the identity precompile overwriting its input.
     """
     code = (
-        sum(Op.MSTORE8(offset=i, value=(i + 1)) for i in range(4))  # memory = [1, 2, 3, 4]
+        sum(
+            Op.MSTORE8(offset=i, value=(i + 1)) for i in range(4)
+        )  # memory = [1, 2, 3, 4]
         + call_opcode(
             address=4,
             args_offset=0,
@@ -70,7 +71,9 @@ def test_identity_return_buffer_modify(
     """
     env = Environment()
     code = (
-        sum(Op.MSTORE8(offset=i, value=(i + 1)) for i in range(4))  # memory = [1, 2, 3, 4]
+        sum(
+            Op.MSTORE8(offset=i, value=(i + 1)) for i in range(4)
+        )  # memory = [1, 2, 3, 4]
         + call_opcode(
             address=4,
             args_offset=0,

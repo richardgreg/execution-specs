@@ -7,8 +7,12 @@ Tests the BLS12 precompiles behavior before fork activation from
 """
 
 import pytest
-
-from ethereum_test_tools import Alloc, Environment, StateTestFiller, Transaction
+from ethereum_test_tools import (
+    Alloc,
+    Environment,
+    StateTestFiller,
+    Transaction,
+)
 
 from .spec import FP, FP2, Scalar, Spec, ref_spec_2537
 
@@ -58,7 +62,9 @@ pytestmark = pytest.mark.valid_at_transition_to("Prague")
         ),
     ],
 )
-@pytest.mark.parametrize("expected_output,call_succeeds", [pytest.param(b"", True, id="")])
+@pytest.mark.parametrize(
+    "expected_output,call_succeeds", [pytest.param(b"", True, id="")]
+)
 def test_precompile_before_fork(
     state_test: StateTestFiller,
     pre: Alloc,

@@ -5,7 +5,6 @@ Tests [EIP-7002: Execution layer triggerable withdrawals](https://eips.ethereum.
 from typing import List
 
 import pytest
-
 from ethereum_test_tools import (
     Account,
     Address,
@@ -83,7 +82,9 @@ def withdrawal_list_with_custom_fee(n: int) -> List[WithdrawalRequest]:  # noqa:
         ),
     ],
 )
-@pytest.mark.pre_alloc_group("separate", reason="Deploys custom withdrawal contract bytecode")
+@pytest.mark.pre_alloc_group(
+    "separate", reason="Deploys custom withdrawal contract bytecode"
+)
 def test_extra_withdrawals(
     blockchain_test: BlockchainTestFiller,
     pre: Alloc,
@@ -119,7 +120,9 @@ def test_extra_withdrawals(
 
     # given a list of withdrawal requests construct a withdrawal request
     # transaction
-    withdrawal_request_transaction = WithdrawalRequestTransaction(requests=requests_list)
+    withdrawal_request_transaction = WithdrawalRequestTransaction(
+        requests=requests_list
+    )
     # prepare withdrawal senders
     withdrawal_request_transaction.update_pre(pre=pre)
     # get transaction list
@@ -138,9 +141,12 @@ def test_extra_withdrawals(
 
 
 @pytest.mark.parametrize(
-    "system_contract", [Address(Spec_EIP7002.WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS)]
+    "system_contract",
+    [Address(Spec_EIP7002.WITHDRAWAL_REQUEST_PREDEPLOY_ADDRESS)],
 )
-@pytest.mark.pre_alloc_group("separate", reason="Deploys custom withdrawal contract bytecode")
+@pytest.mark.pre_alloc_group(
+    "separate", reason="Deploys custom withdrawal contract bytecode"
+)
 @generate_system_contract_error_test(  # type: ignore[arg-type]
     max_gas_limit=Spec_EIP7002.SYSTEM_CALL_GAS_LIMIT,
 )

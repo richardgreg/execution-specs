@@ -3,10 +3,16 @@ Test ModExp gas cost transition from EIP-7883 before & after the Osaka fork.
 """
 
 import pytest
-
 from ethereum_test_checklists import EIPChecklist
 from ethereum_test_forks import Fork
-from ethereum_test_tools import Account, Alloc, Block, BlockchainTestFiller, Transaction, keccak256
+from ethereum_test_tools import (
+    Account,
+    Alloc,
+    Block,
+    BlockchainTestFiller,
+    Transaction,
+    keccak256,
+)
 from ethereum_test_vm import Opcodes as Op
 
 from ...byzantium.eip198_modexp_precompile.helpers import ModExpInput
@@ -71,7 +77,9 @@ def test_modexp_fork_transition(
     )
 
     # Verification the precompile call result
-    code += Op.RETURNDATACOPY(dest_offset=0, offset=0, size=Op.RETURNDATASIZE()) + Op.SSTORE(
+    code += Op.RETURNDATACOPY(
+        dest_offset=0, offset=0, size=Op.RETURNDATASIZE()
+    ) + Op.SSTORE(
         Op.AND(Op.TIMESTAMP, 0xFF),
         Op.SHA3(0, Op.RETURNDATASIZE()),
     )
@@ -93,12 +101,18 @@ def test_modexp_fork_transition(
                 )
             ],
         )
-        for ts, contract, sender in zip(timestamps, contracts, senders, strict=False)
+        for ts, contract, sender in zip(
+            timestamps, contracts, senders, strict=False
+        )
     ]
 
     post = {
-        contract: Account(storage={ts: gas, ts & 0xFF: keccak256(bytes(modexp_expected))})
-        for contract, ts, gas in zip(contracts, timestamps, gas_values, strict=False)
+        contract: Account(
+            storage={ts: gas, ts & 0xFF: keccak256(bytes(modexp_expected))}
+        )
+        for contract, ts, gas in zip(
+            contracts, timestamps, gas_values, strict=False
+        )
     }
 
     blockchain_test(

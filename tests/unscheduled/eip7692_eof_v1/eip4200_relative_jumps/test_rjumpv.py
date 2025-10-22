@@ -1,14 +1,23 @@
 """EOF JUMPF tests covering stack and code validation rules."""
 
 import pytest
-
-from ethereum_test_tools import Account, EOFException, EOFStateTestFiller, EOFTestFiller
+from ethereum_test_tools import (
+    Account,
+    EOFException,
+    EOFStateTestFiller,
+    EOFTestFiller,
+)
 from ethereum_test_types.eof.v1 import Container, Section
 from ethereum_test_vm import Bytecode
 from ethereum_test_vm import Opcodes as Op
 
 from .. import EOF_FORK_NAME
-from .helpers import JumpDirection, slot_code_worked, slot_conditional_result, value_code_worked
+from .helpers import (
+    JumpDirection,
+    slot_code_worked,
+    slot_conditional_result,
+    value_code_worked,
+)
 
 REFERENCE_SPEC_GIT_PATH = "EIPS/eip-4200.md"
 REFERENCE_SPEC_VERSION = "17d4a8d12d2b5e0f2985c866376c16c8c6df7cba"
@@ -44,15 +53,20 @@ def test_rjumpv_condition(
 ) -> None:
     """Test RJUMPV contract switching based on external input."""
     value_fall_through = 0xFFFF
-    value_base = 0x1000  # Force a `PUSH2` instruction to be used on all targets
+    value_base = (
+        0x1000  # Force a `PUSH2` instruction to be used on all targets
+    )
     target_length = 7
     jump_table = [(i + 1) * target_length for i in range(table_size)]
 
     jump_targets = sum(
-        (Op.SSTORE(slot_conditional_result, i + value_base) + Op.STOP) for i in range(table_size)
+        (Op.SSTORE(slot_conditional_result, i + value_base) + Op.STOP)
+        for i in range(table_size)
     )
 
-    fall_through_case = Op.SSTORE(slot_conditional_result, value_fall_through) + Op.STOP
+    fall_through_case = (
+        Op.SSTORE(slot_conditional_result, value_fall_through) + Op.STOP
+    )
 
     eof_state_test(
         container=Container(
@@ -508,7 +522,9 @@ def test_rjumpv_into_self(
     # Create variadic stack height by the parametrized spread.
     stack_spread_code = Bytecode()
     if stack_height_spread >= 0:
-        stack_spread_code = Op.RJUMPI[stack_height_spread](0) + Op.PUSH0 * stack_height_spread
+        stack_spread_code = (
+            Op.RJUMPI[stack_height_spread](0) + Op.PUSH0 * stack_height_spread
+        )
 
     jump_table = [0 for _ in range(table_size)]
     jump_table[invalid_index] = -len(Op.RJUMPV[jump_table])
@@ -517,7 +533,9 @@ def test_rjumpv_into_self(
         container=Container(
             sections=[
                 Section.Code(
-                    code=stack_spread_code + Op.RJUMPV[jump_table](0) + Op.STOP,
+                    code=stack_spread_code
+                    + Op.RJUMPV[jump_table](0)
+                    + Op.STOP,
                     # max stack increase is computed correctly
                 )
             ],
@@ -544,13 +562,18 @@ def test_rjumpv_into_stack_height_diff(
     difference.
     """
     jump_table = [0 for _ in range(table_size)]
-    jump_table[invalid_index] = -(len(Op.RJUMPV[jump_table]) + len(Op.PUSH1[0]) + len(Op.PUSH1[0]))
+    jump_table[invalid_index] = -(
+        len(Op.RJUMPV[jump_table]) + len(Op.PUSH1[0]) + len(Op.PUSH1[0])
+    )
 
     eof_test(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH1[0] + Op.PUSH1[0] + Op.RJUMPV[jump_table] + Op.STOP,
+                    code=Op.PUSH1[0]
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[jump_table]
+                    + Op.STOP,
                 ),
             ],
         ),
@@ -580,7 +603,13 @@ def test_rjumpv_into_stack_underflow(
     eof_test(
         container=Container(
             sections=[
-                Section.Code(code=Op.ORIGIN + Op.RJUMPV[jump_table] + Op.STOP + Op.POP + Op.STOP),
+                Section.Code(
+                    code=Op.ORIGIN
+                    + Op.RJUMPV[jump_table]
+                    + Op.STOP
+                    + Op.POP
+                    + Op.STOP
+                ),
             ],
         ),
         expect_exception=EOFException.STACK_UNDERFLOW,
@@ -606,7 +635,9 @@ def test_rjumpv_skips_stack_underflow(
     eof_test(
         container=Container(
             sections=[
-                Section.Code(code=Op.ORIGIN + Op.RJUMPV[jump_table] + Op.POP + Op.STOP),
+                Section.Code(
+                    code=Op.ORIGIN + Op.RJUMPV[jump_table] + Op.POP + Op.STOP
+                ),
             ],
         ),
         expect_exception=EOFException.STACK_UNDERFLOW,
@@ -648,7 +679,11 @@ def test_rjumpv_into_rjump(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH1(1) + Op.RJUMPV[jump_table] + Op.STOP + Op.RJUMP[0] + Op.STOP,
+                    code=Op.PUSH1(1)
+                    + Op.RJUMPV[jump_table]
+                    + Op.STOP
+                    + Op.RJUMP[0]
+                    + Op.STOP,
                 )
             ],
         ),
@@ -712,7 +747,9 @@ def test_rjumpv_into_rjumpi(
         pytest.param(256, 255, id="t256i255"),
     ],
 )
-@pytest.mark.parametrize("jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD])
+@pytest.mark.parametrize(
+    "jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD]
+)
 def test_rjumpv_into_push_1(
     eof_test: EOFTestFiller,
     jump: JumpDirection,
@@ -798,7 +835,9 @@ def test_rjumpv_into_push_1(
     [True, False],
     ids=["data_portion_end", "data_portion_start"],
 )
-@pytest.mark.parametrize("jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD])
+@pytest.mark.parametrize(
+    "jump", [JumpDirection.FORWARD, JumpDirection.BACKWARD]
+)
 def test_rjumpv_into_push_n(
     eof_test: EOFTestFiller,
     opcode: Op,
@@ -813,7 +852,9 @@ def test_rjumpv_into_push_n(
     """
     data_portion_length = int.from_bytes(opcode, byteorder="big") - 0x5F
     if jump == JumpDirection.FORWARD:
-        invalid_destination = data_portion_length + 1 if data_portion_end else 2
+        invalid_destination = (
+            data_portion_length + 1 if data_portion_end else 2
+        )
         jump_table = [0 for _ in range(table_size)]
         jump_table[invalid_index] = invalid_destination
         code = (
@@ -867,7 +908,9 @@ def test_rjumpv_into_rjumpv(
     EOF1I4200_0040 (Invalid) EOF code containing RJUMPV with target other
     RJUMPV immediate.
     """
-    invalid_destination = 4 + (2 * target_table_size) if data_portion_end else 4
+    invalid_destination = (
+        4 + (2 * target_table_size) if data_portion_end else 4
+    )
     source_jump_table = [0 for _ in range(source_table_size)]
     source_jump_table[invalid_index] = invalid_destination
     target_jump_table = [0 for _ in range(target_table_size)]
@@ -918,7 +961,10 @@ def test_rjumpv_into_callf(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH1(0) + Op.RJUMPV[jump_table] + Op.CALLF[1] + Op.STOP,
+                    code=Op.PUSH1(0)
+                    + Op.RJUMPV[jump_table]
+                    + Op.CALLF[1]
+                    + Op.STOP,
                 ),
                 Section.Code(
                     code=Op.SSTORE(1, 1) + Op.RETF,
@@ -1057,7 +1103,10 @@ def test_rjumpv_into_eofcreate(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 * 5 + Op.RJUMPV[jump_table] + Op.EOFCREATE[0] + Op.STOP,
+                    code=Op.PUSH0 * 5
+                    + Op.RJUMPV[jump_table]
+                    + Op.EOFCREATE[0]
+                    + Op.STOP,
                 ),
                 Section.Container(
                     container=Container(
@@ -1104,7 +1153,9 @@ def test_rjumpv_into_returncode(
                     container=Container(
                         sections=[
                             Section.Code(
-                                code=Op.PUSH0 * 3 + Op.RJUMPV[jump_table] + Op.RETURNCODE[0],
+                                code=Op.PUSH0 * 3
+                                + Op.RJUMPV[jump_table]
+                                + Op.RETURNCODE[0],
                             ),
                             Section.Container(
                                 container=Container.Code(Op.STOP),
@@ -1150,7 +1201,11 @@ def test_rjumpv_at_the_end(
         container=Container(
             sections=[
                 Section.Code(
-                    code=Op.PUSH1(0) + Op.PUSH1(0) + Op.RJUMPI[1] + Op.STOP + Op.RJUMPV[-7](1),
+                    code=Op.PUSH1(0)
+                    + Op.PUSH1(0)
+                    + Op.RJUMPI[1]
+                    + Op.STOP
+                    + Op.RJUMPV[-7](1),
                 )
             ],
         ),
@@ -1207,7 +1262,15 @@ def test_double_rjumpv(
 ) -> None:
     """Two RJUMPVs, causing the min stack to underflow."""
     container = Container.Code(
-        code=(Op.PUSH0 + Op.PUSH0 + Op.RJUMPV[6] + Op.PUSH0 + Op.PUSH0 + Op.RJUMPV[0] + Op.RETURN),
+        code=(
+            Op.PUSH0
+            + Op.PUSH0
+            + Op.RJUMPV[6]
+            + Op.PUSH0
+            + Op.PUSH0
+            + Op.RJUMPV[0]
+            + Op.RETURN
+        ),
         max_stack_increase=3,
     )
     eof_test(
@@ -1233,7 +1296,11 @@ def test_double_rjumpv(
             name="forwards_rjumpv_1",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1(0) + Op.RJUMPV[1] + Op.NOT + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1(0)
+                    + Op.RJUMPV[1]
+                    + Op.NOT
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
@@ -1259,7 +1326,11 @@ def test_double_rjumpv(
             name="forwards_rjumpv_3",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPV[1] + Op.PUSH0 + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[1]
+                    + Op.PUSH0
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
@@ -1348,7 +1419,11 @@ def test_double_rjumpv(
             name="forwards_rjumpv_8",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPV[3] + Op.RJUMP[0] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[3]
+                    + Op.RJUMP[0]
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
@@ -1358,7 +1433,12 @@ def test_double_rjumpv(
             name="forwards_rjumpv_9",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.PUSH1[0] + Op.RJUMPV[4] + Op.PUSH0 + Op.RJUMP[0] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[4]
+                    + Op.PUSH0
+                    + Op.RJUMP[0]
+                    + Op.STOP,
                     max_stack_increase=2,
                 ),
             ],
@@ -1609,7 +1689,11 @@ def test_rjumpv_valid_forward(
             name="backwards_rjumpv_1",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.POP + Op.PUSH1[0] + Op.RJUMPV[-8] + Op.STOP,
+                    code=Op.PUSH0
+                    + Op.POP
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[-8]
+                    + Op.STOP,
                     max_stack_increase=1,
                 ),
             ],
@@ -1635,7 +1719,11 @@ def test_rjumpv_valid_forward(
             name="backwards_rjumpv_4",
             sections=[
                 Section.Code(
-                    code=Op.PUSH0 + Op.POP + Op.PUSH1[0] + Op.RJUMPV[-8] + Op.RJUMP[-11],
+                    code=Op.PUSH0
+                    + Op.POP
+                    + Op.PUSH1[0]
+                    + Op.RJUMPV[-8]
+                    + Op.RJUMP[-11],
                     max_stack_increase=1,
                 ),
             ],
@@ -1892,4 +1980,7 @@ def test_rjumpv_backward_invalid_max_stack_height(
     Validate a code section containing at least one backward RJUMPV invalid
     because of the incorrect max stack height.
     """
-    eof_test(container=container, expect_exception=EOFException.STACK_HEIGHT_MISMATCH)
+    eof_test(
+        container=container,
+        expect_exception=EOFException.STACK_HEIGHT_MISMATCH,
+    )
