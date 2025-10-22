@@ -3,12 +3,8 @@
 import textwrap
 from typing import Any
 
-from ethereum_clis import TransitionTool
 
-
-def test_slow_marker_gets_pre_alloc_group(
-    pytester: Any, default_t8n: TransitionTool
-) -> None:
+def test_slow_marker_gets_pre_alloc_group(pytester: Any) -> None:
     """
     Test that slow tests without benchmark marker get pre_alloc_group
     automatically.
@@ -46,8 +42,6 @@ def test_slow_marker_gets_pre_alloc_group(
         "pytest-fill.ini",
         "--collect-only",
         "-q",
-        "--t8n-server-url",
-        default_t8n.server_url,
         "tests/cancun/test_slow.py",
     ]
 
@@ -56,9 +50,7 @@ def test_slow_marker_gets_pre_alloc_group(
     result.stdout.fnmatch_lines(["*test_slow_without_benchmark*"])
 
 
-def test_slow_with_benchmark_no_pre_alloc(
-    pytester: Any, default_t8n: TransitionTool
-) -> None:
+def test_slow_with_benchmark_no_pre_alloc(pytester: Any) -> None:
     """
     Test that slow tests WITH benchmark marker do NOT get pre_alloc_group.
     """
@@ -95,8 +87,6 @@ def test_slow_with_benchmark_no_pre_alloc(
         "pytest-fill.ini",
         "--collect-only",
         "-q",
-        "--t8n-server-url",
-        default_t8n.server_url,
         "tests/benchmark/test_slow_benchmark.py",
     ]
 
@@ -105,9 +95,7 @@ def test_slow_with_benchmark_no_pre_alloc(
     result.stdout.fnmatch_lines(["*test_slow_with_benchmark*"])
 
 
-def test_slow_with_existing_pre_alloc_unchanged(
-    pytester: Any, default_t8n: TransitionTool
-) -> None:
+def test_slow_with_existing_pre_alloc_unchanged(pytester: Any) -> None:
     """
     Test that slow tests with existing pre_alloc_group marker are unchanged.
     """
@@ -144,8 +132,6 @@ def test_slow_with_existing_pre_alloc_unchanged(
         "pytest-fill.ini",
         "--collect-only",
         "-q",
-        "--t8n-server-url",
-        default_t8n.server_url,
         "tests/cancun/test_existing_pre_alloc.py",
     ]
 
@@ -154,9 +140,7 @@ def test_slow_with_existing_pre_alloc_unchanged(
     result.stdout.fnmatch_lines(["*test_slow_with_existing_pre_alloc*"])
 
 
-def test_non_slow_no_pre_alloc(
-    pytester: Any, default_t8n: TransitionTool
-) -> None:
+def test_non_slow_no_pre_alloc(pytester: Any) -> None:
     """Test that tests without slow marker do not get pre_alloc_group."""
     test_module = textwrap.dedent(
         """\
@@ -189,8 +173,6 @@ def test_non_slow_no_pre_alloc(
         "pytest-fill.ini",
         "--collect-only",
         "-q",
-        "--t8n-server-url",
-        default_t8n.server_url,
         "tests/cancun/test_normal.py",
     ]
 
@@ -199,9 +181,7 @@ def test_non_slow_no_pre_alloc(
     result.stdout.fnmatch_lines(["*test_normal_speed*"])
 
 
-def test_integration_with_fill(
-    pytester: Any, default_t8n: TransitionTool
-) -> None:
+def test_integration_with_fill(pytester: Any) -> None:
     """
     Integration test using actual fill command to verify marker application.
     """
@@ -246,8 +226,6 @@ def test_integration_with_fill(
         "pytest-fill.ini",
         "-v",
         "--no-html",
-        "--t8n-server-url",
-        default_t8n.server_url,
         "tests/cancun/slow_test_module/",
     ]
 
