@@ -3,29 +3,29 @@
 from typing import Callable, Dict
 
 import pytest
-from ethereum_test_base_types import AccessList, Address, Hash
-from ethereum_test_forks import Fork
-from ethereum_test_specs.blockchain import Header
-from ethereum_test_tools import (
+from execution_testing import (
+    AccessList,
     Account,
+    Address,
     Alloc,
-    Block,
-    BlockchainTestFiller,
-    Initcode,
-    Transaction,
-    compute_create_address,
-)
-from ethereum_test_types import Environment
-from ethereum_test_types.block_access_list import (
     BalAccountExpectation,
     BalBalanceChange,
     BalCodeChange,
     BalNonceChange,
     BalStorageChange,
     BalStorageSlot,
+    Block,
     BlockAccessListExpectation,
+    BlockchainTestFiller,
+    Environment,
+    Fork,
+    Hash,
+    Header,
+    Initcode,
+    Op,
+    Transaction,
+    compute_create_address,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from .spec import ref_spec_7928
 

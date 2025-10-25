@@ -2,8 +2,7 @@
 
 from dataclasses import dataclass
 
-from ethereum_test_base_types import Bytes
-from ethereum_test_types.helpers import TestParameterGroup
+from execution_testing import Bytes, TestParameterGroup
 
 from .spec import Spec, SpecTestVectors
 

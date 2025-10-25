@@ -6,20 +6,20 @@ from enum import Enum
 from typing import Iterable, List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     AuthorizationTuple,
     Bytecode,
+    Fork,
     Hash,
+    Op,
     StateTestFiller,
     Transaction,
     add_kzg_version,
     compute_create_address,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec, ref_spec_4844
 

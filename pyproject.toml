@@ -165,7 +165,7 @@ test = [
     "requests",
     "requests-cache>=1.2.1,<2",
     "libcst>=1.8,<2",
-    "ethereum-execution-tests",
+    "ethereum-execution-testing",
 ]
 lint = [
     "codespell==2.4.1",
@@ -382,7 +382,7 @@ warn_unused_ignores = true
 warn_unused_configs = true
 warn_redundant_casts = true
 ignore_missing_imports = false
-mypy_path = ["src", "packages/tests/src"]
+mypy_path = ["src", "packages/testing/src", "packages/testing/stubs"]
 files = ["src", "tests", "packages"]
 exclude = [
     "^\\.cache/",
@@ -405,4 +405,4 @@ required-version = ">=0.7.0"
 members = ["packages/*"]
 
 [tool.uv.sources]
-ethereum-execution-tests = { workspace = true }
+ethereum-execution-testing = { workspace = true }

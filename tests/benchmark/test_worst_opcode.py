@@ -3,13 +3,13 @@ Tests benchmark worst-case opcode scenarios.
 """
 
 import pytest
-from ethereum_test_benchmark.benchmark_code_generator import JumpLoopGenerator
-from ethereum_test_tools import (
+from execution_testing import (
     BenchmarkTestFiller,
     Bytecode,
+    JumpLoopGenerator,
+    Op,
+    Opcode,
 )
-from ethereum_test_vm import Opcode
-from ethereum_test_vm import Opcodes as Op
 
 
 @pytest.mark.parametrize(

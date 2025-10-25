@@ -3,19 +3,19 @@
 from typing import Mapping, Tuple
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types.eof.v1 import Container
+from execution_testing.test_types.eof.v1 import Container
 
 from .. import EOF_FORK_NAME
 

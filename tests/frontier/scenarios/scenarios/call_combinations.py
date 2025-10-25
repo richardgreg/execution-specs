@@ -3,9 +3,7 @@
 from dataclasses import dataclass
 from typing import List
 
-from ethereum_test_tools import Address, Alloc
-from ethereum_test_vm import EVMCodeType, Opcode
-from ethereum_test_vm import Opcodes as Op
+from execution_testing import Address, Alloc, EVMCodeType, Op, Opcode
 
 from ..common import Scenario, ScenarioEnvironment, ScenarioGeneratorInput
 

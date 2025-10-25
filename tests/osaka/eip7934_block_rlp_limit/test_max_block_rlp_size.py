@@ -6,25 +6,30 @@ from functools import lru_cache
 from typing import List, Tuple
 
 import pytest
-from ethereum_test_base_types import Address, HexNumber, ZeroPaddedHexNumber
-from ethereum_test_checklists import EIPChecklist
-from ethereum_test_fixtures.blockchain import (
-    FixtureBlockBase,
-    FixtureHeader,
-    FixtureWithdrawal,
-)
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
+    EOA,
+    Address,
     Alloc,
     Block,
     BlockchainTestFiller,
     BlockException,
     Bytes,
+    EIPChecklist,
+    Environment,
+    Fork,
+    Op,
     Transaction,
     Withdrawal,
 )
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types import EOA, Environment
+from execution_testing.base_types import (
+    HexNumber,
+    ZeroPaddedHexNumber,
+)
+from execution_testing.fixtures.blockchain import (
+    FixtureBlockBase,
+    FixtureHeader,
+    FixtureWithdrawal,
+)
 
 from .spec import Spec, ref_spec_7934
 

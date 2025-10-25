@@ -1,15 +1,15 @@
 """Test good and bad EOFCREATE cases."""
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Alloc,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     compute_eofcreate_address,
 )
-from ethereum_test_types.eof.v1 import Container, Section
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types.eof.v1 import Container, Section
 
 from .. import EOF_FORK_NAME
 from ..gas_test import gas_test

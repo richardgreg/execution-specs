@@ -6,18 +6,19 @@ opcode is supported by the fork supports and fails otherwise.
 from typing import Dict
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Fork,
+    Op,
+    Opcode,
     StateTestFiller,
     Transaction,
+    UndefinedOpcodes,
 )
-from ethereum_test_vm import Opcode, UndefinedOpcodes
-from ethereum_test_vm import Opcodes as Op
 
 REFERENCE_SPEC_GIT_PATH = "N/A"
 REFERENCE_SPEC_VERSION = "N/A"

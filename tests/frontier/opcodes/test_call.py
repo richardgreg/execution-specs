@@ -1,16 +1,16 @@
 """test `CALL` opcode."""
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     CodeGasMeasure,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 
 # TODO: There's an issue with gas definitions on forks previous to Berlin,

@@ -1,15 +1,15 @@
 """abstract: EIP-2: Homestead Identity Precompile Test Cases."""
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    Op,
     StateTestFiller,
     Transaction,
     keccak256,
 )
-from ethereum_test_tools import Opcodes as Op
 
 
 @pytest.mark.with_all_call_opcodes()

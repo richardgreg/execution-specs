@@ -3,17 +3,18 @@
 from enum import Enum
 
 import pytest
-from ethereum_test_forks import Byzantium, Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    Fork,
     Initcode,
+    Op,
     StateTestFiller,
     Transaction,
     compute_create_address,
 )
-from ethereum_test_tools import Opcodes as Op
+from execution_testing.forks import Byzantium
 
 
 class Operation(Enum):

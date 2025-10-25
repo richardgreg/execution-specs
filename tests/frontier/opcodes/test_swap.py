@@ -6,10 +6,20 @@ blob/develop/src/GeneralStateTestsFiller/VMTests/vmTests/swapFiller.yml.
 
 import pytest  # noqa: I001
 
-from ethereum_test_forks import Fork, Frontier, Homestead
-from ethereum_test_tools import Account, Alloc, Bytecode, Environment
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_tools import StateTestFiller, Storage, Transaction
+from execution_testing import Fork
+from execution_testing import (
+    Account,
+    Alloc,
+    Bytecode,
+    Environment,
+)
+from execution_testing.forks import Frontier, Homestead
+from execution_testing import Op
+from execution_testing import (
+    StateTestFiller,
+    Storage,
+    Transaction,
+)
 
 
 @pytest.mark.ported_from(

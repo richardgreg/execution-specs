@@ -9,8 +9,7 @@ Tests ported from:
 from typing import List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     AccessList,
     Account,
@@ -18,7 +17,9 @@ from ethereum_test_tools import (
     Alloc,
     Bytecode,
     Environment,
+    Fork,
     Initcode,
+    Op,
     StateTestFiller,
     Transaction,
     TransactionException,
@@ -26,7 +27,6 @@ from ethereum_test_tools import (
     ceiling_division,
     compute_create_address,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from .helpers import (
     INITCODE_RESULTING_DEPLOYED_CODE,

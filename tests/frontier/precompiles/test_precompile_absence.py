@@ -1,17 +1,17 @@
 """Test Calling Precompile Range (close to zero)."""
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
+    Fork,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
 
 UPPER_BOUND = 0x101
 RETURNDATASIZE_OFFSET = 0x10000000000000000  # Must be greater than UPPER_BOUND

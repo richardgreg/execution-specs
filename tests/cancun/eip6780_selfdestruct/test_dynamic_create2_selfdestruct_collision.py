@@ -6,8 +6,7 @@ https://github.com/ethereum/execution-spec-tests/issues/381.
 from typing import Dict, Union
 
 import pytest
-from ethereum_test_forks import Cancun, Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
@@ -15,12 +14,14 @@ from ethereum_test_tools import (
     BlockchainTestFiller,
     Bytecode,
     Conditional,
+    Fork,
     Initcode,
+    Op,
     StateTestFiller,
     Transaction,
     compute_create2_address,
 )
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.forks import Cancun
 
 REFERENCE_SPEC_GIT_PATH = "EIPS/eip-6780.md"
 REFERENCE_SPEC_VERSION = "1b6a0e94cc47e859b9866e570391cf37dc55059a"

@@ -5,8 +5,7 @@ A state test for [EIP-7702 SetCodeTX](https://eips.ethereum.org/EIPS/eip-7702).
 from enum import Enum, IntEnum
 
 import pytest
-from ethereum_test_forks import Fork, GasCosts
-from ethereum_test_tools import (
+from execution_testing import (
     AccessList,
     Account,
     Alloc,
@@ -18,7 +17,11 @@ from ethereum_test_tools import (
     CodeGasMeasure,
     Conditional,
     Environment,
+    Fork,
+    GasCosts,
     Hash,
+    Macros,
+    Op,
     StateTestFiller,
     Storage,
     Switch,
@@ -26,9 +29,7 @@ from ethereum_test_tools import (
     TransactionException,
     compute_create_address,
 )
-from ethereum_test_types.eof.v1 import Container, Section
-from ethereum_test_vm import Macros
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types.eof.v1 import Container, Section
 
 from .spec import Spec, ref_spec_7702
 

@@ -1,16 +1,16 @@
 """Execution of DATA* opcodes within EOF V1 containers tests."""
 
 import pytest
-from ethereum_test_specs import EOFStateTestFiller
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    EOFStateTestFiller,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_types.eof.v1 import Container, Section
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types.eof.v1 import Container, Section
 
 from .. import EOF_FORK_NAME
 

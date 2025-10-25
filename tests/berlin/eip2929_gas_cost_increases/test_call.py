@@ -1,16 +1,16 @@
 """Test the CALL opcode after EIP-2929."""
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     CodeGasMeasure,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 REFERENCE_SPEC_GIT_PATH = "EIPS/eip-2929.md"
 REFERENCE_SPEC_VERSION = "0e11417265a623adb680c527b15d0cb6701b870b"

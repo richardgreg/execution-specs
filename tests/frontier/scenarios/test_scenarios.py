@@ -6,18 +6,18 @@ opcode is supported by the fork and fails otherwise.
 from typing import List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Block,
     BlockchainTestFiller,
     Environment,
+    Fork,
+    Op,
     Storage,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from .common import (
     ExecutionEnvironment,

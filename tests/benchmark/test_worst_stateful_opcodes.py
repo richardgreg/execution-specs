@@ -6,28 +6,26 @@ import math
 from enum import auto
 
 import pytest
-from ethereum_test_benchmark.benchmark_code_generator import (
-    ExtCallGenerator,
-    JumpLoopGenerator,
-)
-from ethereum_test_forks import Fork
-from ethereum_test_specs import StateTestFiller
-from ethereum_test_specs.benchmark import BenchmarkTestFiller
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
+    BenchmarkTestFiller,
     Block,
     Bytecode,
     Environment,
+    ExtCallGenerator,
+    Fork,
     Hash,
+    JumpLoopGenerator,
+    Op,
+    StateTestFiller,
+    TestPhaseManager,
     Transaction,
     While,
     compute_create2_address,
     compute_create_address,
 )
-from ethereum_test_types import TestPhaseManager
-from ethereum_test_vm import Opcodes as Op
 
 REFERENCE_SPEC_GIT_PATH = "TODO"
 REFERENCE_SPEC_VERSION = "TODO"

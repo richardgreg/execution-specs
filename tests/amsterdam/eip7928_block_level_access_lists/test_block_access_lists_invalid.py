@@ -5,28 +5,24 @@ These tests verify that clients properly reject blocks with corrupted BALs.
 """
 
 import pytest
-from ethereum_test_exceptions import BlockException
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
-    Block,
-    BlockchainTestFiller,
-    Storage,
-    Transaction,
-)
-from ethereum_test_tools import (
-    Opcodes as Op,
-)
-from ethereum_test_types.block_access_list import (
     BalAccountChange,
     BalAccountExpectation,
     BalBalanceChange,
     BalNonceChange,
     BalStorageChange,
     BalStorageSlot,
+    Block,
     BlockAccessListExpectation,
+    BlockchainTestFiller,
+    BlockException,
+    Op,
+    Storage,
+    Transaction,
 )
-from ethereum_test_types.block_access_list.modifiers import (
+from execution_testing.test_types.block_access_list.modifiers import (
     append_account,
     duplicate_account,
     modify_balance,

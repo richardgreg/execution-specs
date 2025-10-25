@@ -7,17 +7,25 @@ import itertools
 from typing import Any, Dict, Generator, List, Tuple
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
+    Bytecode,
     EOFException,
     EOFTestFiller,
+    Op,
     Opcode,
     UndefinedOpcodes,
 )
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types.eof.constants import MAX_RUNTIME_STACK_HEIGHT
-from ethereum_test_types.eof.v1 import Container, ContainerKind, Section
-from ethereum_test_types.eof.v1.constants import MAX_STACK_INCREASE_LIMIT
-from ethereum_test_vm import Bytecode
+from execution_testing.test_types.eof.constants import (
+    MAX_RUNTIME_STACK_HEIGHT,
+)
+from execution_testing.test_types.eof.v1 import (
+    Container,
+    ContainerKind,
+    Section,
+)
+from execution_testing.test_types.eof.v1.constants import (
+    MAX_STACK_INCREASE_LIMIT,
+)
 
 from .. import EOF_FORK_NAME
 

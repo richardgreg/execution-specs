@@ -3,11 +3,7 @@
 from dataclasses import dataclass
 from typing import Tuple
 
-from ethereum_test_base_types.composite_types import Storage
-from ethereum_test_tools import (
-    Bytecode,
-)
-from ethereum_test_tools import Opcodes as Op
+from execution_testing import Bytecode, Op, Storage
 from pydantic import BaseModel
 
 

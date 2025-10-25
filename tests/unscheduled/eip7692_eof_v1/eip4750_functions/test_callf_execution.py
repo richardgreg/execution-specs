@@ -3,12 +3,18 @@
 import math
 
 import pytest
-from ethereum_test_base_types import Hash, Storage
-from ethereum_test_specs import StateTestFiller
-from ethereum_test_tools import Account, EOFStateTestFiller
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types import Alloc, Environment, Transaction
-from ethereum_test_types.eof.v1 import Container, Section
+from execution_testing import (
+    Account,
+    Alloc,
+    Environment,
+    EOFStateTestFiller,
+    Hash,
+    Op,
+    StateTestFiller,
+    Storage,
+    Transaction,
+)
+from execution_testing.test_types.eof.v1 import Container, Section
 
 from .. import EOF_FORK_NAME
 from ..eip7620_eof_create.helpers import (

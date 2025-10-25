@@ -3,18 +3,19 @@
 from typing import Dict
 
 import pytest
-from ethereum_test_forks import Fork, Osaka
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytes,
     Environment,
+    Fork,
+    Op,
     Storage,
     Transaction,
     keccak256,
 )
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.forks import Osaka
 
 from ...byzantium.eip198_modexp_precompile.helpers import ModExpInput
 from .spec import Spec, Spec7883

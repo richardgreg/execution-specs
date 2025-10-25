@@ -20,8 +20,7 @@ There is no specific structure to follow within this test module.
 from typing import List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
@@ -31,12 +30,13 @@ from ethereum_test_tools import (
     Bytecode,
     CodeGasMeasure,
     Environment,
+    Fork,
     Hash,
+    Op,
     StateTestFiller,
     Transaction,
     add_kzg_version,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec, ref_spec_4844
 

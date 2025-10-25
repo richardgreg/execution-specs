@@ -2,9 +2,8 @@
 
 from typing import List
 
-from ethereum_test_tools import Bytecode, Conditional
-from ethereum_test_tools import Macros as Om
-from ethereum_test_tools import Opcodes as Op
+from execution_testing import Bytecode, Conditional, Op
+from execution_testing import Macros as Om
 
 from ..common import Scenario, ScenarioEnvironment, ScenarioGeneratorInput
 

@@ -1,10 +1,16 @@
 """test `CALLDATALOAD` opcode."""
 
 import pytest
-from ethereum_test_forks import Byzantium, Fork
-from ethereum_test_tools import Account, Alloc, StateTestFiller, Transaction
-from ethereum_test_tools import Macros as Om
-from ethereum_test_vm import Opcodes as Op
+from execution_testing import (
+    Account,
+    Alloc,
+    Fork,
+    Op,
+    StateTestFiller,
+    Transaction,
+)
+from execution_testing import Macros as Om
+from execution_testing.forks import Byzantium
 
 
 @pytest.mark.ported_from(

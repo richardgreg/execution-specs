@@ -35,8 +35,7 @@ from itertools import count
 from typing import Any, Dict, List, Optional
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     AccessList,
     Account,
@@ -46,13 +45,14 @@ from ethereum_test_tools import (
     BlockchainTestFiller,
     Bytecode,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
     TransactionReceipt,
     call_return_code,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from .common import INF_POINT, Z_Y_VALID_ENDIANNESS, Z
 from .spec import Spec, ref_spec_4844

@@ -5,9 +5,7 @@ entangles it's result.
 
 from functools import cached_property
 
-from ethereum_test_forks import Fork
-from ethereum_test_tools import Alloc, Bytecode, Conditional
-from ethereum_test_vm import Opcodes as Op
+from execution_testing import Alloc, Bytecode, Conditional, Fork, Op
 
 from ..common import ProgramResult, ScenarioTestProgram
 

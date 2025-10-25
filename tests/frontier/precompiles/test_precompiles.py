@@ -3,16 +3,16 @@
 from typing import Iterator, Tuple
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 
 def precompile_addresses(fork: Fork) -> Iterator[Tuple[Address, bool]]:

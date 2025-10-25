@@ -4,14 +4,14 @@ import itertools
 from typing import Callable
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec, ref_spec_145
 

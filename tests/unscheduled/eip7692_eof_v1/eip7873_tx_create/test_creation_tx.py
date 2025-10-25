@@ -1,17 +1,18 @@
 """Test bad TXCREATE cases."""
 
 import pytest
-from ethereum_test_base_types.base_types import Address, Bytes
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
+    Address,
     Alloc,
+    Bytes,
     Environment,
     StateTestFiller,
     Transaction,
+    TransactionReceipt,
 )
-from ethereum_test_tools import Initcode as LegacyInitcode
-from ethereum_test_types import TransactionReceipt
-from ethereum_test_types.eof.v1 import Container
+from execution_testing import Initcode as LegacyInitcode
+from execution_testing.test_types.eof.v1 import Container
 
 from ....prague.eip7702_set_code_tx.spec import Spec
 from .. import EOF_FORK_NAME

@@ -7,17 +7,17 @@ from pathlib import Path
 from typing import Any, Dict, Generator
 
 import pytest
-from ethereum_test_forks import Prague
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Block,
     DeploymentTestType,
+    Op,
     Transaction,
     generate_system_contract_deploy_test,
 )
-from ethereum_test_tools import Opcodes as Op
+from execution_testing.forks import Prague
 
 from .spec import Spec, ref_spec_2935
 

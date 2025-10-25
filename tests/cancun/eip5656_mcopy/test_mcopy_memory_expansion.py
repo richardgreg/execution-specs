@@ -10,19 +10,19 @@ import itertools
 from typing import List, Mapping
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     AccessList,
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
     TransactionReceipt,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .common import REFERENCE_SPEC_GIT_PATH, REFERENCE_SPEC_VERSION
 

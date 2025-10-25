@@ -1,24 +1,22 @@
 """Tests for the effects of EIP-7702 transactions on EIP-7928."""
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     AuthorizationTuple,
-    Block,
-    BlockchainTestFiller,
-    Transaction,
-)
-from ethereum_test_types.block_access_list import (
     BalAccountExpectation,
     BalBalanceChange,
     BalCodeChange,
     BalNonceChange,
     BalStorageChange,
     BalStorageSlot,
+    Block,
     BlockAccessListExpectation,
+    BlockchainTestFiller,
+    Op,
+    Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from ...prague.eip7702_set_code_tx.spec import Spec as Spec7702
 from .spec import ref_spec_7928

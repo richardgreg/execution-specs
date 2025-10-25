@@ -4,8 +4,7 @@ from itertools import count
 from typing import Dict, Iterator, List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     AccessList,
     Account,
     Address,
@@ -13,13 +12,14 @@ from ethereum_test_tools import (
     AuthorizationTuple,
     Bytecode,
     Environment,
+    Fork,
     Hash,
+    Op,
     Storage,
     Transaction,
     add_kzg_version,
     keccak256,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec, SpecHelpers
 

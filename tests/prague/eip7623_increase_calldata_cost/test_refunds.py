@@ -6,17 +6,18 @@ from enum import Enum, Flag, auto
 from typing import Dict, List
 
 import pytest
-from ethereum_test_forks import Fork, Prague
-from ethereum_test_tools import (
+from execution_testing import (
     Address,
     Alloc,
     AuthorizationTuple,
     Bytecode,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
     TransactionReceipt,
 )
-from ethereum_test_tools import Opcodes as Op
+from execution_testing.forks import Prague
 
 from .helpers import DataTestType
 from .spec import ref_spec_7623

@@ -1,16 +1,16 @@
 """Test DUP Test the DUP opcodes."""
 
 import pytest
-from ethereum_test_forks import Frontier, Homestead
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
+from execution_testing.forks import Frontier, Homestead
 
 
 @pytest.mark.parametrize(

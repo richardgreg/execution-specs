@@ -8,15 +8,15 @@ Tests the validator deposit functionality implementation from
 from typing import List
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Alloc,
     Block,
     BlockchainTestFiller,
     BlockException,
     Environment,
     Macros,
+    Op,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .helpers import DepositContract, DepositRequest, DepositTransaction
 from .spec import ref_spec_6110

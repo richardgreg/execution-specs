@@ -6,17 +6,17 @@ from enum import EnumMeta, unique
 from typing import Any, Dict, Mapping
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
     Hash,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from . import PytestParameterEnum
 from .spec import Spec, ref_spec_1153

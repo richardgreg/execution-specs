@@ -4,19 +4,20 @@ byte values, records in storage the values that failed to deploy.
 """
 
 import pytest
-from ethereum_test_forks import Byzantium, Fork, London
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
+    compute_create_address,
 )
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_types import compute_create_address
+from execution_testing.forks import Byzantium, London
 
 
 @pytest.mark.ported_from(

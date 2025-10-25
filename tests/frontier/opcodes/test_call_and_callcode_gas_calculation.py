@@ -33,17 +33,17 @@ insufficient.
 from typing import Dict
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 """
 PUSH opcode cost is 3, GAS opcode cost is 2.

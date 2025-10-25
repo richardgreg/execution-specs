@@ -3,9 +3,7 @@
 from typing import List, Optional
 
 import pytest
-from ethereum_test_base_types.base_types import Hash
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Address,
     Alloc,
     Blob,
@@ -13,6 +11,8 @@ from ethereum_test_tools import (
     BlockchainTestFiller,
     BlockException,
     Environment,
+    Fork,
+    Hash,
     Header,
     NetworkWrappedTransaction,
     Transaction,

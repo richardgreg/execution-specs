@@ -75,7 +75,10 @@ tests/execution-spec-generated-tests
 tests/fixtures
 tests/t8n_testdata
 
-fixtures
+fixtures/
 
 logs/
 *.log
+
+# config (output of `uv run make env`)
+env.yaml

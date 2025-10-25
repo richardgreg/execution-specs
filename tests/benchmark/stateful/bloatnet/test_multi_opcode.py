@@ -7,17 +7,17 @@ abstract: BloatNet bench cases extracted from https://hackmd.io/9icZeLN7R0Sk5mIj
 """
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Block,
     BlockchainTestFiller,
+    Bytecode,
+    Fork,
+    Op,
     Transaction,
     While,
 )
-from ethereum_test_vm import Bytecode
-from ethereum_test_vm import Opcodes as Op
 
 REFERENCE_SPEC_GIT_PATH = "DUMMY/bloatnet.md"
 REFERENCE_SPEC_VERSION = "1.0"

@@ -4,14 +4,15 @@ into EEST tests.
 """
 
 import pytest
-from ethereum_test_forks import Cancun, Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Alloc,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.forks import Cancun
 
 REFERENCE_SPEC_GIT_PATH = "N/A"
 REFERENCE_SPEC_VERSION = "N/A"

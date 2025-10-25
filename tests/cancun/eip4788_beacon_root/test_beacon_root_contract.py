@@ -20,20 +20,20 @@ from itertools import count
 from typing import Callable, Dict, Iterator, List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Block,
     BlockchainTestFiller,
     Bytecode,
+    Fork,
     Hash,
+    Op,
     Storage,
     Transaction,
     Withdrawal,
 )
-from ethereum_test_vm import Opcodes as Op
 
 from .spec import Spec, ref_spec_4788
 

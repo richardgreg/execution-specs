@@ -7,20 +7,20 @@ import random
 from typing import Generator, Tuple
 
 import pytest
-from ethereum_test_base_types import Account
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     AccessList,
+    Account,
     Address,
     Alloc,
     AuthorizationTuple,
     BenchmarkTestFiller,
     Block,
     BlockchainTestFiller,
+    Fork,
     Hash,
+    Op,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
 
 
 @pytest.fixture

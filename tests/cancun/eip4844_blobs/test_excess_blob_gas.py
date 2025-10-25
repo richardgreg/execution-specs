@@ -29,8 +29,7 @@ import itertools
 from typing import Callable, Dict, Iterator, List, Mapping, Optional, Tuple
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     Account,
     Address,
@@ -40,12 +39,13 @@ from ethereum_test_tools import (
     BlockException,
     Bytecode,
     Environment,
+    Fork,
     Hash,
     Header,
+    Op,
     Transaction,
     add_kzg_version,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec, SpecHelpers, ref_spec_4844
 

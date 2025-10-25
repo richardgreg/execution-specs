@@ -2,7 +2,7 @@
 
 from dataclasses import dataclass
 
-from ethereum_test_tools import Address
+from execution_testing import Address
 
 
 @dataclass(frozen=True)

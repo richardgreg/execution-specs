@@ -7,16 +7,17 @@ from pathlib import Path
 from typing import Any, Generator
 
 import pytest
-from ethereum_test_forks import Fork, Prague
-from ethereum_test_tools import (
+from execution_testing import (
     Address,
     Alloc,
     Block,
+    Fork,
     Header,
     Requests,
     Transaction,
     generate_system_contract_deploy_test,
 )
+from execution_testing.forks import Prague
 
 from .helpers import WithdrawalRequest
 from .spec import Spec, ref_spec_7002

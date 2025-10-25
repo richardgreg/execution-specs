@@ -5,8 +5,7 @@ from dataclasses import dataclass
 from hashlib import sha256
 from typing import List, Optional, Tuple
 
-from ethereum_test_forks import Fork
-from ethereum_test_tools import Transaction
+from execution_testing import Fork, Transaction
 
 
 @dataclass(frozen=True)

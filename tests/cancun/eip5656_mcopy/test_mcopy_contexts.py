@@ -8,18 +8,18 @@ from itertools import cycle, islice
 from typing import Mapping
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     Environment,
+    Op,
     StateTestFiller,
     Storage,
     Transaction,
     ceiling_division,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .common import REFERENCE_SPEC_GIT_PATH, REFERENCE_SPEC_VERSION
 

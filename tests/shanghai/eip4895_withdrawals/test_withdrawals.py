@@ -6,21 +6,21 @@ from enum import Enum, unique
 from typing import Dict, List, Mapping
 
 import pytest
-from ethereum_clis import TransitionTool
-from ethereum_test_forks import Cancun, Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     Account,
     Address,
     Alloc,
     Block,
     BlockchainTestFiller,
+    Fork,
     Hash,
+    Op,
     Transaction,
     TransactionException,
     Withdrawal,
 )
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.forks import Cancun
 
 from .spec import ref_spec_4895
 
@@ -714,7 +714,6 @@ def test_withdrawing_to_precompiles(
     pre: Alloc,
     precompile: int,
     amount: int,
-    t8n: TransitionTool,
 ) -> None:
     """Test withdrawing to all precompiles for a given fork."""
     sender = pre.fund_eoa()

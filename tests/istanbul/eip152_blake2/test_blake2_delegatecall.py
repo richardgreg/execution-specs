@@ -3,16 +3,16 @@ Test delegatecall to Blake2B Precompile before and after added.
 """
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_forks.forks.forks import Istanbul
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
+from execution_testing.forks.forks.forks import Istanbul
 
 from .spec import Spec
 

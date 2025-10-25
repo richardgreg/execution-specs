@@ -1,20 +1,20 @@
 """Test good TXCREATE cases."""
 
 import pytest
-from ethereum_test_base_types import Storage
-from ethereum_test_base_types.base_types import Address
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
+    Address,
     Alloc,
+    Bytecode,
     Environment,
     EVMCodeType,
+    Op,
     StateTestFiller,
+    Storage,
     Transaction,
     compute_eofcreate_address,
 )
-from ethereum_test_types.eof.v1 import Container, Section
-from ethereum_test_vm import Bytecode
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types.eof.v1 import Container, Section
 
 from .. import EOF_FORK_NAME
 from ..eip7069_extcall.spec import EXTCALL_SUCCESS, LEGACY_CALL_SUCCESS

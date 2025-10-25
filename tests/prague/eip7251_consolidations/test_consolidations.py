@@ -5,21 +5,21 @@ Tests [EIP-7251: Increase the MAX_EFFECTIVE_BALANCE](https://eips.ethereum.org/E
 from typing import List
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Address,
     Alloc,
     Block,
     BlockchainTestFiller,
     BlockException,
     Environment,
+    Fork,
     Header,
     Macros,
+    Op,
     Requests,
     TestAddress,
     TestAddress2,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .helpers import (
     ConsolidationRequest,

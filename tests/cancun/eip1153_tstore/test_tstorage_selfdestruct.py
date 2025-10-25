@@ -9,7 +9,7 @@ from enum import unique
 from typing import Dict
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Bytecode,
@@ -17,12 +17,12 @@ from ethereum_test_tools import (
     Environment,
     Hash,
     Initcode,
+    Op,
     StateTestFiller,
     Switch,
     Transaction,
     compute_create_address,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from . import PytestParameterEnum
 from .spec import ref_spec_1153

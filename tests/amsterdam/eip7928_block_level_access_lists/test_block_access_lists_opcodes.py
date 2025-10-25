@@ -17,24 +17,20 @@ preventing consensus issues.
 from enum import Enum
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
-    Block,
-    BlockchainTestFiller,
-    Transaction,
-)
-from ethereum_test_tools import (
-    Opcodes as Op,
-)
-from ethereum_test_types.block_access_list import (
     BalAccountExpectation,
     BalStorageChange,
     BalStorageSlot,
+    Block,
     BlockAccessListExpectation,
+    BlockchainTestFiller,
+    Bytecode,
+    Fork,
+    Op,
+    Transaction,
 )
-from ethereum_test_vm import Bytecode
 
 from .spec import ref_spec_7928
 

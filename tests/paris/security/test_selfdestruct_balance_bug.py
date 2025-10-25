@@ -13,18 +13,18 @@ To reproduce the issue with this test case:
 """
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Block,
     BlockchainTestFiller,
     CalldataCase,
     Initcode,
+    Op,
     Switch,
     Transaction,
     compute_create_address,
 )
-from ethereum_test_vm import Opcodes as Op
 
 
 @pytest.mark.valid_from("Constantinople")

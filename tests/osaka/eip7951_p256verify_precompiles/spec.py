@@ -3,7 +3,7 @@
 from dataclasses import dataclass
 from typing import Sized, SupportsBytes
 
-from ethereum_test_tools import Address, Bytes
+from execution_testing import Address, Bytes
 
 
 @dataclass(frozen=True)

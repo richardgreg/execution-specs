@@ -1,10 +1,16 @@
 """EOF JUMPF tests covering JUMPF target rules."""
 
 import pytest
-from ethereum_test_tools import Account, EOFException, EOFStateTestFiller
-from ethereum_test_types.eof.v1 import Container, Section
-from ethereum_test_types.eof.v1.constants import NON_RETURNING_SECTION
-from ethereum_test_vm import Opcodes as Op
+from execution_testing import (
+    Account,
+    EOFException,
+    EOFStateTestFiller,
+    Op,
+)
+from execution_testing.test_types.eof.v1 import Container, Section
+from execution_testing.test_types.eof.v1.constants import (
+    NON_RETURNING_SECTION,
+)
 
 from .. import EOF_FORK_NAME
 from .helpers import slot_code_worked, value_code_worked

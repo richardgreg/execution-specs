@@ -2,18 +2,16 @@
 
 from functools import cached_property
 
-from ethereum_test_forks import (
+from execution_testing import Alloc, Bytecode, Fork, Op
+from execution_testing.forks import (
     Byzantium,
     Cancun,
     Constantinople,
-    Fork,
     Istanbul,
     London,
     Shanghai,
 )
-from ethereum_test_tools import Alloc, Bytecode
-from ethereum_test_types import ChainConfigDefaults
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types import ChainConfigDefaults
 
 from ..common import (
     ProgramResult,

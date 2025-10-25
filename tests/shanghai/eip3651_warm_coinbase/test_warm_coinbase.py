@@ -6,18 +6,19 @@ Tests ported from:
 """
 
 import pytest
-from ethereum_test_forks import Fork, Shanghai
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Address,
     Alloc,
     Bytecode,
     CodeGasMeasure,
     Environment,
+    Fork,
+    Op,
     StateTestFiller,
     Transaction,
 )
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.forks import Shanghai
 
 from .spec import ref_spec_3651
 

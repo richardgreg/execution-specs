@@ -3,17 +3,17 @@
 from typing import SupportsBytes
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     Address,
     Alloc,
     Bytecode,
+    Fork,
+    Op,
     Storage,
     Transaction,
     keccak256,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .spec import Spec
 

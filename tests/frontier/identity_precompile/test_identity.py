@@ -3,15 +3,15 @@
 from typing import Tuple
 
 import pytest
-from ethereum_test_base_types.composite_types import Storage
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Environment,
+    Op,
     StateTestFiller,
+    Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from .common import CallArgs, generate_identity_call_bytecode
 

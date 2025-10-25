@@ -9,15 +9,19 @@ from enum import Enum, auto
 from typing import List, Type
 
 import pytest
-from ethereum_test_base_types import Bytes, FixedSizeBytes, HexNumber
-from ethereum_test_tools import (
+from execution_testing import (
     Address,
     Alloc,
     AuthorizationTuple,
+    Bytes,
     ChainConfig,
     Transaction,
     TransactionException,
     TransactionTestFiller,
+)
+from execution_testing.base_types import (
+    FixedSizeBytes,
+    HexNumber,
 )
 
 from .spec import Spec, ref_spec_7702

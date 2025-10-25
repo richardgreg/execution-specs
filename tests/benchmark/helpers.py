@@ -1,8 +1,6 @@
 """Helper functions for the EVM benchmark worst-case tests."""
 
-from ethereum_test_forks import Fork
-from ethereum_test_tools import Bytecode
-from ethereum_test_vm import Opcodes as Op
+from execution_testing import Bytecode, Fork, Op
 
 
 def code_loop_precompile_call(

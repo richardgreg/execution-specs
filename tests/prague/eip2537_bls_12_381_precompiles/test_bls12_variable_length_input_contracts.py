@@ -10,17 +10,17 @@ for BLS12-381 curve operations]
 from typing import Callable, List, SupportsBytes
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     Alloc,
     Bytecode,
     Environment,
+    Fork,
+    Op,
+    ParameterSet,
     StateTestFiller,
     Storage,
     Transaction,
 )
-from ethereum_test_tools import Opcodes as Op
-from ethereum_test_tools.utility.pytest import ParameterSet
 
 from .spec import (
     GAS_CALCULATION_FUNCTION_MAP,

@@ -3,7 +3,7 @@
 from typing import Optional
 
 import pytest
-from ethereum_test_tools import (
+from execution_testing import (
     Account,
     Alloc,
     Block,
@@ -11,10 +11,10 @@ from ethereum_test_tools import (
     Environment,
     EVMCodeType,
     Initcode,
+    Op,
     Transaction,
 )
-from ethereum_test_types.eof.v1 import Container
-from ethereum_test_vm import Opcodes as Op
+from execution_testing.test_types.eof.v1 import Container
 
 from .spec import ref_spec_1153
 

@@ -3,8 +3,7 @@
 from typing import List, Sequence
 
 import pytest
-from ethereum_test_forks import Fork
-from ethereum_test_tools import (
+from execution_testing import (
     EOA,
     AccessList,
     Address,
@@ -12,12 +11,13 @@ from ethereum_test_tools import (
     AuthorizationTuple,
     Bytecode,
     Bytes,
+    Fork,
     Hash,
+    Op,
     Transaction,
     TransactionException,
     add_kzg_version,
 )
-from ethereum_test_tools import Opcodes as Op
 
 from ...cancun.eip4844_blobs.spec import Spec as EIP_4844_Spec
 from .helpers import DataTestType, find_floor_cost_threshold
