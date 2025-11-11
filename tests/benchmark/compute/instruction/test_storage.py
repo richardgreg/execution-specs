@@ -15,6 +15,7 @@ from execution_testing import (
     Block,
     Bytecode,
     Environment,
+    ExtCallGenerator,
     Fork,
     JumpLoopGenerator,
     Op,
@@ -27,70 +28,55 @@ from execution_testing import (
 from tests.benchmark.compute.helpers import StorageAction, TransactionResult
 
 
-# `key_mut` indicates the key isn't fixed.
-@pytest.mark.parametrize("key_mut", [True, False])
-# `val_mut` indicates that at the end of each big-loop, the value of the target
-# key changes.
-@pytest.mark.parametrize("val_mut", [True, False])
+@pytest.mark.parametrize("fixed_key", [True, False])
+@pytest.mark.parametrize("fixed_value", [True, False])
 def test_tload(
     benchmark_test: BenchmarkTestFiller,
-    key_mut: bool,
-    val_mut: bool,
+    fixed_key: bool,
+    fixed_value: bool,
 ) -> None:
     """Benchmark TLOAD instruction."""
-    start_key = 41
-    code_key_mut = Bytecode()
-    code_val_mut = Bytecode()
     setup = Bytecode()
-    if key_mut and val_mut:
-        setup = Op.PUSH1(start_key)
-        attack_block = Op.POP(Op.TLOAD(Op.DUP1))
-        code_key_mut = Op.POP + Op.GAS
-        code_val_mut = Op.TSTORE(Op.DUP2, Op.GAS)
-    if key_mut and not val_mut:
-        attack_block = Op.POP(Op.TLOAD(Op.GAS))
-    if not key_mut and val_mut:
-        attack_block = Op.POP(Op.TLOAD(Op.CALLVALUE))
-        code_val_mut = Op.TSTORE(
-            Op.CALLVALUE, Op.GAS
-        )  # CALLVALUE configured in the tx
-    if not key_mut and not val_mut:
-        attack_block = Op.POP(Op.TLOAD(Op.CALLVALUE))
+    if not fixed_key and not fixed_value:
+        setup = Op.GAS + Op.TSTORE(Op.DUP2, Op.GAS)
+        attack_block = Op.TLOAD(Op.DUP1)
+    if not fixed_key and fixed_value:
+        attack_block = Op.TLOAD(Op.GAS)
+    if fixed_key and not fixed_value:
+        setup = Op.TSTORE(Op.CALLDATASIZE, Op.GAS)
+        attack_block = Op.TLOAD(Op.CALLDATASIZE)
+    if fixed_key and fixed_value:
+        attack_block = Op.TLOAD(Op.CALLDATASIZE)
 
-    cleanup = code_key_mut + code_val_mut
-    tx_value = start_key if not key_mut and val_mut else 0
+    tx_data = b"42" if fixed_key and not fixed_value else 0
 
     benchmark_test(
-        code_generator=JumpLoopGenerator(
+        code_generator=ExtCallGenerator(
             setup=setup,
             attack_block=attack_block,
-            cleanup=cleanup,
-            tx_kwargs={
-                "value": tx_value,
-            },
+            tx_kwargs={"data": tx_data},
         ),
     )
 
 
-@pytest.mark.parametrize("key_mut", [True, False])
-@pytest.mark.parametrize("dense_val_mut", [True, False])
+@pytest.mark.parametrize("fixed_key", [True, False])
+@pytest.mark.parametrize("fixed_value", [True, False])
 def test_tstore(
     benchmark_test: BenchmarkTestFiller,
-    key_mut: bool,
-    dense_val_mut: bool,
+    fixed_key: bool,
+    fixed_value: bool,
 ) -> None:
     """Benchmark TSTORE instruction."""
     init_key = 42
     setup = Op.PUSH1(init_key)
 
-    # If `dense_val_mut` is set, we use GAS as a cheap way of always
-    # storing a different value than
-    # the previous one.
-    attack_block = Op.TSTORE(Op.DUP2, Op.GAS if dense_val_mut else Op.DUP1)
+    # If fixed_value is False, we use GAS as a cheap way of always
+    # storing a different value than the previous one.
+    attack_block = Op.TSTORE(Op.DUP2, Op.GAS if not fixed_value else Op.DUP1)
 
-    # If `key_mut` is True, we mutate the key on every iteration of the
+    # If fixed_key is False, we mutate the key on every iteration of the
     # big loop.
-    cleanup = Op.POP + Op.GAS if key_mut else Bytecode()
+    cleanup = Op.POP + Op.GAS if not fixed_key else Bytecode()
 
     benchmark_test(
         code_generator=JumpLoopGenerator(

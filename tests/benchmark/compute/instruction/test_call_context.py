@@ -55,8 +55,8 @@ def test_calldatasize(
 ) -> None:
     """Benchmark CALLDATASIZE instruction."""
     benchmark_test(
-        code_generator=JumpLoopGenerator(
-            attack_block=Op.POP(Op.CALLDATASIZE),
+        code_generator=ExtCallGenerator(
+            attack_block=Op.CALLDATASIZE,
             tx_kwargs={"data": b"\x00" * calldata_length},
         ),
     )
@@ -161,7 +161,7 @@ def test_calldatacopy(
     size: int,
     fixed_src_dst: bool,
     non_zero_data: bool,
-    gas_benchmark_value: int,
+    tx_gas_limit: int,
 ) -> None:
     """Benchmark CALLDATACOPY instruction."""
     if size == 0 and non_zero_data:
@@ -174,7 +174,7 @@ def test_calldatacopy(
 
     intrinsic_gas_calculator = fork.transaction_intrinsic_cost_calculator()
     min_gas = intrinsic_gas_calculator(calldata=data)
-    if min_gas > gas_benchmark_value:
+    if min_gas > tx_gas_limit:
         pytest.skip(
             "Minimum gas required for calldata ({min_gas}) is greater "
             "than the gas limit"
@@ -222,7 +222,6 @@ def test_calldatacopy(
 
     tx = Transaction(
         to=tx_target,
-        gas_limit=gas_benchmark_value,
         data=data,
         sender=pre.fund_eoa(),
     )
@@ -323,11 +322,6 @@ def test_returndatacopy(
     )
     dst = 0 if fixed_dst else Op.MOD(Op.GAS, 7)
 
-    # We create the contract that will be doing the RETURNDATACOPY multiple
-    # times.
-    returndata_gen = (
-        Op.STATICCALL(address=helper_contract) if size > 0 else Bytecode()
-    )
     attack_block = Op.RETURNDATACOPY(dst, Op.PUSH0, Op.RETURNDATASIZE)
 
     benchmark_test(

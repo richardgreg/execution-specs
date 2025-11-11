@@ -53,6 +53,7 @@ class BenchmarkCodeGenerator(ABC):
     setup: Bytecode = field(default_factory=Bytecode)
     cleanup: Bytecode = field(default_factory=Bytecode)
     tx_kwargs: Dict[str, Any] = field(default_factory=dict)
+    code_padding_opcode: Op | None = None
     _contract_address: Address | None = None
 
     @abstractmethod
@@ -104,6 +105,9 @@ class BenchmarkCodeGenerator(ABC):
         # TODO: Unify the PUSH0 and PUSH1 usage.
         code = setup + Op.JUMPDEST + repeated_code * max_iterations + cleanup
         code += Op.JUMP(len(setup)) if len(setup) > 0 else Op.PUSH0 + Op.JUMP
+        # Pad the code to the maximum code size.
+        if self.code_padding_opcode is not None:
+            code += self.code_padding_opcode * (max_code_size - len(code))
         self._validate_code_size(code, fork)
 
         return code
