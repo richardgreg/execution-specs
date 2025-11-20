@@ -38,36 +38,48 @@ runs:
         echo "Fixtures extracted successfully"
 
     - name: Start Hive in dev mode
-      shell: bash
-      run: |
-        cd hive
-        ./hive --dev \
-          --client besu,go-ethereum,nethermind \
-          --client-file ../.github/configs/hive/latest_client_releases.yaml \
-          --docker.output &
-
-        echo "Waiting for Hive to be ready..."
-        for i in {1..30}; do
-          if curl -s http://127.0.0.1:3000 > /dev/null 2>&1; then
-            echo "Hive is ready!"
-            exit 0
-          fi
-          echo "Waiting... ($i/30)"
-          sleep 2
-        done
-        echo "Hive failed to start within timeout"
-        exit 1
-
-    - name: Extract genesis configs from clients
+      id: start-hive
       shell: bash
       env:
         HIVE_SIMULATOR: http://127.0.0.1:3000
       run: |
+        cd hive
+        ./hive --dev \
+          --client besu,go-ethereum,nethermind \
+          --client-file ../.github/configs/hive/latest.yaml \
+          --docker.output &
+        export HIVE_PID=$!
+
+        echo "Waiting for Hive to be ready, pid=$HIVE_PID"
+        deadline=$((SECONDS + 600))
+        
+        while :; do
+          # condition 1: time is up
+          if (( SECONDS >= deadline )); then
+            echo "Hive failed to start within timeout"
+            exit 1
+          fi
+
+          # condition 2: process exited
+          if ! kill -0 "$HIVE_PID" 2>/dev/null; then
+            echo "Hive process died"
+            exit 1
+          fi
+
+          # condition 3: curl succeeded
+          if curl -s $HIVE_SIMULATOR > /dev/null; then
+            echo "Hive is ready!"
+            break
+          fi
+          sleep 1
+        done
+
         echo "Running extract_config for benchmark fixtures..."
+        cd ..
         uv run extract_config \
           --fixture fixtures/blockchain_tests_engine_x/pre_alloc/ \
           --output genesis/ \
-          --hive-url http://127.0.0.1:3000
+          --hive-url $HIVE_SIMULATOR
 
         echo "Genesis configs extracted successfully"
         ls -la genesis/
