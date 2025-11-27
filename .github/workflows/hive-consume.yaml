@@ -19,6 +19,10 @@ concurrency:
   group: hive-consume-${{ github.workflow }}-${{ github.ref || github.run_id }}
   cancel-in-progress: true
 
+env:
+  # Use direct URL instead of release spec (e.g., develop@v5.3.0) to avoid GitHub API rate limits
+  FIXTURES_URL: https://github.com/ethereum/execution-spec-tests/releases/download/v5.3.0/fixtures_develop.tar.gz
+
 jobs:
   test-hive:
     name: ${{ matrix.name }}
@@ -41,7 +45,6 @@ jobs:
             consume_command: engine
     steps:
       - name: Checkout execution-specs
-        if: matrix.mode == 'dev'
         uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
         with:
           path: execution-specs
@@ -68,19 +71,6 @@ jobs:
           version: ${{ vars.UV_VERSION }}
           python-version: ${{ vars.DEFAULT_PYTHON_VERSION }}
 
-      - name: Pre-pull geth docker image
-        run: docker pull docker.ethquokkaops.io/dh/ethpandaops/geth:master
-
-      - name: Create clients.yaml
-        run: |
-          cat > hive/clients.yaml << 'EOF'
-          - client: go-ethereum
-            nametag: default
-            build_args:
-              baseimage: docker.ethquokkaops.io/dh/ethpandaops/geth
-              tag: master
-          EOF
-
       - name: Build hive
         run: |
           cd hive
@@ -93,8 +83,8 @@ jobs:
           ./hive --sim '${{ matrix.simulator }}' \
             --sim.parallelism=1 \
             --client go-ethereum \
-            --client-file clients.yaml \
-            --sim.buildarg fixtures=develop@v5.3.0 \
+            --client-file ../execution-specs/.github/configs/hive/master.yaml \
+            --sim.buildarg fixtures=${{ env.FIXTURES_URL }} \
             --sim.limit=".*test_block_at_rlp_limit_with_logs.*Osaka.*" \
             --docker.output
 
@@ -102,7 +92,7 @@ jobs:
         if: matrix.mode == 'dev'
         run: |
           cd hive
-          ./hive --dev --client go-ethereum --client-file clients.yaml --docker.output &
+          ./hive --dev --client go-ethereum --client-file ../execution-specs/.github/configs/hive/master.yaml --docker.output &
           echo "Waiting for Hive to be ready..."
           for i in {1..30}; do
             if curl -s http://127.0.0.1:3000 > /dev/null 2>&1; then
@@ -120,4 +110,4 @@ jobs:
           HIVE_SIMULATOR: http://127.0.0.1:3000
         run: |
           uv sync --all-extras
-          uv run consume ${{ matrix.consume_command }} --input develop@v5.3.0 -k "Osaka and test_block_at_rlp_limit_with_logs"
+          uv run consume ${{ matrix.consume_command }} --input ${{ env.FIXTURES_URL }} -k "Osaka and test_block_at_rlp_limit_with_logs"
