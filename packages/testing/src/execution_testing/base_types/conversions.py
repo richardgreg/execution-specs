@@ -1,7 +1,6 @@
 """Common conversion methods."""
 
-from re import sub
-from typing import Any, List, Optional, SupportsBytes, TypeAlias
+from typing import List, SupportsBytes, TypeAlias
 
 BytesConvertible: TypeAlias = str | bytes | SupportsBytes | List[int]
 FixedSizeBytesConvertible: TypeAlias = (
@@ -10,46 +9,20 @@ FixedSizeBytesConvertible: TypeAlias = (
 NumberConvertible: TypeAlias = str | bytes | SupportsBytes | int
 
 
-def int_or_none(input_value: Any, default: Optional[int] = None) -> int | None:
-    """Convert a value to int or returns a default (None)."""
-    if input_value is None:
-        return default
-    if isinstance(input_value, int):
-        return input_value
-    return int(input_value, 0)
-
-
-def str_or_none(input_value: Any, default: Optional[str] = None) -> str | None:
-    """Convert a value to string or returns a default (None)."""
-    if input_value is None:
-        return default
-    if isinstance(input_value, str):
-        return input_value
-    return str(input_value)
-
-
 def to_bytes(input_bytes: BytesConvertible) -> bytes:
     """Convert multiple types into bytes."""
     if input_bytes is None:
         raise Exception("Cannot convert `None` input to bytes")
 
-    if (
-        isinstance(input_bytes, SupportsBytes)
-        or isinstance(input_bytes, bytes)
-        or isinstance(input_bytes, list)
-    ):
-        return bytes(input_bytes)
-
     if isinstance(input_bytes, str):
         # We can have a hex representation of bytes with spaces for readability
-        input_bytes = sub(r"\s+", "", input_bytes)
         if input_bytes.startswith("0x"):
             input_bytes = input_bytes[2:]
         if len(input_bytes) % 2 == 1:
             input_bytes = "0" + input_bytes
         return bytes.fromhex(input_bytes)
 
-    raise Exception("invalid type for `bytes`")
+    return bytes(input_bytes)
 
 
 def to_fixed_size_bytes(
@@ -85,9 +58,9 @@ def to_fixed_size_bytes(
         )
     if len(input_bytes) < size:
         if left_padding:
-            return bytes(input_bytes).rjust(size, b"\x00")
+            return input_bytes.rjust(size, b"\x00")
         if right_padding:
-            return bytes(input_bytes).ljust(size, b"\x00")
+            return input_bytes.ljust(size, b"\x00")
         raise Exception(
             f"input is too small for fixed size bytes: {len(input_bytes)} < {size}\n"
             "Use `left_padding=True` or `right_padding=True` to allow padding."
