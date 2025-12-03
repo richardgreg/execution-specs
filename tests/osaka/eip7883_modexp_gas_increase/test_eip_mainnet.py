@@ -1,7 +1,5 @@
 """
-Mainnet marked tests for EIP-7883 ModExp gas cost increase.
-
-Tests for ModExp gas cost increase in
+Mainnet marked execute checklist tests for
 [EIP-7883: ModExp Gas Cost Increase](https://eips.ethereum.org/EIPS/eip-7883).
 """
 
@@ -14,13 +12,22 @@ from execution_testing import (
     Transaction,
 )
 
-from ...byzantium.eip198_modexp_precompile.helpers import ModExpInput
+from ...byzantium.eip198_modexp_precompile.helpers import (
+    ModExpInput,
+    ModExpOutput,
+)
 from .spec import Spec, ref_spec_7883
 
 REFERENCE_SPEC_GIT_PATH = ref_spec_7883.git_path
 REFERENCE_SPEC_VERSION = ref_spec_7883.version
 
 pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
+
+
+@pytest.fixture
+def call_succeeds(modexp_expected: ModExpOutput) -> bool:
+    """Override `call_succeeds` to use the parametrized ModExpOutput value."""
+    return modexp_expected.call_success
 
 
 @pytest.mark.parametrize(
@@ -35,8 +42,10 @@ pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
                 declared_exponent_length=1,
                 declared_modulus_length=1,
             ),
-            # expected result:
-            bytes.fromhex("04"),
+            ModExpOutput(
+                call_success=True,
+                returned_data="0x04",
+            ),
             id="32-bytes-long-base",
         ),
         pytest.param(
@@ -48,8 +57,10 @@ pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
                 declared_exponent_length=1,
                 declared_modulus_length=1,
             ),
-            # expected result:
-            bytes.fromhex("01"),
+            ModExpOutput(
+                call_success=True,
+                returned_data="0x01",
+            ),
             id="33-bytes-long-base",  # higher cost than 32 bytes
         ),
         pytest.param(
@@ -61,8 +72,10 @@ pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
                 declared_exponent_length=1024,
                 declared_modulus_length=1,
             ),
-            # expected result:
-            bytes.fromhex("02"),
+            ModExpOutput(
+                call_success=True,
+                returned_data="0x02",
+            ),
             id="1024-bytes-long-exp",
         ),
         pytest.param(
@@ -74,9 +87,11 @@ pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
                 declared_exponent_length=3,
                 declared_modulus_length=64,
             ),
-            # expected result:
-            bytes.fromhex(
-                "c36d804180c35d4426b57b50c5bfcca5c01856d104564cd513b461d3c8b8409128a5573e416d0ebe38f5f736766d9dc27143e4da981dfa4d67f7dc474cbee6d2"
+            ModExpOutput(
+                call_success=True,
+                returned_data=(
+                    "0xc36d804180c35d4426b57b50c5bfcca5c01856d104564cd513b461d3c8b8409128a5573e416d0ebe38f5f736766d9dc27143e4da981dfa4d67f7dc474cbee6d2"
+                ),
             ),
             id="nagydani-1-pow0x10001",
         ),
@@ -89,9 +104,11 @@ pytestmark = [pytest.mark.valid_at("Osaka"), pytest.mark.mainnet]
                 declared_exponent_length=64,
                 declared_modulus_length=32,
             ),
-            # expected result:
-            bytes.fromhex(
-                "0000000000000000000000000000000000000000000000000000000000000001"
+            ModExpOutput(
+                call_success=True,
+                returned_data=(
+                    "0x0000000000000000000000000000000000000000000000000000000000000001"
+                ),
             ),
             id="zero-exponent-64bytes",
         ),
@@ -102,8 +119,6 @@ def test_modexp_different_base_lengths(
     pre: Alloc,
     tx: Transaction,
     post: Dict,
-    modexp_input: ModExpInput,
-    modexp_expected: ModExpInput,
 ) -> None:
     """Mainnet test for triggering gas cost increase."""
     state_test(pre=pre, tx=tx, post=post)
