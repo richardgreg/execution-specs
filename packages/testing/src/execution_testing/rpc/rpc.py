@@ -7,7 +7,7 @@ import os
 import time
 from itertools import count
 from pprint import pprint
-from typing import Any, ClassVar, Dict, List, Literal
+from typing import Any, ClassVar, Dict, List, Literal, Sequence
 
 import requests
 from jwt import encode
@@ -24,7 +24,6 @@ from execution_testing.base_types import Address, Bytes, Hash, to_json
 from execution_testing.logging import (
     get_logger,
 )
-from execution_testing.test_types import Transaction
 
 from .rpc_types import (
     EthConfigResponse,
@@ -36,6 +35,7 @@ from .rpc_types import (
     PayloadAttributes,
     PayloadStatus,
     TransactionByHashResponse,
+    TransactionProtocol,
 )
 
 logger = get_logger(__name__)
@@ -47,13 +47,13 @@ class SendTransactionExceptionError(Exception):
     Represent an exception that is raised when a transaction fails to be sent.
     """
 
-    tx: Transaction | None = None
+    tx: TransactionProtocol | None = None
     tx_rlp: Bytes | None = None
 
     def __init__(
         self,
         *args: Any,
-        tx: Transaction | None = None,
+        tx: TransactionProtocol | None = None,
         tx_rlp: Bytes | None = None,
     ) -> None:
         """
@@ -201,6 +201,11 @@ class EthRPC(BaseRPC):
     transaction_wait_timeout: int = 60
     poll_interval: float = 1.0  # how often to poll for tx inclusion
 
+    gas_information_stale_seconds: int
+
+    _gas_information_cache: Dict[str, int]
+    _gas_information_cache_timestamp: Dict[str, float]
+
     BlockNumberType = int | Literal["latest", "earliest", "pending"]
 
     def __init__(
@@ -208,6 +213,7 @@ class EthRPC(BaseRPC):
         *args: Any,
         transaction_wait_timeout: int = 60,
         poll_interval: float | None = None,
+        gas_information_stale_seconds: int = 12,
         **kwargs: Any,
     ) -> None:
         """
@@ -233,6 +239,17 @@ class EthRPC(BaseRPC):
                 self.poll_interval = 1.0
         else:
             self.poll_interval = 1.0
+        self.gas_information_stale_seconds = gas_information_stale_seconds
+        self._gas_information_cache = {
+            "gasPrice": 0,
+            "maxPriorityFeePerGas": 0,
+            "blobBaseFee": 0,
+        }
+        self._gas_information_cache_timestamp = {
+            "gasPrice": 0.0,
+            "maxPriorityFeePerGas": 0.0,
+            "blobBaseFee": 0.0,
+        }
 
     def config(self, timeout: int | None = None) -> EthConfigResponse | None:
         """
@@ -394,13 +411,40 @@ class EthRPC(BaseRPC):
         response = self.post_request(method="getStorageAt", params=params)
         return Hash(response)
 
+    def _get_gas_information(
+        self,
+        *,
+        method: Literal["gasPrice", "maxPriorityFeePerGas", "blobBaseFee"],
+    ) -> int:
+        """Get gas information from the cache or the RPC server."""
+        if (
+            time.time() - self._gas_information_cache_timestamp[method]
+            > self.gas_information_stale_seconds
+        ):
+            response = self.post_request(method=method)
+            logger.info(f"Requesting stale {method}")
+            self._gas_information_cache[method] = int(response, 16)
+            self._gas_information_cache_timestamp[method] = time.time()
+        return self._gas_information_cache[method]
+
     def gas_price(self) -> int:
         """
         `eth_gasPrice`: Returns the gas price.
         """
-        logger.info("Requesting gas price")
-        response = self.post_request(method="gasPrice")
-        return int(response, 16)
+        return self._get_gas_information(method="gasPrice")
+
+    def max_priority_fee_per_gas(self) -> int:
+        """
+        `eth_maxPriorityFeePerGas`: Return the current max priority fee per
+        gas of the network.
+        """
+        return self._get_gas_information(method="maxPriorityFeePerGas")
+
+    def blob_base_fee(self) -> int:
+        """
+        `eth_blobBaseFee`: Return the current blob base fee per gas of the network.
+        """
+        return self._get_gas_information(method="blobBaseFee")
 
     def send_raw_transaction(
         self, transaction_rlp: Bytes, request_id: int | str | None = None
@@ -422,9 +466,11 @@ class EthRPC(BaseRPC):
                 str(e), tx_rlp=transaction_rlp
             ) from e
 
-    def send_transaction(self, transaction: Transaction) -> Hash:
-        """`eth_sendRawTransaction`: Send a transaction to the client."""
-        # TODO: is this a copypaste error from above?
+    def send_transaction(self, transaction: TransactionProtocol) -> Hash:
+        """
+        Convenience method to send a single transaction to the client via
+        `eth_sendRawTransaction`.
+        """
         try:
             logger.info("Sending tx..")
             response = self.post_request(
@@ -439,7 +485,9 @@ class EthRPC(BaseRPC):
         except Exception as e:
             raise SendTransactionExceptionError(str(e), tx=transaction) from e
 
-    def send_transactions(self, transactions: List[Transaction]) -> List[Hash]:
+    def send_transactions(
+        self, transactions: Sequence[TransactionProtocol]
+    ) -> List[Hash]:
         """
         Use `eth_sendRawTransaction` to send a list of transactions to the
         client.
@@ -463,7 +511,7 @@ class EthRPC(BaseRPC):
         return results
 
     def wait_for_transaction(
-        self, transaction: Transaction
+        self, transaction: TransactionProtocol
     ) -> TransactionByHashResponse:
         """
         Use `eth_getTransactionByHash` to wait until a transaction is included
@@ -485,7 +533,7 @@ class EthRPC(BaseRPC):
         )
 
     def wait_for_transactions(
-        self, transactions: List[Transaction]
+        self, transactions: Sequence[TransactionProtocol]
     ) -> List[TransactionByHashResponse]:
         """
         Use `eth_getTransactionByHash` to wait until all transactions in list
@@ -523,13 +571,13 @@ class EthRPC(BaseRPC):
             f"after {self.transaction_wait_timeout} seconds"
         )
 
-    def send_wait_transaction(self, transaction: Transaction) -> Any:
+    def send_wait_transaction(self, transaction: TransactionProtocol) -> Any:
         """Send transaction and waits until it is included in a block."""
         self.send_transaction(transaction)
         return self.wait_for_transaction(transaction)
 
     def send_wait_transactions(
-        self, transactions: List[Transaction]
+        self, transactions: Sequence[TransactionProtocol]
     ) -> List[Any]:
         """
         Send list of transactions and waits until all of them are included in a

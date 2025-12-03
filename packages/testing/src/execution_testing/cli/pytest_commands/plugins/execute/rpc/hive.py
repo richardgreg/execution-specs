@@ -43,14 +43,14 @@ def pytest_addoption(parser: pytest.Parser) -> None:
         "Arguments defining the hive RPC client properties for the test.",
     )
     hive_rpc_group.addoption(
-        "--sender-key-initial-balance",
+        "--seed-key-initial-balance",
         action="store",
-        dest="sender_key_initial_balance",
+        dest="seed_key_initial_balance",
         type=int,
         default=10**26,
         help=(
-            "Initial balance of each sender key. There is one sender key per worker process "
-            "(`-n` option)."
+            "Initial balance of the seed key. This balance will be "
+            "distributed equally between each pytest worker (`-n` option)."
         ),
     )
     hive_rpc_group.addoption(
@@ -70,9 +70,12 @@ def pytest_configure(config: pytest.Config) -> None:  # noqa: D103
 
 
 @pytest.fixture(scope="session")
-def seed_sender(session_temp_folder: Path) -> EOA:
-    """Determine the seed sender account for the client's genesis."""
-    base_name = "seed_sender"
+def seed_key(session_temp_folder: Path) -> EOA:
+    """
+    Determine the seed account, which is used to fund all worker accounts,
+    and place it in the client's genesis.
+    """
+    base_name = "seed_key"
     base_file = session_temp_folder / base_name
     base_lock_file = session_temp_folder / f"{base_name}.lock"
 
@@ -80,31 +83,24 @@ def seed_sender(session_temp_folder: Path) -> EOA:
         if base_file.exists():
             with base_file.open("r") as f:
                 seed_sender_key = Hash(f.read())
-            seed_sender = EOA(key=seed_sender_key)
+            seed_key = EOA(key=seed_sender_key)
         else:
-            seed_sender = EOA(key=randint(0, 2**256))
+            seed_key = EOA(key=randint(0, 2**256))
             with base_file.open("w") as f:
-                f.write(str(seed_sender.key))
-    return seed_sender
+                f.write(str(seed_key.key))
+    return seed_key
 
 
 @pytest.fixture(scope="session")
 def base_pre(
     request: pytest.FixtureRequest,
-    seed_sender: EOA,
-    worker_count: int,
+    seed_key: EOA,
 ) -> Alloc:
     """Pre-allocation for the client's genesis."""
-    sender_key_initial_balance = request.config.getoption(
-        "sender_key_initial_balance"
+    seed_key_initial_balance = request.config.getoption(
+        "seed_key_initial_balance"
     )
-    return Alloc(
-        {
-            seed_sender: Account(
-                balance=(worker_count * sender_key_initial_balance) + 10**18
-            )
-        }
-    )
+    return Alloc({seed_key: Account(balance=seed_key_initial_balance)})
 
 
 @pytest.fixture(scope="session")
