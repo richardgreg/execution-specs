@@ -44,10 +44,16 @@ def pytest_configure(config: pytest.Config) -> None:
 def pytest_collection_modifyitems(
     config: pytest.Config, items: list[pytest.Item]
 ) -> None:
-    """Remove non-repricing tests when --fixed-opcode-count is specified."""
+    """Filter tests based on repricing marker"""
+    gas_benchmark_value = config.getoption("gas_benchmark_value")
     fixed_opcode_count = config.getoption("fixed_opcode_count")
-    if not fixed_opcode_count:
-        # If --fixed-opcode-count is not specified, don't filter anything
+
+    if not gas_benchmark_value and not fixed_opcode_count:
+        return
+
+    # Check if -m repricing marker filter was specified
+    markexpr = config.getoption("markexpr", "")
+    if "repricing" not in markexpr or "not repricing" in markexpr:
         return
 
     filtered = []
@@ -105,27 +111,22 @@ def pytest_generate_tests(metafunc: pytest.Metafunc) -> None:
             )
 
     if "fixed_opcode_count" in metafunc.fixturenames:
-        # Only parametrize if test has repricing marker
-        has_repricing = (
-            metafunc.definition.get_closest_marker("repricing") is not None
-        )
-        if has_repricing:
-            if fixed_opcode_counts:
-                opcode_counts = [
-                    int(x.strip()) for x in fixed_opcode_counts.split(",")
-                ]
-                opcode_count_parameters = [
-                    pytest.param(
-                        opcode_count,
-                        id=f"opcount_{opcode_count}K",
-                    )
-                    for opcode_count in opcode_counts
-                ]
-                metafunc.parametrize(
-                    "fixed_opcode_count",
-                    opcode_count_parameters,
-                    scope="function",
+        if fixed_opcode_counts:
+            opcode_counts = [
+                int(x.strip()) for x in fixed_opcode_counts.split(",")
+            ]
+            opcode_count_parameters = [
+                pytest.param(
+                    opcode_count,
+                    id=f"opcount_{opcode_count}K",
                 )
+                for opcode_count in opcode_counts
+            ]
+            metafunc.parametrize(
+                "fixed_opcode_count",
+                opcode_count_parameters,
+                scope="function",
+            )
 
 
 @pytest.fixture(scope="function")
