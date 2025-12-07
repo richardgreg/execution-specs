@@ -10,19 +10,9 @@ Test fixtures for use by clients are available for each release on the [Github r
 
 ### 🛠️ Framework
 
-#### General
-
-- 🔀 Updated default block gas limit from 45M to 60M to align with [EIP-7935](https://eips.ethereum.org/EIPS/eip-7935) for the Osaka fork.
-
 #### `fill`
 
-- 🐞 Allow `evmone` to fill Prague and Osaka blockchain tests (mainly modified deposit contract tests) ([#1689](https://github.com/ethereum/execution-specs/pull/1689)).
-- 🐞 Turn off Block-Level Access List related checks when filling tests for Amsterdam ([#1737](https://github.com/ethereum/execution-specs/pull/1737)).
-- ✨ Optimize the filling process by lazily loading the t8n response only when it’s actually needed. Otherwise, pass it verbatim into the next t8n execution, skipping both pydantic validation and model serialization entirely ([#1804](https://github.com/ethereum/execution-specs/pull/1804)).
-
 #### `consume`
-
-- 🐞 Fix a bug with `consume sync` tests where some clients don't have JSON-RPC immediately available after syncing and can't yet serve the synced block ([#1670](https://github.com/ethereum/execution-specs/pull/1670)).
 
 #### `execute`
 
@@ -33,6 +23,27 @@ Test fixtures for use by clients are available for each release on the [Github r
 - 💥 `--eoa-fund-amount-default` has been deprecated since the command now automatically calculates the funding amount ([#1822](https://github.com/ethereum/execution-specs/pull/1822)).
 - 💥 `--sender-key-initial-balance` flag of `execute hive` has been renamed to `--seed-key-initial-balance` ([#1822](https://github.com/ethereum/execution-specs/pull/1822)).
 - 🔀 Flags --default-gas-price, --default-max-fee-per-gas and --default-max-priority-fee-per-gas now default to None and ideally should be omitted because, when unset, the command now defaults to fetch the value from the network, which is a more reliable behavior ([#1822](https://github.com/ethereum/execution-specs/pull/1822)).
+
+### 📋 Misc
+
+### 🧪 Test Cases
+
+## [v5.4.0](https://github.com/ethereum/execution-spec-tests/releases/tag/v5.4.0) - 2025-12-07
+
+### 🛠️ Framework
+
+#### General
+
+- 🔀 Updated default block gas limit from 45M to 60M to align with [EIP-7935](https://eips.ethereum.org/EIPS/eip-7935) for the Osaka fork.
+
+#### `fill`
+
+- 🐞 Allow `evmone` to fill Prague and Osaka blockchain tests (mainly modified deposit contract tests) ([#1689](https://github.com/ethereum/execution-specs/pull/1689)).
+- 🐞 Turn off Block-Level Access List related checks when filling tests for Amsterdam ([#1737](https://github.com/ethereum/execution-specs/pull/1737)).
+
+#### `consume`
+
+- 🐞 Fix a bug with `consume sync` tests where some clients don't have JSON-RPC immediately available after syncing and can't yet serve the synced block ([#1670](https://github.com/ethereum/execution-specs/pull/1670)).
 
 ### 📋 Misc
 
