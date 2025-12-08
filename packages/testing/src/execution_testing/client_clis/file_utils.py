@@ -7,6 +7,12 @@ from typing import Any, Dict
 
 from pydantic import BaseModel, RootModel
 
+from execution_testing.client_clis.cli_types import (
+    LazyAllocJson,
+    LazyAllocStr,
+    TransitionToolInput,
+)
+
 
 def dump_files_to_directory(output_path: str, files: Dict[str, Any]) -> None:
     """Dump the files to the given directory."""
@@ -22,8 +28,14 @@ def dump_files_to_directory(output_path: str, files: Dict[str, Any]) -> None:
             os.makedirs(os.path.join(output_path, rel_path), exist_ok=True)
         file_path = os.path.join(output_path, file_rel_path)
         with open(file_path, "w") as f:
-            if isinstance(file_contents, BaseModel) or isinstance(
-                file_contents, RootModel
+            if isinstance(file_contents, (LazyAllocStr, LazyAllocJson)):
+                if isinstance(file_contents, LazyAllocJson):
+                    dump(file_contents.raw, f, ensure_ascii=True, indent=4)
+                else:
+                    f.write(file_contents.raw)
+
+            elif isinstance(
+                file_contents, (BaseModel, RootModel, TransitionToolInput)
             ):
                 f.write(
                     file_contents.model_dump_json(
